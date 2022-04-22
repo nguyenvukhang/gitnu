@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+_N='\033[0m'    # Normal/Reset
+_R='\033[0;31m' # Red
+_G='\033[0;32m' # Green
+_Y='\033[0;33m' # Yellow
+_B='\033[0;34m' # Blue
+_P='\033[0;35m' # Purple
+_C='\033[0;36m' # Cyan
+_S='\033[0;37m' # Gray
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO=$SCRIPT_DIR/repo
+
+function initialize() {
+  # effectively cd to SCRIPT_DIR
+  pushd $SCRIPT_DIR
+
+  # clear old implementations
+  rm -rf repo
+
+  # create test repository root directory
+  mkdir repo &>/dev/null
+
+  # cd to repo
+  pushd repo
+
+  # initialize git repo
+  git init
+}
+
+function quit() {
+  # navigate back
+  popd
+  popd
+}
+
+function first_commit() {
+  # create an "existing" set of 10 files
+  # to use for modified status later
+  touch alpha.rs bravo.rs
+  git add alpha.rs
+  git commit -m "create alpha.rs"
+}
+
+function divider() {
+  printf "${_S}.........................................................${_N}\n"
+}
+
+function title() {
+  divider
+  printf "[ ${_Y}$1${_N} ]\n"
+}
+
+function show() {
+  title "GIT STATUS"
+  git status
+  title "GIT LOG"
+  git log --all --oneline --graph
+  title "FILES"
+  ls
+  divider
+}
+
+initialize > /dev/null
+first_commit > /dev/null
+show
+quit > /dev/null
