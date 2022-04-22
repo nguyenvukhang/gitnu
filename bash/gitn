@@ -16,15 +16,7 @@ _P='\033[0;35m' # Purple
 _C='\033[0;36m' # Cyan
 _S='\033[0;37m' # Gray
 
-echo $CACHE_FILE
-
 tab=$(printf '\t')
-index=1
-
-status_output=()
-while IFS= read -r line; do
-  status_output+=("$line")
-done < <(git -C $REPO -c status.color=always status)
 
 # gets the filename from one line in git status
 get_filename() {
@@ -45,23 +37,70 @@ get_filename() {
   echo "$filename"
 }
 
-numbered_output=()
-for line in "${status_output[@]}"; do
-  first_char=${line:0:1}
-  if [[ $first_char == "$tab" ]]; then
-    # echo "$index$line"
-    # de-colorize the line
-    : "${line//[m/}"
-    : "${_//[31m/}"
-    no_color="${_//[32m/}"
-    filename=$(get_filename "$no_color")
-    numbered_output+=("$index $filename")
-    (( index++ ))
-    continue
-  fi
-  # echo "$line" # original header
-done
+# prints enumerated git status to terminal
+# updates the cache file
+gitn_status() {
+  # calls git status in the system
+  local git_status=()
+  while IFS= read -r line; do
+    git_status+=("$line")
+  done < <(git -C $REPO -c status.color=always status)
 
-printf "%s\n" "${numbered_output[@]}" > file.txt
+  local numbered_output=()
+  local index=1
+  for line in "${git_status[@]}"; do
+    local first_char=${line:0:1}
+    # assumption: lines starting with tabs will contain a filename
+    # that has to be enumerated
+    if [[ $first_char == "$tab" ]]; then
+      # print enumerated line
+      echo "$index$line"
+      # de-colorize the line
+      : "${line//[m/}" # remove color resets
+      : "${_//[31m/}" # remove reds
+      : "${_//[32m/}" # remove greens
+      local filename=$(get_filename "$_")
+      numbered_output+=("$index $filename")
+      (( index++ ))
+      continue
+    fi
+    # print original line from git status output
+    echo "$line"
+  done
+  # write numbers to a cache file
+  printf "%s\n" "${numbered_output[@]}" > $CACHE_FILE
+}
+
+gitn_action() {
+  local cache_data=("")
+  while IFS= read line; do
+    cache_data+=("${line#* }")
+  done <"$CACHE_FILE"
+  for number in ${POSITIONAL_ARGS[@]}; do
+    echo ${cache_data[$number]}
+  done
+}
+
+handle_arguments() {
+  POSITIONAL_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      # handle flags here (see ags/ags)
+      *)
+        POSITIONAL_ARGS+=("$1"); shift;;
+    esac
+  done
+
+  if [[ ${#POSITIONAL_ARGS[@]} -ne 0 ]]; then
+    COMMAND="${POSITIONAL_ARGS[0]}"
+    # remove command itself from positional arguments
+    POSITIONAL_ARGS=("${POSITIONAL_ARGS[@]/$COMMAND}")
+    gitn_action
+    return 0
+  fi
+  gitn_status
+}
+
+handle_arguments "$@"
 
 # nvim -c "set ts=8" file.txt
