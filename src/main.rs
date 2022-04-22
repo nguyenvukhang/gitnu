@@ -23,14 +23,24 @@ fn main() {
 
     // learn string parsing
     // add numbers to lines with filenames inside
-    io::stdout().write_all(&output.stdout).unwrap();
-    io::stderr().write_all(&output.stderr).unwrap();
+    // io::stdout().write_all(&output.stdout).unwrap();
+    // io::stderr().write_all(&output.stderr).unwrap();
+    io::stdout().write(&output.stdout).unwrap();
+    let stdout = &output.stdout;
+
+    let string = String::from_utf8(stdout.to_vec()).unwrap();
+    // let lines: Vec<String> = string.lines()
+    let vec = string .lines();
+    println!("====================");
+
+    for i in vec {
+        println!("line: {}", i)
+    }
+
     println!("====================");
 
     // read the contents of gitnumber.txt and use it to do cool stuff
 }
-
-
 
 /* far implementation targets
  *   - pipe a series of files into an arbitrary command
