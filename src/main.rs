@@ -84,9 +84,9 @@ fn main() {
     // let vec: Vec<&str> = split.collect();
     let mut gw: Vec<&str> = vec![];
 
-    fn sanitize_string(s: String)-> String {
+    fn sanitize_string(s: String) -> String {
         // s = str::replace(&s, "!", "?");
-        return s
+        return s;
     }
 
     let mapped = split.map(|x| x);
