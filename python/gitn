@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import subprocess
+import pprint
 
+pp = pprint.PrettyPrinter(indent=4).pprint
 
 class bcolors:
     HEADER = "\033[95m"
@@ -14,8 +16,10 @@ class bcolors:
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
 
+ansi = ['\x1b[32m', '\x1b[31m', '\x1b[m']
 
 def run_subprocess(cmd):
+    result = []
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
     )
@@ -26,6 +30,12 @@ def run_subprocess(cmd):
         if not line:
             break
         print(line, end="")
+        line = line.strip()
+        for i in ansi:
+            line = line.replace(i, '')
+        result.append(line)
+    return result
 
+status = run_subprocess(["git", "-c", "status.color=always", "status"])
 
-run_subprocess(["git", "-c", "status.color=always", "status"])
+pp(status)
