@@ -1,4 +1,5 @@
 // use std::io::{self, Write};
+use regex::Regex;
 use std::process::Command;
 
 /* base implementation targets
@@ -34,7 +35,25 @@ fn main() {
     // let lines: Vec<String> = string.lines()
     let vec = string.lines();
 
+    // let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    let staged_start_regex = Regex::new(r"^Changes to be committed:.*").unwrap();
+    let mut reading_staged = false;
+    // let staged_index = 0;
+    // let staged_changes: [&str; 100] = [""; 100];
+
     for i in vec {
+        if i == "" {
+            reading_staged = false;
+        }
+        if reading_staged {
+            println!("read-staged: {}", i);
+            continue;
+        };
+        if staged_start_regex.is_match(i) {
+            println!("------------- Start reading staged changes");
+            reading_staged = true;
+            continue;
+        };
         println!("line: {}", i)
     }
 
