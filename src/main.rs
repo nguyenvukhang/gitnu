@@ -70,10 +70,20 @@ fn main() {
     // io::stdout().write_all(&output.stdout).unwrap();
     println!("[ NUMBERED ]");
     let stdout = output.stdout;
+    let vec: Vec<u8> = stdout.to_vec();
+    let a = vec.iter().map(|x| x);
+    
+    for i in a {
+        println!("{}", i)
+    }
 
-    let string = String::from_utf8(stdout.to_vec()).unwrap();
+    let string = match String::from_utf8(vec) {
+        Ok(v) => v,
+        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+    };
+
     // let lines: Vec<String> = string.lines()
-    let vec: Lines = string.lines();
+    let lines: Lines = string.lines();
 
     // fn sanitize_string(s: String)-> String {
     //     // s = str::replace(&s, "!", "?");
@@ -104,7 +114,7 @@ fn main() {
         // println!("{}{}", mi, s);
     }
 
-    for i in vec {
+    for i in lines {
         gonna_write[wi] = i;
         gw.push(i);
         wi += 1;
