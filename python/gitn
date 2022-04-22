@@ -22,7 +22,7 @@ class bcolors:
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 
-def get_git_status(cmd, checkpoints):
+def get_git_status(cmd: list[str], checkpoints: list[str]):
     result = []
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
@@ -53,12 +53,25 @@ def get_git_status(cmd, checkpoints):
     return result
 
 
-class Delta:
-    def __init__(self, index, state, action, filename):
-        self.index = index
-        self.state = state
-        self.action = action
-        self.filename = filename
+def system(cmd: list[str]) -> str:
+    return systemlist(cmd)[0]
+
+
+def systemlist(cmd: list[str]) -> list[str]:
+    result = []
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    if not process.stdout:
+        return []
+    while process.stdout.readable():
+        line = process.stdout.readline()
+        if not line:
+            break
+        result.append(line.strip())
+    if len(result) == 0:
+        return [""]
+    return result
 
 
 def create_table():
@@ -85,8 +98,13 @@ def main():
         "renamed:": "renamed",
     }
 
+    cache_directory = system(["git", "rev-parse", "--git-dir"])
+    cache_filename = 'gitn.txt'
+    cache_filepath = "%s/%s" % (cache_directory, cache_filename)
+    print("cache dir:", cache_filepath)
+
     git_status = get_git_status(
-        ["git", "-c", "status.color=always", "status"], tuple(set_state.keys())
+        ["git", "-c", "status.color=always", "status"], list(set_state.keys())
     )
     if not git_status:
         return
@@ -105,7 +123,7 @@ def main():
                 filename = line.lstrip()
                 break
         table = add_delta(index, state, action, filename, table)
-    with open("data.json", "w") as f:
+    with open(cache_filepath, "w") as f:
         json.dump(table, f)
 
 
