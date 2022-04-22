@@ -1,5 +1,5 @@
-use std::io::{self, Write};
 use regex::Regex;
+use std::io::{self, Write};
 use std::process::Command;
 
 /* base implementation targets
@@ -42,9 +42,9 @@ fn main() {
     let mut reading_staged = false;
     let mut reading_unstaged = false;
     let mut reading_untracked = false;
-    let mut mi = 0;
+    let mut mi = 1;
     let mut numbered_changes: [(&str, &str); 100] = [("", ""); 100];
-    // let format = String::from("{}{}");
+
     fn gitline(mi: usize, s: &str) {
         println!("{}{}", mi, s)
     }
@@ -75,17 +75,20 @@ fn main() {
         };
         if staged_start_regex.is_match(i) {
             reading_staged = true;
+            println!("{}", i);
             continue;
         };
         if unstaged_start_regex.is_match(i) {
             reading_unstaged = true;
+            println!("{}", i);
             continue;
         };
         if untracked_start_regex.is_match(i) {
             reading_untracked = true;
+            println!("{}", i);
             continue;
         };
-        println!("line: {}", i)
+        println!("")
     }
 
     // println!("====================");
