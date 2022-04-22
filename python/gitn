@@ -2,8 +2,10 @@
 
 import subprocess
 import pprint
+import json
 
 pp = pprint.PrettyPrinter(indent=4).pprint
+
 
 class bcolors:
     HEADER = "\033[95m"
@@ -16,26 +18,96 @@ class bcolors:
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
 
-ansi = ['\x1b[32m', '\x1b[31m', '\x1b[m']
 
-def run_subprocess(cmd):
+ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
+
+
+def get_git_status(cmd, checkpoints):
     result = []
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
     )
     if not process.stdout:
         return
+    index = 1
+    started = False
     while process.stdout.readable():
         line = process.stdout.readline()
         if not line:
             break
-        print(line, end="")
-        line = line.strip()
+        stripped = line.strip()
         for i in ansi:
-            line = line.replace(i, '')
-        result.append(line)
+            stripped = stripped.replace(i, "")
+        result.append((index, stripped))
+        if started:
+            if stripped in checkpoints:
+                print(line, end="")
+                continue
+            else:
+                print(index, line, end="")
+                index += 1
+        else:
+            if stripped in checkpoints:
+                started = True
+            print(line, end="")
     return result
 
-status = run_subprocess(["git", "-c", "status.color=always", "status"])
 
-pp(status)
+class Delta:
+    def __init__(self, index, state, action, filename):
+        self.index = index
+        self.state = state
+        self.action = action
+        self.filename = filename
+
+
+def create_table():
+    return {}
+
+
+def add_delta(index, state, action, filename, table):
+    table[index] = (state, action, filename)
+    return table
+
+
+def main():
+    state = "_"  # 'staged' | 'unstaged' | 'untracked'
+    set_state = {
+        "Changes to be committed:": "staged",
+        "Changes not staged for commit:": "unstaged",
+        "Untracked files:": "untracked",
+        "": "none",
+    }
+    set_action = {
+        "deleted:": "deleted",
+        "new file:": "newfile",
+        "modified:": "modified",
+        "renamed:": "renamed",
+    }
+
+    git_status = get_git_status(
+        ["git", "-c", "status.color=always", "status"], tuple(set_state.keys())
+    )
+    if not git_status:
+        return
+
+    table = create_table()
+    for indexed_line in git_status:
+        index, line = indexed_line
+        state = set_state.get(line, state)
+        if line in set_state or state == "_":
+            continue
+        action, filename = "", line.lstrip()
+        for key, value in set_action.items():
+            if line.startswith(key):
+                action = value
+                line = line[len(key) :]
+                filename = line.lstrip()
+                break
+        table = add_delta(index, state, action, filename, table)
+    with open("data.json", "w") as f:
+        json.dump(table, f)
+
+
+if __name__ == "__main__":
+    main()
