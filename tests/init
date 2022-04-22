@@ -53,13 +53,21 @@ quit() {
 first_commit() {
   # create an "existing" set of 10 files
   # to use to get "modified" status later
-  list=(staged-modified staged-deleted unstaged-modified
-    unstaged-deleted unstaged-pre-rename staged-pre-rename)
+  list=(
+    staged-modified
+    staged-deleted
+    staged-pre-rename
+    unstaged-modified
+    unstaged-deleted
+    unstaged-pre-rename
+    staged-modified-then-modified
+    staged-deleted-then-created
+  )
   for i in ${list[@]}; do
     make_file $i
   done
   git add .
-  git commit -m "create [staged-modified-juliet]"
+  git commit -m "first commit"
 }
 
 staged() {
@@ -75,6 +83,17 @@ staged() {
   # new file
   make_file "staged-new-file"
   git add staged-new-file
+}
+
+staged_then() {
+  # modified, staged, then modified again
+  echo "one">staged-modified-then-modified
+  git add staged-modified-then-modified
+  echo "two">staged-modified-then-modified
+  # deleted, staged, then modified again
+  rm staged-deleted-then-created
+  git add staged-deleted-then-created
+  make_file staged-deleted-then-created
 }
 
 unstaged() {
@@ -102,37 +121,10 @@ show() {
   divider
 }
 
-# X          Y     Meaning
-# -------------------------------------------------
-#          [AMD]   not updated
-# M        [ MTD]  updated in index
-# T        [ MTD]  type changed in index
-# A        [ MTD]  added to index
-# D                deleted from index
-# R        [ MTD]  renamed in index
-# C        [ MTD]  copied in index
-# [MTARC]          index and work tree matches
-# [ MTARC]    M    work tree changed since index
-# [ MTARC]    T    type changed in work tree since index
-# [ MTARC]    D    deleted in work tree
-#             R    renamed in work tree
-#             C    copied in work tree
-# -------------------------------------------------
-# D           D    unmerged, both deleted
-# A           U    unmerged, added by us
-# U           D    unmerged, deleted by them
-# U           A    unmerged, added by them
-# D           U    unmerged, deleted by us
-# A           A    unmerged, both added
-# U           U    unmerged, both changes
-# -------------------------------------------------
-# ?           ?    untracked
-# !           !    ignored
-# -------------------------------------------------
-
 initialize > /dev/null
 first_commit > /dev/null
 staged > /dev/null
+staged_then > /dev/null
 unstaged > /dev/null
 untracked > /dev/null
 show
