@@ -94,12 +94,12 @@ def systemlist(cmd: list[str]) -> list[str]:
     return result
 
 
-def add_delta(index, state, action, filename, table):
-    table[index] = (state, action, filename)
+def add_delta(index, entry, table):
+    table[index] = entry
 
 
 def create_table(git_status) -> dict:
-    result = {}
+    table = {}
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     for indexed_line in git_status:
         index, line = indexed_line
@@ -113,8 +113,9 @@ def create_table(git_status) -> dict:
                 line = line[len(key) :]
                 filename = line.lstrip()
                 break
-        add_delta(index, state, action, filename, result)
-    return result
+        entry = make_entry(state, action, filename)
+        add_delta(index, entry, table)
+    return table
 
 
 def get_cache_filepath() -> str:
@@ -131,12 +132,55 @@ def update_cache(cache_filepath: str, table: dict):
 # enumerate git status
 # update cache
 def gitn_status():
-    cache_filepath = get_cache_filepath()
     git_status = print_and_extract_git_status(static.set_state_keys)
     if not git_status:
         return
     table = create_table(git_status)
-    update_cache(cache_filepath, table)
+    update_cache(get_cache_filepath(), table)
+
+
+def make_entry(status, action, filename):
+    return [status, action, filename]
+
+
+def make_empty_entry():
+    return ["", "", ""]
+
+
+def get_status(elem):
+    return elem[0]
+
+
+def get_action(elem):
+    return elem[1]
+
+
+def get_filename(elem):
+    return elem[2]
+
+
+# read from existing cache (do a full git bypass if there's no cache)
+def gitn_add(args):
+    # future todo: handle interval notation
+    # gitn add 1-4
+    # => add files 1 through 4 inclusive
+    rm = []
+    add_range = []
+    for arg in args:
+        if "-" in arg:
+            rm.append(arg)
+            a, b = map(int, arg.split("-"))
+            args.extend(map(str, range(a, b + 1)))
+    for i in rm:
+        args.remove(i)
+    with open(get_cache_filepath(), "r") as f:
+        table = json.load(f)
+    print(table)
+    add_list = list(map(lambda x: get_filename(table.get(x, make_empty_entry())), args))
+    git_command = ["git", "add", "--"]
+    git_command.extend(add_list)
+    git_command = list(filter(None, git_command))
+    subprocess.run(git_command)
 
 
 def handle_arguments(args: list[str]):
@@ -148,6 +192,11 @@ def handle_arguments(args: list[str]):
     command, trailing = args[1], args[2:]
     if command == "status":
         gitn_status()
+    if command == "add":
+        if len(trailing) == 0:
+            print("Nothing specified, nothing added.")
+            return
+        gitn_add(trailing)
     print("command:", command)
     print("trailing:", trailing)
 
