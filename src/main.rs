@@ -73,7 +73,7 @@ fn main() {
 
     let string = String::from_utf8(stdout.to_vec()).unwrap();
     // let lines: Vec<String> = string.lines()
-    let vec = string.lines();
+    let mut vec = string.lines();
 
     let staged_start_regex = Regex::new(r"^Changes to be committed:$").unwrap();
     let unstaged_start_regex = Regex::new(r"^Changes not staged for commit:$").unwrap();
@@ -89,6 +89,11 @@ fn main() {
 
     fn gitline(mi: usize, s: &str) {
         println!("{}{}", mi, s);
+    }
+
+    fn sanitize_string(s: String)-> String {
+        // s = str::replace(&s, "!", "?");
+        return s
     }
 
     for i in vec {
