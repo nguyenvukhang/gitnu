@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+clear
+
 _N='\033[0m'    # Normal/Reset
 _R='\033[0;31m' # Red
 _G='\033[0;32m' # Green
@@ -12,47 +14,85 @@ _S='\033[0;37m' # Gray
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 REPO=$SCRIPT_DIR/repo
 
-function initialize() {
+# execute this when script stops suddenly
+trap "rm -rf $REPO" EXIT
+
+divider() {
+  printf "${_S}.........................................................${_N}\n"
+}
+
+title() {
+  divider
+  printf "[ ${_Y}$1${_N} ]\n"
+}
+
+make_file() {
+  [ -z $1 ] && return 0
+  touch $1 && echo "$1">$1
+}
+
+initialize() {
   # effectively cd to SCRIPT_DIR
   pushd $SCRIPT_DIR
-
   # clear old implementations
   rm -rf repo
-
   # create test repository root directory
   mkdir repo &>/dev/null
-
   # cd to repo
   pushd repo
-
   # initialize git repo
   git init
 }
 
-function quit() {
+quit() {
   # navigate back
   popd
   popd
 }
 
-function first_commit() {
+first_commit() {
   # create an "existing" set of 10 files
-  # to use for modified status later
-  touch alpha.rs bravo.rs
-  git add alpha.rs
-  git commit -m "create alpha.rs"
+  # to use to get "modified" status later
+  list=(staged-modified staged-deleted unstaged-modified
+    unstaged-deleted unstaged-pre-rename staged-pre-rename)
+  for i in ${list[@]}; do
+    make_file $i
+  done
+  git add .
+  git commit -m "create [staged-modified-juliet]"
 }
 
-function divider() {
-  printf "${_S}.........................................................${_N}\n"
+staged() {
+  # modified
+  echo "smash">staged-modified
+  git add staged-modified
+  # deleted
+  rm staged-deleted
+  git add staged-deleted
+  # renamed
+  mv staged-pre-rename staged-post-rename
+  git add staged-pre-rename staged-post-rename
+  # new file
+  make_file "staged-new-file"
+  git add staged-new-file
 }
 
-function title() {
-  divider
-  printf "[ ${_Y}$1${_N} ]\n"
+unstaged() {
+  # modified
+  echo "smash">unstaged-modified
+  # deleted
+  rm unstaged-deleted
+  # rename (echo is unstaged, unstaged-post-rename will be untracked)
+  mv unstaged-pre-rename unstaged-post-rename
+  # delete a modified file
+  rm staged-modified
 }
 
-function show() {
+untracked () {
+  touch untracked-new-file
+}
+
+show() {
   title "GIT STATUS"
   git status
   title "GIT LOG"
@@ -62,7 +102,38 @@ function show() {
   divider
 }
 
+# X          Y     Meaning
+# -------------------------------------------------
+#          [AMD]   not updated
+# M        [ MTD]  updated in index
+# T        [ MTD]  type changed in index
+# A        [ MTD]  added to index
+# D                deleted from index
+# R        [ MTD]  renamed in index
+# C        [ MTD]  copied in index
+# [MTARC]          index and work tree matches
+# [ MTARC]    M    work tree changed since index
+# [ MTARC]    T    type changed in work tree since index
+# [ MTARC]    D    deleted in work tree
+#             R    renamed in work tree
+#             C    copied in work tree
+# -------------------------------------------------
+# D           D    unmerged, both deleted
+# A           U    unmerged, added by us
+# U           D    unmerged, deleted by them
+# U           A    unmerged, added by them
+# D           U    unmerged, deleted by us
+# A           A    unmerged, both added
+# U           U    unmerged, both changes
+# -------------------------------------------------
+# ?           ?    untracked
+# !           !    ignored
+# -------------------------------------------------
+
 initialize > /dev/null
 first_commit > /dev/null
+staged > /dev/null
+unstaged > /dev/null
+untracked > /dev/null
 show
 quit > /dev/null
