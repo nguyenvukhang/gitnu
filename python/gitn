@@ -33,6 +33,7 @@ class static:
         "modified:": "modified",
         "renamed:": "renamed",
     }
+    set_state_keys = list(set_state.keys())
 
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
@@ -93,12 +94,27 @@ def systemlist(cmd: list[str]) -> list[str]:
     return result
 
 
-def create_table():
-    return {}
-
-
 def add_delta(index, state, action, filename, table):
     table[index] = (state, action, filename)
+
+
+def create_table(git_status) -> dict:
+    result = {}
+    state = "unset"  # 'staged' | 'unstaged' | 'untracked'
+    for indexed_line in git_status:
+        index, line = indexed_line
+        state = static.set_state.get(line, state)
+        if line in static.set_state or state == "unset":
+            continue
+        action, filename = "", line.lstrip()
+        for key, value in static.set_action.items():
+            if line.startswith(key):
+                action = value
+                line = line[len(key) :]
+                filename = line.lstrip()
+                break
+        add_delta(index, state, action, filename, result)
+    return result
 
 
 def get_cache_filepath() -> str:
@@ -115,27 +131,11 @@ def update_cache(cache_filepath: str, table: dict):
 # enumerate git status
 # update cache
 def gitn_status():
-    state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     cache_filepath = get_cache_filepath()
-
-    git_status = print_and_extract_git_status(list(static.set_state.keys()))
+    git_status = print_and_extract_git_status(static.set_state_keys)
     if not git_status:
         return
-
-    table = create_table()
-    for indexed_line in git_status:
-        index, line = indexed_line
-        state = static.set_state.get(line, state)
-        if line in static.set_state or state == "unset":
-            continue
-        action, filename = "", line.lstrip()
-        for key, value in static.set_action.items():
-            if line.startswith(key):
-                action = value
-                line = line[len(key) :]
-                filename = line.lstrip()
-                break
-        add_delta(index, state, action, filename, table)
+    table = create_table(git_status)
     update_cache(cache_filepath, table)
 
 
