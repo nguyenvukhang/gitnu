@@ -83,8 +83,23 @@ gitn_add() {
   for number in ${NUMBERS[@]}; do
     local file="${CACHE_DATA[$number]}"
     echo "git add $file"
-    [ ! -z $file ] && git add $file
+    [ $file ] && git add $file
   done
+}
+
+gitn_diff() {
+  get_cache_data
+  local number=${NUMBERS[1]}
+  local file="${CACHE_DATA[$number]}"
+  # if first argument after "diff" is an indexed number,
+  # then run git diff on it
+  # if not, pass all arguments through to vanilla git diff
+  if [ $file ]; then
+    git diff $file
+    return 0
+  fi
+  printf "${_Y}git diff bypassed with args: ${NUMBERS[@]}${_N}\n"
+  git diff ${NUMBERS[@]}
 }
 
 open_cache() {
@@ -106,6 +121,7 @@ handle_arguments() {
     # remove command itself from positional arguments
     NUMBERS=("${POSITIONAL_ARGS[@]/$COMMAND}")
     [[ $COMMAND == "status" ]] && gitn_status
+    [[ $COMMAND == "diff" ]] && gitn_diff
     [[ $COMMAND == "add" ]] && gitn_add
     [[ $COMMAND == "cache" ]] && open_cache
     return 0
