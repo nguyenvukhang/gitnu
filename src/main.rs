@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::io::{self, Write};
+// use std::io::{self, Write};
 use std::process::Command;
 
 /* base implementation targets
@@ -19,7 +19,8 @@ fn main() {
     // .git/gitnumber.txt
     let mut git = Command::new("git");
     let git = git.args(["-C", "tests/repo"]);
-    let git_status = git.arg("status");
+    let git_status = git.arg("-c").arg("color.status=always").arg("status");
+    
     let output = git_status.output().expect("failed to execute command.");
 
     // TODO
@@ -27,8 +28,8 @@ fn main() {
     // add numbers to lines with filenames inside
 
     // write entire output straight to shell
-    println!("[ ORIGINAL ]");
-    io::stdout().write_all(&output.stdout).unwrap();
+    // println!("[ ORIGINAL ]");
+    // io::stdout().write_all(&output.stdout).unwrap();
     println!("[ NUMBERED ]");
     let stdout = &output.stdout;
 
@@ -88,7 +89,7 @@ fn main() {
             println!("{}", i);
             continue;
         };
-        println!("")
+        println!("{}", i);
     }
 
     // println!("====================");
