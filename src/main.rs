@@ -1,7 +1,9 @@
 use regex::Regex;
-// use std::io::{self, Write};
 use std::fs;
+use std::io::Write;
 use std::process::Command;
+use std::vec::Vec;
+// use std::str::Lines;
 //
 // fn main() -> std::io::Result<()> {
 //     let mut file = File::create("foo.txt")?;
@@ -20,8 +22,10 @@ use std::process::Command;
 // use this for unit testing
 
 // write a test for git status
+//
+const LIMIT: usize = 1000;
 
-fn save_cache() {
+fn save_cache(gw: Vec<&str>) {
     let ran_from = "tests/repo/some/thing/is/up";
     let mut git = Command::new("git");
     let git = git
@@ -29,15 +33,22 @@ fn save_cache() {
         .arg("rev-parse")
         .arg("--show-toplevel");
     let output = git.output().expect("failed to execute command.").stdout;
-    let mut git_root = String::from_utf8(output.to_vec()).unwrap().trim().to_owned();
+    let mut git_root = String::from_utf8(output.to_vec())
+        .unwrap()
+        .trim()
+        .to_owned();
 
     let filename: &str = "/.git/gitnumber.txt";
     git_root.push_str(filename);
 
     println!("ran from dir: {}", ran_from);
     println!("full git root: {}", git_root);
-    println!("target file: {}", filename);
-    fs::write(git_root, "yellow").expect("Unable to write file");
+    // let asdf = String::from_utf8(gonna_write.to_vec());
+    // fs::write(git_root, "yellow").expect("Unable to write file");
+    // print!("{}", &output);
+
+    let mut file = fs::File::create(git_root).expect("could not create file.");
+    write!(file, "{}", gw.join("\n")).expect("could not write file");
 }
 
 fn main() {
@@ -71,13 +82,19 @@ fn main() {
     let mut reading_unstaged = false;
     let mut reading_untracked = false;
     let mut mi = 1;
-    let mut numbered_changes: [(&str, &str); 100] = [("", ""); 100];
+    let mut wi = 0;
+    let mut numbered_changes: [(&str, &str); LIMIT] = [("", ""); LIMIT];
+    let mut gonna_write: [&str; LIMIT] = [""; LIMIT];
+    let mut gw: Vec<&str> = vec![];
 
     fn gitline(mi: usize, s: &str) {
-        println!("{}{}", mi, s)
+        println!("{}{}", mi, s);
     }
 
     for i in vec {
+        gonna_write[wi] = i;
+        gw.push(i);
+        wi += 1;
         if i == "" {
             reading_staged = false;
             reading_unstaged = false;
@@ -118,7 +135,7 @@ fn main() {
         };
         println!("{}", i);
     }
-    save_cache();
+    save_cache(gw);
 
     // println!("====================");
     // println!("POST PROCESSING");
