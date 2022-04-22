@@ -6,7 +6,8 @@ REPO="$HOME/repos/git-number/tests/repo"
 GIT_DIR=$(git rev-parse --git-dir)
 [ -z $GIT_DIR ] && exit 0
 CACHE_FILE=$GIT_DIR/gitn.txt
-CACHE_DATA=("")
+CACHE_FILENAMES=("")
+CACHE_MODES=("")
 
 _N='\033[0m'    # Normal/Reset
 _R='\033[0;31m' # Red
@@ -18,7 +19,7 @@ _C='\033[0;36m' # Cyan
 _S='\033[0;37m' # Gray
 
 tab=$(printf '\t')
-mode="" # 'staged' | 'unstaged' | 'untracked'
+mode="_" # 'staged' | 'unstaged' | 'untracked'
 
 # gets the filename from one line in git status
 get_filename() {
@@ -79,14 +80,18 @@ gitn_status() {
 
 get_cache_data() {
   while IFS= read line; do
-    CACHE_DATA+=("${line#* }")
+    local after_first_space="${line#* }"
+    local mode="${after_first_space%% *}" # before second space
+    local filename="${after_first_space#* }" # after second space
+    CACHE_FILENAMES+=("$filename")
+    CACHE_MODES+=("$mode")
   done <"$CACHE_FILE"
 }
 
 gitn_add() {
   get_cache_data
   for number in ${NUMBERS[@]}; do
-    local file="${CACHE_DATA[$number]}"
+    local file="${CACHE_FILENAMES[$number]}"
     echo "git add $file"
     [ $file ] && git add $file
   done
@@ -95,12 +100,18 @@ gitn_add() {
 gitn_diff() {
   get_cache_data
   local number=${NUMBERS[1]}
-  local file="${CACHE_DATA[$number]}"
+  local file="${CACHE_FILENAMES[$number]}"
+  local mode="${CACHE_MODES[$number]}"
   # if first argument after "diff" is an indexed number,
   # then run git diff on it
   # if not, pass all arguments through to vanilla git diff
   if [ $file ]; then
-    git diff $file
+    if [[ $mode == "staged" ]]; then
+      echo "got here"
+      git diff --staged $file
+    else
+      git diff $file
+    fi
     return 0
   fi
   printf "${_Y}git diff bypassed with args: ${NUMBERS[@]}${_N}\n"
