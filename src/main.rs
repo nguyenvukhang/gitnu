@@ -1,6 +1,14 @@
 use regex::Regex;
 // use std::io::{self, Write};
 use std::process::Command;
+// use std::fs::File;
+// use std::io::prelude::*;
+//
+// fn main() -> std::io::Result<()> {
+//     let mut file = File::create("foo.txt")?;
+//     file.write_all(b"Hello, world!")?;
+//     Ok(())
+// }
 
 /* base implementation targets
  *   - git status
@@ -14,11 +22,23 @@ use std::process::Command;
 
 // write a test for git status
 
+fn save_cache() {
+    let ran_from = "tests/repo/some/thing/is/up";
+    let mut git = Command::new("git");
+    let git = git.args(["-C", ran_from]).arg("rev-parse").arg("--show-toplevel");
+    let output = git.output().expect("failed to execute command.").stdout;
+    let git_root = String::from_utf8(output.to_vec()).unwrap();
+    println!("ran from dir: {}", ran_from);
+    println!("full git root: {}", git_root);
+}
+
 fn main() {
     // read the contents of git status and write it into
     // .git/gitnumber.txt
+    println!("---------------------------------------------------------");
     let mut git = Command::new("git");
     let git = git.args(["-C", "tests/repo"]);
+    save_cache();
     let git_status = git.arg("-c").arg("color.status=always").arg("status");
     
     let output = git_status.output().expect("failed to execute command.");

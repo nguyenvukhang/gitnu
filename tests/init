@@ -50,6 +50,20 @@ quit() {
   popd
 }
 
+file_structure() {
+  # for peaceful purposes
+  mkdir -p some/thing/is/up
+  pushd some
+  make_file gold
+  pushd thing
+  make_file silver
+  pushd is
+  make_file bronze
+  pushd up
+  make_file rose_gold
+  popd; popd; popd; popd
+}
+
 first_commit() {
   # create an "existing" set of 10 files
   # to use to get "modified" status later
@@ -122,6 +136,7 @@ show() {
 }
 
 initialize > /dev/null
+file_structure > /dev/null
 first_commit > /dev/null
 staged > /dev/null
 staged_then > /dev/null
