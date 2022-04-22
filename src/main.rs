@@ -2,8 +2,8 @@ use regex::Regex;
 use std::fs;
 use std::io::Write;
 use std::process::Command;
-use std::vec::Vec;
 use std::str::Lines;
+use std::vec::Vec;
 //
 // fn main() -> std::io::Result<()> {
 //     let mut file = File::create("foo.txt")?;
@@ -43,7 +43,6 @@ fn save_cache(gw: Vec<&str>) {
 
     println!("ran from dir: {}", ran_from);
     println!("full git root: {}", git_root);
-    // let asdf = String::from_utf8(gonna_write.to_vec());
     // fs::write(git_root, "yellow").expect("Unable to write file");
     // print!("{}", &output);
 
@@ -51,10 +50,14 @@ fn save_cache(gw: Vec<&str>) {
     write!(file, "{}", gw.join("\n")).expect("could not write file");
 }
 
+fn delimiter() {
+    println!("---------------------------------------------------------");
+}
+
 fn main() {
     // read the contents of git status and write it into
     // .git/gitnumber.txt
-    println!("---------------------------------------------------------");
+    delimiter();
     let mut git = Command::new("git");
     let git = git.args(["-C", "tests/repo"]);
     let git_status = git.arg("-c").arg("color.status=always").arg("status");
@@ -68,27 +71,39 @@ fn main() {
     // write entire output straight to shell
     // println!("[ ORIGINAL ]");
     // io::stdout().write_all(&output.stdout).unwrap();
-    println!("[ NUMBERED ]");
+    // println!("[ NUMBERED ]");
     let stdout = output.stdout;
     let vec: Vec<u8> = stdout.to_vec();
-    let a = vec.iter().map(|x| x);
-    
-    for i in a {
-        println!("{}", i)
-    }
 
     let string = match String::from_utf8(vec) {
         Ok(v) => v,
         Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
     };
 
+    let split: std::str::Split<&str> = string.split("\n");
+    // let vec: Vec<&str> = split.collect();
+    let mut gw: Vec<&str> = vec![];
+
+    fn sanitize_string(s: String)-> String {
+        // s = str::replace(&s, "!", "?");
+        return s
+    }
+
+    let mapped = split.map(|x| x);
+
+    for i in mapped {
+        println!("asdf : {}", i);
+        let a = i.replace("a", "------------");
+        println!("asdf : {}", a);
+        // let a = String::from(i).trim();
+        gw.push(&a);
+    }
+
+    // println!("final output string: {}", string);
+    delimiter();
+
     // let lines: Vec<String> = string.lines()
     let lines: Lines = string.lines();
-
-    // fn sanitize_string(s: String)-> String {
-    //     // s = str::replace(&s, "!", "?");
-    //     return s
-    // }
 
     // let no_color_vec = string.map(|x| x).collect::<Vec<&str>>();
     //
@@ -105,8 +120,6 @@ fn main() {
     let mut mi = 1;
     let mut wi = 0;
     let mut numbered_changes: [(&str, &str); LIMIT] = [("", ""); LIMIT];
-    let mut gonna_write: [&str; LIMIT] = [""; LIMIT];
-    let mut gw: Vec<&str> = vec![];
 
     fn gitline(mi: usize, s: &str) {
         let _a = mi;
@@ -115,8 +128,7 @@ fn main() {
     }
 
     for i in lines {
-        gonna_write[wi] = i;
-        gw.push(i);
+        // gw.push(i);
         wi += 1;
         if i == "" {
             reading_staged = false;
