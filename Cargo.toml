@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 regex = "1.5.5"
+mapped-command = "0.3.0"
