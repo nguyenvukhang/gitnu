@@ -99,7 +99,9 @@ fn main() {
     let mut gw: Vec<&str> = vec![];
 
     fn gitline(mi: usize, s: &str) {
-        println!("{}{}", mi, s);
+        let _a = mi;
+        let _b = s;
+        // println!("{}{}", mi, s);
     }
 
     for i in vec {
