@@ -165,7 +165,6 @@ def gitn_add(args):
     # gitn add 1-4
     # => add files 1 through 4 inclusive
     rm = []
-    add_range = []
     for arg in args:
         if "-" in arg:
             rm.append(arg)
@@ -175,7 +174,6 @@ def gitn_add(args):
         args.remove(i)
     with open(get_cache_filepath(), "r") as f:
         table = json.load(f)
-    print(table)
     add_list = list(map(lambda x: get_filename(table.get(x, make_empty_entry())), args))
     git_command = ["git", "add", "--"]
     git_command.extend(add_list)
@@ -197,8 +195,8 @@ def handle_arguments(args: list[str]):
             print("Nothing specified, nothing added.")
             return
         gitn_add(trailing)
-    print("command:", command)
-    print("trailing:", trailing)
+    # print("command:", command)
+    # print("trailing:", trailing)
 
 
 def main():
