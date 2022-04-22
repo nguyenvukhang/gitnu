@@ -3,6 +3,7 @@
 import subprocess
 import pprint
 import json
+import sys
 
 pp = pprint.PrettyPrinter(indent=4).pprint
 
@@ -19,13 +20,31 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+class static:
+    set_state = {
+        "Changes to be committed:": "staged",
+        "Changes not staged for commit:": "unstaged",
+        "Untracked files:": "untracked",
+        "": "none",
+    }
+    set_action = {
+        "deleted:": "deleted",
+        "new file:": "newfile",
+        "modified:": "modified",
+        "renamed:": "renamed",
+    }
+
+
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 
-def get_git_status(cmd: list[str], checkpoints: list[str]):
+def print_and_extract_git_status(checkpoints: list[str]):
     result = []
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+        ["git", "-c", "status.color=always", "status"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
     )
     if not process.stdout:
         return
@@ -80,51 +99,61 @@ def create_table():
 
 def add_delta(index, state, action, filename, table):
     table[index] = (state, action, filename)
-    return table
 
 
-def main():
-    state = "_"  # 'staged' | 'unstaged' | 'untracked'
-    set_state = {
-        "Changes to be committed:": "staged",
-        "Changes not staged for commit:": "unstaged",
-        "Untracked files:": "untracked",
-        "": "none",
-    }
-    set_action = {
-        "deleted:": "deleted",
-        "new file:": "newfile",
-        "modified:": "modified",
-        "renamed:": "renamed",
-    }
-
+def get_cache_filepath() -> str:
     cache_directory = system(["git", "rev-parse", "--git-dir"])
-    cache_filename = 'gitn.txt'
-    cache_filepath = "%s/%s" % (cache_directory, cache_filename)
-    print("cache dir:", cache_filepath)
+    return "%s/gitn.json" % (cache_directory)
 
-    git_status = get_git_status(
-        ["git", "-c", "status.color=always", "status"], list(set_state.keys())
-    )
+
+def update_cache(cache_filepath: str, table: dict):
+    with open(cache_filepath, "w") as f:
+        json.dump(table, f)
+
+
+# print and extract git status
+# enumerate git status
+# update cache
+def gitn_status():
+    state = "unset"  # 'staged' | 'unstaged' | 'untracked'
+    cache_filepath = get_cache_filepath()
+
+    git_status = print_and_extract_git_status(list(static.set_state.keys()))
     if not git_status:
         return
 
     table = create_table()
     for indexed_line in git_status:
         index, line = indexed_line
-        state = set_state.get(line, state)
-        if line in set_state or state == "_":
+        state = static.set_state.get(line, state)
+        if line in static.set_state or state == "unset":
             continue
         action, filename = "", line.lstrip()
-        for key, value in set_action.items():
+        for key, value in static.set_action.items():
             if line.startswith(key):
                 action = value
                 line = line[len(key) :]
                 filename = line.lstrip()
                 break
-        table = add_delta(index, state, action, filename, table)
-    with open(cache_filepath, "w") as f:
-        json.dump(table, f)
+        add_delta(index, state, action, filename, table)
+    update_cache(cache_filepath, table)
+
+
+def handle_arguments(args: list[str]):
+    num_args = len(args)
+    if num_args <= 1:
+        gitn_status()
+        return
+    # from here on there are at least two args
+    command, trailing = args[1], args[2:]
+    if command == "status":
+        gitn_status()
+    print("command:", command)
+    print("trailing:", trailing)
+
+
+def main():
+    handle_arguments(sys.argv)
 
 
 if __name__ == "__main__":
