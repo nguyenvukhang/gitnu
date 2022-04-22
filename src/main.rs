@@ -1,4 +1,4 @@
-// use std::io::{self, Write};
+use std::io::{self, Write};
 use regex::Regex;
 use std::process::Command;
 
@@ -17,7 +17,6 @@ use std::process::Command;
 fn main() {
     // read the contents of git status and write it into
     // .git/gitnumber.txt
-    println!("====================");
     let mut git = Command::new("git");
     let git = git.args(["-C", "tests/repo"]);
     let git_status = git.arg("status");
@@ -28,7 +27,9 @@ fn main() {
     // add numbers to lines with filenames inside
 
     // write entire output straight to shell
-    // io::stdout().write_all(&output.stdout).unwrap();
+    println!("[ ORIGINAL ]");
+    io::stdout().write_all(&output.stdout).unwrap();
+    println!("[ NUMBERED ]");
     let stdout = &output.stdout;
 
     let string = String::from_utf8(stdout.to_vec()).unwrap();
@@ -43,6 +44,10 @@ fn main() {
     let mut reading_untracked = false;
     let mut mi = 0;
     let mut numbered_changes: [(&str, &str); 100] = [("", ""); 100];
+    // let format = String::from("{}{}");
+    fn gitline(mi: usize, s: &str) {
+        println!("{}{}", mi, s)
+    }
 
     for i in vec {
         if i == "" {
@@ -51,74 +56,58 @@ fn main() {
             reading_untracked = false;
         }
         if reading_staged {
-            println!("staged: {}", i);
+            gitline(mi, i);
             numbered_changes[mi] = ("staged", i);
             mi += 1;
             continue;
         };
         if reading_unstaged {
-            println!("unstaged: {}", i);
+            gitline(mi, i);
             numbered_changes[mi] = ("unstaged", i);
             mi += 1;
             continue;
         };
         if reading_untracked {
-            println!("untracked: {}", i);
+            gitline(mi, i);
             numbered_changes[mi] = ("untracked", i);
             mi += 1;
             continue;
         };
         if staged_start_regex.is_match(i) {
-            println!("------------- Start reading staged changes");
             reading_staged = true;
             continue;
         };
         if unstaged_start_regex.is_match(i) {
-            println!("------------- Start reading unstaged changes");
             reading_unstaged = true;
             continue;
         };
         if untracked_start_regex.is_match(i) {
-            println!("------------- Start reading untracked files");
             reading_untracked = true;
             continue;
         };
         println!("line: {}", i)
     }
 
-    println!("====================");
-    println!("POST PROCESSING");
-
-    // fn splitter() {
-    //     let s = "KEY1=value1=thing1";
-    //     match s.split_once('=') {
-    //         Some((key, value)) => {
-    //             println!("key: {}", key);
-    //             println!("value: {}", value);
+    // println!("====================");
+    // println!("POST PROCESSING");
+    //
+    // for i in 0..100 {
+    //     if numbered_changes[i].0 != "" {
+    //         let (t, s) = numbered_changes[i];
+    //         if t == "staged" || t == "unstaged" {
+    //             match s.split_once(":") {
+    //                 Some((_, value)) => {
+    //                     println!("filename: {}", value.trim());
+    //                 }
+    //                 None => {
+    //                     println!("expected line to have a colon");
+    //                 }
+    //             };
+    //             continue;
     //         }
-    //         None => {
-    //             println!("expected a key-value pair");
-    //         }
+    //         println!("{}: {}", i, s);
     //     }
     // }
-
-    for i in 0..100 {
-        if numbered_changes[i].0 != "" {
-            let (t, s) = numbered_changes[i];
-            if t == "staged" || t == "unstaged" {
-                match s.split_once(":") {
-                    Some((_, value)) => {
-                        println!("filename: {}", value.trim());
-                    }
-                    None => {
-                        println!("expected line to have a colon");
-                    }
-                };
-                continue;
-            }
-            println!("{}: {}", i, s);
-        }
-    }
 
     // read the contents of gitnumber.txt and use it to do cool stuff
 }
