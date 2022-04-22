@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+// use std::io::{self, Write};
 use std::process::Command;
 
 /* base implementation targets
@@ -18,20 +18,21 @@ fn main() {
     // .git/gitnumber.txt
     println!("====================");
     let mut git = Command::new("git");
+    let git = git.args(["-C", "tests/repo"]);
     let git_status = git.arg("status");
     let output = git_status.output().expect("failed to execute command.");
 
+    // TODO
     // learn string parsing
     // add numbers to lines with filenames inside
+
+    // write entire output straight to shell
     // io::stdout().write_all(&output.stdout).unwrap();
-    // io::stderr().write_all(&output.stderr).unwrap();
-    io::stdout().write(&output.stdout).unwrap();
     let stdout = &output.stdout;
 
     let string = String::from_utf8(stdout.to_vec()).unwrap();
     // let lines: Vec<String> = string.lines()
-    let vec = string .lines();
-    println!("====================");
+    let vec = string.lines();
 
     for i in vec {
         println!("line: {}", i)
