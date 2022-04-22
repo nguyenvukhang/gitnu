@@ -3,7 +3,7 @@ use std::fs;
 use std::io::Write;
 use std::process::Command;
 use std::vec::Vec;
-// use std::str::Lines;
+use std::str::Lines;
 //
 // fn main() -> std::io::Result<()> {
 //     let mut file = File::create("foo.txt")?;
@@ -69,11 +69,22 @@ fn main() {
     // println!("[ ORIGINAL ]");
     // io::stdout().write_all(&output.stdout).unwrap();
     println!("[ NUMBERED ]");
-    let stdout = &output.stdout;
+    let stdout = output.stdout;
 
     let string = String::from_utf8(stdout.to_vec()).unwrap();
     // let lines: Vec<String> = string.lines()
-    let mut vec = string.lines();
+    let vec: Lines = string.lines();
+
+    // fn sanitize_string(s: String)-> String {
+    //     // s = str::replace(&s, "!", "?");
+    //     return s
+    // }
+
+    // let no_color_vec = string.map(|x| x).collect::<Vec<&str>>();
+    //
+    // for i in no_color_vec {
+    //     println!("mapped: {}", i);
+    // }
 
     let staged_start_regex = Regex::new(r"^Changes to be committed:$").unwrap();
     let unstaged_start_regex = Regex::new(r"^Changes not staged for commit:$").unwrap();
@@ -89,11 +100,6 @@ fn main() {
 
     fn gitline(mi: usize, s: &str) {
         println!("{}{}", mi, s);
-    }
-
-    fn sanitize_string(s: String)-> String {
-        // s = str::replace(&s, "!", "?");
-        return s
     }
 
     for i in vec {
