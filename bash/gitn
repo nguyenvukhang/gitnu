@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+REPO="$HOME/repos/git-number/tests/repo"
+# REPO="$HOME/repos/git-number/tests/repo/some/thing/is/up"
+# REPO="$HOME/repos/uni/master/tex"
+ROOT=$(git -C $REPO rev-parse --show-toplevel)
+GIT_DIR=$(git -C $REPO rev-parse --git-dir)
+CACHE_FILE=$GIT_DIR/gitn.txt
+
+_N='\033[0m'    # Normal/Reset
+_R='\033[0;31m' # Red
+_G='\033[0;32m' # Green
+_Y='\033[0;33m' # Yellow
+_B='\033[0;34m' # Blue
+_P='\033[0;35m' # Purple
+_C='\033[0;36m' # Cyan
+_S='\033[0;37m' # Gray
+
+echo $CACHE_FILE
+
+tab=$(printf '\t')
+index=1
+
+status_output=()
+while IFS= read -r line; do
+  status_output+=("$line")
+done < <(git -C $REPO -c status.color=always status)
+
+# gets the filename from one line in git status
+get_filename() {
+  [ -z "$1" ] && return 0
+  local line=$1
+  # remove the first tab
+  line=${line/$tab}
+  # trim off git-related keywords
+  [[ $line == "deleted:"* ]] && line=${line#*deleted:}
+  [[ $line == "modified:"* ]] && line=${line#*modified:}
+  [[ $line == "new file:"* ]] && line=${line#*new file:}
+  if [[ $line == "renamed:"* ]]; then
+    line=${line#*renamed:}
+    line=${line#* -> }
+  fi
+  # trim whitespace at the front
+  filename="${line#"${line%%[![:space:]]*}"}"
+  echo "$filename"
+}
+
+numbered_output=()
+for line in "${status_output[@]}"; do
+  first_char=${line:0:1}
+  if [[ $first_char == "$tab" ]]; then
+    # echo "$index$line"
+    # de-colorize the line
+    : "${line//[m/}"
+    : "${_//[31m/}"
+    no_color="${_//[32m/}"
+    filename=$(get_filename "$no_color")
+    numbered_output+=("$index $filename")
+    (( index++ ))
+    continue
+  fi
+  # echo "$line" # original header
+done
+
+printf "%s\n" "${numbered_output[@]}" > file.txt
+
+# nvim -c "set ts=8" file.txt
