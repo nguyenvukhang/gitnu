@@ -1,8 +1,7 @@
 use regex::Regex;
 // use std::io::{self, Write};
+use std::fs;
 use std::process::Command;
-// use std::fs::File;
-// use std::io::prelude::*;
 //
 // fn main() -> std::io::Result<()> {
 //     let mut file = File::create("foo.txt")?;
@@ -25,11 +24,20 @@ use std::process::Command;
 fn save_cache() {
     let ran_from = "tests/repo/some/thing/is/up";
     let mut git = Command::new("git");
-    let git = git.args(["-C", ran_from]).arg("rev-parse").arg("--show-toplevel");
+    let git = git
+        .args(["-C", ran_from])
+        .arg("rev-parse")
+        .arg("--show-toplevel");
     let output = git.output().expect("failed to execute command.").stdout;
-    let git_root = String::from_utf8(output.to_vec()).unwrap();
+    let mut git_root = String::from_utf8(output.to_vec()).unwrap().trim().to_owned();
+
+    let filename: &str = "/.git/gitnumber.txt";
+    git_root.push_str(filename);
+
     println!("ran from dir: {}", ran_from);
     println!("full git root: {}", git_root);
+    println!("target file: {}", filename);
+    fs::write(git_root, "yellow").expect("Unable to write file");
 }
 
 fn main() {
@@ -38,9 +46,8 @@ fn main() {
     println!("---------------------------------------------------------");
     let mut git = Command::new("git");
     let git = git.args(["-C", "tests/repo"]);
-    save_cache();
     let git_status = git.arg("-c").arg("color.status=always").arg("status");
-    
+
     let output = git_status.output().expect("failed to execute command.");
 
     // TODO
@@ -111,6 +118,7 @@ fn main() {
         };
         println!("{}", i);
     }
+    save_cache();
 
     // println!("====================");
     // println!("POST PROCESSING");
