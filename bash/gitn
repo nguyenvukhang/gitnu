@@ -18,6 +18,7 @@ _C='\033[0;36m' # Cyan
 _S='\033[0;37m' # Gray
 
 tab=$(printf '\t')
+mode="" # 'staged' | 'unstaged' | 'untracked'
 
 # gets the filename from one line in git status
 get_filename() {
@@ -49,6 +50,7 @@ gitn_status() {
 
   local numbered_output=()
   local index=1
+  # read git status line by line
   for line in "${git_status[@]}"; do
     local first_char=${line:0:1}
     # assumption: lines starting with tabs will contain a filename
@@ -61,10 +63,13 @@ gitn_status() {
       : "${_//[31m/}" # remove reds
       : "${_//[32m/}" # remove greens
       local filename=$(get_filename "$_")
-      numbered_output+=("$index $PWD/$filename")
+      numbered_output+=("$index $mode $PWD/$filename")
       (( index++ ))
       continue
     fi
+    [[ $line == "Changes to be committed:" ]] && mode="staged"
+    [[ $line == "Changes not staged for commit:" ]] && mode="unstaged"
+    [[ $line == "Untracked files:" ]] && mode="untracked"
     # print original line from git status output
     echo "$line"
   done
