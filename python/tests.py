@@ -5,13 +5,21 @@ import cache
 from shell import system
 import os
 
+def get_full_path(path: str, cwd: str) -> str:
+    result = path
+    if not path[0] == '/':
+        result = cwd + "/" + path
+    return result
+
+
 
 def expect(tested, correct):
     if tested == correct:
         log.green("[PASSED]")
     else:
-        log.red('[FAILED]', *tested)
-        log.green('[----->]', *correct)
+        log.red("[FAILED]", tested)
+        log.green("[----->]", correct)
+
 
 def test_remove_cache():
     # for pure debugging clutches
@@ -20,49 +28,95 @@ def test_remove_cache():
     system(["rm", cache_file])
 
 
+def TITLE(x):
+    log.gray("\n[ ", end="")
+    log.cyan(x, end="")
+    log.gray(" ]")
+
+
 def run_tests(args: list[str], handle_arguments):
-    which = system(["which", "gitn"])
-    gitn = args[0]
-    cwd = os.getcwd()
+    gitn = system(["which", "gitn"])
+    original_dir = os.getcwd()
+    repo_root = system(["git", "rev-parse", "--show-toplevel"])
+    def repo_dir():
+        return system(['git', 'rev-parse', '--git-dir'])
+    margin = 24
 
     def test(x):
-        print(x)
-        return handle_arguments([gitn] + x.split(" ")[1:])
+        return handle_arguments(args[0:1] + x.split(" ")[1:])
 
     # run test suite
 
     # WRITE OPERATIONS
     log.purple("\nwrite to cache")
 
-    # gitn status
-    expect(test("gitn status"), [which, "status"])
+    def pre(string: str):
+        spaces = " " * (margin - len(string))
+        log.gray(string, end=spaces)
+
+    TITLE("gitn status")
+
+    result = test("gitn status")
+    pre("command ran:")
+    expect(result, [gitn, "status"])
+
+    pre("cache filepath:")
+    filepath = get_full_path(cache.get_filepath(), os.getcwd())
+    correct_path = get_full_path(repo_dir() +  '/gitn.json', os.getcwd())
+    expect(filepath, correct_path)
+
+    pre("cache existence:")
     table_exists, table = cache.get_table()
-    _, correct_table = cache.get_table(cwd + '/../root-gitn.json')
-    log.gray('hello world', end="")
+    expect(table_exists, True)
+
+    pre("cache correctness:")
+    _, correct_table = cache.get_table(os.getcwd() + "/../root-gitn.json")
     expect(table, correct_table)
 
-    if table_exists:
-        if table == correct_table:
-            log.green("cache contents are correct.")
-        else:
-            log.red("cache contents are wrong.")
-    else:
-        log.red("cache doesn't exist after gitn status")
+    # change directory for next test
+
+    os.chdir(os.getcwd() + '/some/thing')
+    # now_at = os.getcwd()
+    # log.yellow('now at', now_at)
 
     # gitn status some/thing
-    expect(test("gitn status some/thing"), [which, "status", "some/thing"])
+
+    TITLE('gitn status, from a nested directory')
+
+    result = test("gitn status")
+    pre("command ran:")
+    expect(result, [gitn, "status"])
+
+    pre("cache filepath:")
+    filepath = cache.get_filepath()
+    correct_path = get_full_path(repo_dir() +  '/gitn.json', os.getcwd())
+    expect(filepath, correct_path)
+
+    pre("cache existence:")
+    table_exists, table = cache.get_table()
+    expect(table_exists, True)
+
+    pre("cache correctness:")
+    _, correct_table = cache.get_table(original_dir + "/../some-thing-gitn.json")
+    expect(table, correct_table)
+
+    # log.yellow('correct_table')
+    # print(correct_table)
+    # log.yellow('actual table')
+    # print(table)
+
 
     # READ OPERATIONS
     log.purple("\nread from cache")
 
     # gitn add 1 2 3
-    expect(test("gitn add 1 2 3"), ["git", "add", "1", "2", "3"])
+    # expect(test("gitn add 1 2 3"), ["git", "add", "1", "2", "3"])
 
     # gitn add 1 2 4-7
-    expect(test("gitn add 1 2 4-7"), ["git", "add", "1", "2", "4", "5", "6", "7"])
+    # expect(test("gitn add 1 2 4-7"), ["git", "add", "1", "2", "4", "5", "6", "7"])
 
     # gitn add 1-1 4-7
-    expect(test("gitn add 1-1 4-7"), ["git", "add", "1", "4", "5", "6", "7"])
+    # expect(test("gitn add 1-1 4-7"), ["git", "add", "1", "4", "5", "6", "7"])
 
 
 def debug(args: list[str], handle_arguments) -> list[str]:

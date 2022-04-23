@@ -12,7 +12,9 @@ def update(cache_filepath: str, table: dict):
         json.dump(table, f)
 
 
-def get_table(path: str = get_filepath()) -> tuple[bool, dict]:
+def get_table(path: str = "") -> tuple[bool, dict]:
+    if path == "":
+        path = get_filepath()
     table = {}
     status = True
     try:

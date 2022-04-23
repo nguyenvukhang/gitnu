@@ -6,8 +6,11 @@ from _git import git
 from shell import  system_std
 from tests import debug
 import cache
+import os
+from log import log
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
+VERBOSE = False
 
 
 def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent: bool):
@@ -87,10 +90,11 @@ def expand_ranges(args: list[str]) -> list[str]:
 
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
+    # log.yellow('\nhandle args @', os.getcwd())
     num_args = len(args)
     command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
-        gitn_status(args[command_index + 1 :], silent=True)
+        gitn_status(args[command_index + 1 :], silent=not VERBOSE)
         return args
     # from here on there are at least two args
     # if gitn command doesn't include status
