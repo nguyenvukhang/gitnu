@@ -8,22 +8,22 @@ import os
 
 def expect(tested, correct):
     if tested == correct:
-        log.green("ok", *tested)
+        log.green("[PASSED]")
     else:
-        log.red(*tested)
-        log.green(*correct)
+        log.red('[FAILED]', *tested)
+        log.green('[----->]', *correct)
 
 def test_remove_cache():
     # for pure debugging clutches
     cwd = os.getcwd()
     cache_file = cwd + "/.git/gitn.json"
-    log.purple("----------------", cache_file)
     system(["rm", cache_file])
 
 
 def run_tests(args: list[str], handle_arguments):
     which = system(["which", "gitn"])
     gitn = args[0]
+    cwd = os.getcwd()
 
     def test(x):
         print(x)
@@ -36,9 +36,17 @@ def run_tests(args: list[str], handle_arguments):
 
     # gitn status
     expect(test("gitn status"), [which, "status"])
-    # test_remove_cache()
     table_exists, table = cache.get_table()
-    if not table_exists:
+    _, correct_table = cache.get_table(cwd + '/../root-gitn.json')
+    log.gray('hello world', end="")
+    expect(table, correct_table)
+
+    if table_exists:
+        if table == correct_table:
+            log.green("cache contents are correct.")
+        else:
+            log.red("cache contents are wrong.")
+    else:
         log.red("cache doesn't exist after gitn status")
 
     # gitn status some/thing

@@ -128,8 +128,8 @@ show() {
   # git status
   title "GIT LOG"
   git log --all --oneline --graph
-  title "FILES"
-  ls
+  # title "FILES"
+  # ls
   title "GITN TESTING"
   gitn --test
   divider
