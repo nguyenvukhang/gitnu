@@ -4,6 +4,7 @@ from strings import sanitize
 from _git import git
 import cache
 
+
 def read_stdout(stdout) -> NumberedStatus:
     numbered_status = NumberedStatus()
     if not stdout:
@@ -12,7 +13,6 @@ def read_stdout(stdout) -> NumberedStatus:
     checkpoints = git.set_state_keys
     result, index, counting = [], 1, False
     stdout_lines = stdout.readlines()
-
     if len(stdout_lines) == 0:
         return numbered_status
 
@@ -47,6 +47,3 @@ def gitn_status(args):
         return
     fill_table(numbered_status)
     cache.write(cache.get_filepath(), numbered_status)
-
-
-
