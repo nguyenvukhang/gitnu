@@ -2,14 +2,13 @@
 
 import sys
 from . import git
-from . import tests
 from . import write
 from . import read
-
-debug = tests.debug
+from . import log
 
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
+    log.gray(*args[1:])
     num_args = len(args)
     command, command_index = git.get_command(args)
     if num_args <= 1 or command == "status":
@@ -23,5 +22,4 @@ def handle_arguments(args: list[str]) -> list[str]:
 
 
 def main():
-    args = debug(sys.argv, handle_arguments)
-    handle_arguments(args)
+    handle_arguments(sys.argv)

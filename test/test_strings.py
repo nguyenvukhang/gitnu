@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import unittest
 
 from gitn.strings import sanitize_line, remove_ansi

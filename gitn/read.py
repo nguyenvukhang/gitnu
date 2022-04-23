@@ -40,5 +40,4 @@ def gitn_use(args: list[str], command_index: int) -> None:
         trailing = list(map(table.get_filename_by_index, trailing))
 
     cmd = command_list + trailing
-    log.gray(*cmd)
     subprocess.run(cmd)
