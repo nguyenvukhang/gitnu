@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-clear
-
 _N='\033[0m'    # Normal/Reset
 _R='\033[0;31m' # Red
 _G='\033[0;32m' # Green
@@ -126,12 +124,14 @@ untracked () {
 }
 
 show() {
-  title "GIT STATUS"
-  git status
+  # title "GIT STATUS"
+  # git status
   title "GIT LOG"
   git log --all --oneline --graph
   title "FILES"
   ls
+  title "GITN TESTING"
+  gitn --test
   divider
 }
 
