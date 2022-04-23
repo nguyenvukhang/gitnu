@@ -1,5 +1,6 @@
 import json
 from shell import system
+from data_structure import NumberedStatus
 
 
 def get_filepath() -> str:
@@ -7,9 +8,9 @@ def get_filepath() -> str:
     return "%s/gitn.json" % (cache_directory)
 
 
-def update(cache_filepath: str, table: dict):
+def update(cache_filepath: str, table: NumberedStatus):
     with open(cache_filepath, "w") as f:
-        json.dump(table, f)
+        json.dump(table.cache(), f)
 
 
 def get_table(path: str = "") -> tuple[bool, dict]:

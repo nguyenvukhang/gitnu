@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from data_structure import *
+from data_structure import fill_table, Entry, NumberedStatus, make_entry, get_filename
 from _git import git
 from strings import sanitize
 from shell import system_std
@@ -12,51 +12,24 @@ import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
-class Entry:
-    def __init__(self, status, action, filename) -> None:
-        self.status = status
-        self.action = action
-        self.filename = filename
 
-    def get_status(self):
-        return self.status
-
-    def get_action(self):
-        return self.action
-
-    def get_filename(self):
-        return self.filename
-
-    def tuplify(self):
-        return (self.status, self.action, self.filename)
-
-class NumberedStatus:
-    def __init__(self) -> None:
-        self.data: list[Entry] = []
-
-    def clear(self):
-        self.data = []
-
-    def push(self, element: Entry):
-        self.data.append(element)
-
-    def get(self):
-        return map(lambda x: x.tuplify(), self.data)
-
-def handle_git_status_stdout(stdout) -> list[tuple[str, str]]:
+def handle_git_status_stdout(stdout) -> NumberedStatus:
+    numbered_status = NumberedStatus()
     if not stdout:
-        return []
+        return numbered_status
 
     checkpoints = git.set_state_keys
     result, index, counting = [], 1, False
     stdout_lines = stdout.readlines()
 
     if len(stdout_lines) == 0:
-        return []
+        return numbered_status
 
     for line in stdout_lines:
         stripped = sanitize(line)
         result.append((index, stripped))
+        entry = Entry(index, stripped)
+        numbered_status.push(entry)
         if counting:
             if stripped == "":
                 counting = False
@@ -70,21 +43,23 @@ def handle_git_status_stdout(stdout) -> list[tuple[str, str]]:
             if stripped in checkpoints:
                 counting = True
             print(line, end="")
-    return result
+    return numbered_status
 
-def print_and_extract_git_status(args: list[str]) -> list[tuple[str, str]]:
+
+def print_and_extract_git_status(args: list[str]) -> NumberedStatus:
     stdout = system_std(git.cmd.status + args)
     return handle_git_status_stdout(stdout)
+
 
 # print and extract git status
 # enumerate git status
 # update cache
 def gitn_status(args):
-    output_lines: list[tuple[str, str]] = print_and_extract_git_status(args)
-    if len(output_lines) == 0:
+    numbered_status: NumberedStatus = print_and_extract_git_status(args)
+    if numbered_status.is_empty():
         return
-    table = create_table(output_lines)
-    cache.update(cache.get_filepath(), table)
+    fill_table(numbered_status)
+    cache.update(cache.get_filepath(), numbered_status)
 
 
 def expand_ranges(args: list[str]) -> list[str]:
@@ -133,7 +108,7 @@ def handle_arguments(args: list[str]) -> list[str]:
         def get_filename_from_table(x) -> str:
             s = x
             if x.isdigit():
-                s = ''
+                s = ""
             elem = table.get(x, make_entry("", "", s))
             return get_filename(elem)
 
