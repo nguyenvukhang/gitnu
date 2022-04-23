@@ -11,7 +11,7 @@ install:
 
 local:
 	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
-	pip uninstall gitnu
+	pip uninstall --yes gitnu
 	cd dist && pip install gitnu-0.0.4.tar.gz
 
 build:
@@ -25,12 +25,8 @@ clean:
 	rm -rf dist
 	rm -rf gitnu.egg-info
 
-local:
-	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
-	pip uninstall gitnu
-	cd dist && pip install gitnu-0.0.4.tar.gz
-
 dev:
 	make clean
 	make build
 	make local
+	make clean
