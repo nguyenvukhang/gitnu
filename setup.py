@@ -1,18 +1,25 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
-import gitnu.main as gitnu
-import test.test_gitnu as test
+VERSION = '0.0.1'
+DESCRIPTION = 'Enumerate git status'
+LONG_DESCRIPTION = 'A cli tools that indexes the output of git status to use in subsequent git commands.'
 
-setup(name='gitnu',
-      version='0.0.1',
-      description='enumerate git status',
-      author='Khang',
-      author_email='brew4k@gmail.com',
-      url='https://www.nguyenvukhang.com',
-      packages=['gitnu', 'test'],
-     )
-
-# the existence of this file is what allows
-# test files to import from gitnu
-
-# because yes
+# Setting up
+setup(
+    name="gitnu",
+    version=VERSION,
+    author="Nguyen Vu Khang",
+    author_email="<brew4k@gmail.com>",
+    description=DESCRIPTION,
+    long_description_content_type="text/markdown",
+    long_description=LONG_DESCRIPTION,
+    packages=find_packages(),
+    install_requires=['opencv-python', 'pyautogui', 'pyaudio'],
+    keywords=['python', 'git'],
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Operating System :: Unix",
+        "Operating System :: MacOS :: MacOS X",
+    ]
+)
