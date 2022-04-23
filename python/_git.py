@@ -14,6 +14,7 @@ class git:
         "Changes to be committed:": "staged",
         "Changes not staged for commit:": "unstaged",
         "Untracked files:": "untracked",
+        "nothing to commit, working tree clean": "unset",
         "": "unset",
     }
     ignore = ["no changes added to commit"]
