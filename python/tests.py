@@ -60,11 +60,6 @@ def run_tests(args: list[str], handle_arguments):
     pre("command ran:")
     expect(result, [gitn, "status"])
 
-    pre("cache filepath:")
-    filepath = get_full_path(cache.get_filepath(), os.getcwd())
-    correct_path = get_full_path(repo_dir() +  '/gitn.json', os.getcwd())
-    expect(filepath, correct_path)
-
     pre("cache existence:")
     table_exists, table = cache.get_table()
     expect(table_exists, True)
@@ -86,11 +81,6 @@ def run_tests(args: list[str], handle_arguments):
     result = test("gitn status")
     pre("command ran:")
     expect(result, [gitn, "status"])
-
-    pre("cache filepath:")
-    filepath = cache.get_filepath()
-    correct_path = get_full_path(repo_dir() +  '/gitn.json', os.getcwd())
-    expect(filepath, correct_path)
 
     pre("cache existence:")
     table_exists, table = cache.get_table()
