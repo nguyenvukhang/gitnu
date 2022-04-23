@@ -43,10 +43,7 @@ def handle_git_status_stdout(stdout) -> list[tuple]:
 
 
 def print_and_extract_git_status(args: list[str]) -> list[tuple]:
-    cmd = git.cmd.status
-    cmd.extend(args)
-    stdout = system_std(cmd)
-
+    stdout = system_std(git.cmd.status + args)
     return handle_git_status_stdout(stdout)
 
 # print and extract git status
