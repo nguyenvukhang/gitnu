@@ -7,16 +7,21 @@ def system(cmd: list[str]) -> str:
 
 def systemlist(cmd: list[str]) -> list[str]:
     result = []
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
-    )
-    if not process.stdout:
+    stdout, _ = system_std(cmd)
+    if not stdout:
         return []
-    while process.stdout.readable():
-        line = process.stdout.readline()
+    while stdout.readable():
+        line = stdout.readline()
         if not line:
             break
         result.append(line.strip())
     if len(result) == 0:
         return [""]
     return result
+
+
+def system_std(cmd: list[str]) -> tuple:
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    return (process.stdout, process.stderr)

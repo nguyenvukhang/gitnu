@@ -12,7 +12,7 @@ class bcolors:
 
 def stringify(color):
     def fn(*args):
-        text = " ".join(args)
+        text = " ".join(map(str, args))
         print(color + text + bcolors.ENDC)
 
     return fn
