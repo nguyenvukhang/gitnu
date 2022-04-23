@@ -23,12 +23,21 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+def stringify(color):
+    def fn(*args):
+        text = " ".join(args)
+        print(color + text + bcolors.ENDC)
+
+    return fn
+
+
 class log:
-    yellow = lambda x: print(bcolors.YELLOW + x + bcolors.ENDC)
-    green = lambda x: print(bcolors.GREEN + x + bcolors.ENDC)
-    blue = lambda x: print(bcolors.BLUE + x + bcolors.ENDC)
-    cyan = lambda x: print(bcolors.CYAN + x + bcolors.ENDC)
-    purple = lambda x: print(bcolors.PURPLE + x + bcolors.ENDC)
+    red = stringify(bcolors.RED)
+    yellow = stringify(bcolors.YELLOW)
+    green = stringify(bcolors.GREEN)
+    blue = stringify(bcolors.BLUE)
+    cyan = stringify(bcolors.CYAN)
+    purple = stringify(bcolors.PURPLE)
 
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
@@ -173,13 +182,13 @@ def get_git_command(args: list[str]) -> tuple[str, int]:
     return ("", 0)
 
 
-def handle_arguments(args: list[str]):
+# processes arguments, and returns the list of processed args
+def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
     command, command_index = get_git_command(args)
     if num_args <= 1 or command == "status":
-        print("sent", args)
-        # gitn_status(args[command_index + 1 :])
-        return
+        gitn_status(args[command_index + 1 :])
+        return args
     # from here on there are at least two args
     # if gitn command doesn't include status
     # it's essentially a full bypass with the numbers as file aliases
@@ -187,21 +196,38 @@ def handle_arguments(args: list[str]):
     args[1:] = expand_ranges(args[1:])
     table_exists, table = retrieve_table()
     if table_exists:
-        print("sent", args)
-        pass
+        return args
         # do the mapping
     else:
-        print("sent", args)
-        pass
+        return args
         # do a full bypass
 
 
+def expect(tested, correct):
+    if tested == correct:
+        log.green("ok", *tested)
+    else:
+        log.red(*tested)
+        log.green(*correct)
+
+
 def debug(args: list[str]) -> list[str]:
+    which = system(["which", "gitn"])
     gitn = args[0]
     if len(args) == 2 and args[1] == "--test":
-        log.yellow("gitn status")
-        handle_arguments([gitn, "status"])
+
+        def test(x):
+            print(x)
+            return handle_arguments([gitn] + x.split(" ")[1:])
+
         # run test suite
+        log.purple('\nwrite to cache')
+        expect(test("gitn status"), [which, "status"])
+        expect(test("gitn status some/thing"), [which, "status", "some/thing"])
+        log.purple('\nread from cache')
+        expect(test("gitn add 1 2 3"), ["git", "add", "1", "2", "3"])
+        expect(test("gitn add 1 2 4-7"), ["git", "add", "1", "2", "4", "5", "6", "7"])
+        expect(test("gitn add 1-1 4-7"), ["git", "add", "1", "4", "5", "6", "7"])
         pass
     # full bypass
     return args

@@ -1,4 +1,5 @@
 from git_utils import git
+from os import getcwd
 
 def make_entry(status, action, filename):
     return [status, action, filename]
@@ -25,6 +26,7 @@ def add_delta(index, entry, table):
 
 def create_table(git_status) -> dict:
     table = {}
+    cwd = getcwd()
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     for indexed_line in git_status:
         index, line = indexed_line
@@ -36,7 +38,7 @@ def create_table(git_status) -> dict:
             if line.startswith(key):
                 action = value
                 line = line[len(key) :]
-                filename = line.lstrip()
+                filename = "%s/%s" % (cwd, line.lstrip())
                 break
         entry = make_entry(state, action, filename)
         add_delta(index, entry, table)
