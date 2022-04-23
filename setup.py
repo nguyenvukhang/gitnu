@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.4'
 DESCRIPTION = 'Enumerate git status'
 LONG_DESCRIPTION = 'A cli tools that indexes the output of git status to use in subsequent git commands.'
 
