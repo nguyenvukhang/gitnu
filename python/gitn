@@ -3,7 +3,7 @@
 import sys
 from data_structure import fill_table, Entry, NumberedStatus
 from _git import git
-from strings import sanitize
+from strings import sanitize, expand_ranges
 from shell import system_std
 from tests import debug
 import cache
@@ -62,35 +62,8 @@ def gitn_status(args):
     cache.update(cache.get_filepath(), numbered_status)
 
 
-def expand_ranges(args: list[str]) -> list[str]:
-    result = []
-    if len(args) == 0:
-        return []
-    for arg in args:
-        # straight bypass for certain keywords
-        if arg in git.commands:
-            result.append(arg)
-            continue
-        # handle number ranges
-        if "-" in arg:
-            try:
-                split = list(map(int, arg.split("-")))
-            except:
-                result.append(arg)
-                continue
-            if len(split) != 2 and not all(isinstance(x, int) for x in split):
-                result.append(arg)
-                continue
-            result.extend(map(str, range(split[0], split[1] + 1)))
-        # bypass for the rest
-        else:
-            result.append(arg)
-    return result
-
-
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
-    # log.yellow('\nhandle args @', os.getcwd())
     num_args = len(args)
     command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
@@ -104,17 +77,11 @@ def handle_arguments(args: list[str]) -> list[str]:
     command_list[0] = "git"
     table_exists, table = cache.get_table()
     if table_exists:
-
         trailing = list(filter(None, map(table.get_filename_by_index, trailing)))
-        cmd = command_list + trailing
-        log.gray(*cmd)
-        subprocess.run(cmd)
-
-        return args
-        # do the mapping
-    else:
-        return args
-        # do a full bypass
+    cmd = command_list + trailing
+    log.gray(*cmd)
+    subprocess.run(cmd)
+    return args
 
 
 def main():

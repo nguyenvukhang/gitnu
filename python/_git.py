@@ -16,6 +16,7 @@ class git:
         "Untracked files:": "untracked",
         "": "unset",
     }
+    ignore = ["no changes added to commit"]
     set_action = {
         "deleted:": "deleted",
         "new file:": "newfile",

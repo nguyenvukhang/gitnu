@@ -142,7 +142,11 @@ def fill_table(numbered_status: NumberedStatus) -> None:
                 # too lazy to regex start-of-line,
                 # so this too shall pass
                 line = line[len(keyword) :]
-                filename = path.join(cwd, line.lstrip())
+                if action == 'renamed':
+                    after_arrow = line.lstrip().split(' -> ', 1)[1]
+                    filename = path.join(cwd, after_arrow)
+                else:
+                    filename = path.join(cwd, line.lstrip())
                 # use the first match only, so break after first if
                 break
         entry = make_entry(state, action, filename)
