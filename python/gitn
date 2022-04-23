@@ -6,7 +6,6 @@ from _git import git
 from shell import system_std
 from tests import debug
 import cache
-import os
 from log import log
 import subprocess
 
@@ -14,12 +13,7 @@ ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 VERBOSE = True
 
 
-def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent: bool):
-    def cprint(*args, end):
-        if silent:
-            return
-        print(*args, end=end)
-
+def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
     cmd = ["git", "-c", "status.color=always", "status"]
     cmd.extend(args)
     stdout, stderr = system_std(cmd)
@@ -48,24 +42,24 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent
         if counting:
             if stripped == "":
                 counting = False
-                cprint(line, end="")
+                print(line, end="")
             elif stripped in checkpoints:
-                cprint(line, end="")
+                print(line, end="")
             else:
-                cprint(index, line, end="")
+                print(index, line, end="")
                 index += 1
         else:
             if stripped in checkpoints:
                 counting = True
-            cprint(line, end="")
+            print(line, end="")
     return result
 
 
 # print and extract git status
 # enumerate git status
 # update cache
-def gitn_status(args, silent=False):
-    git_status = print_and_extract_git_status(args, git.set_state_keys, silent)
+def gitn_status(args):
+    git_status = print_and_extract_git_status(args, git.set_state_keys)
     if not git_status:
         return
     table = create_table(git_status)
@@ -104,7 +98,7 @@ def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
     command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
-        gitn_status(args[command_index + 1 :], silent=not VERBOSE)
+        gitn_status(args[command_index + 1 :])
         return args
     # from here on there are at least two args
     # if gitn command doesn't include status
