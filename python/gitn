@@ -12,6 +12,37 @@ import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
+class Entry:
+    def __init__(self, status, action, filename) -> None:
+        self.status = status
+        self.action = action
+        self.filename = filename
+
+    def get_status(self):
+        return self.status
+
+    def get_action(self):
+        return self.action
+
+    def get_filename(self):
+        return self.filename
+
+    def tuplify(self):
+        return (self.status, self.action, self.filename)
+
+class NumberedStatus:
+    def __init__(self) -> None:
+        self.data: list[Entry] = []
+
+    def clear(self):
+        self.data = []
+
+    def push(self, element: Entry):
+        self.data.append(element)
+
+    def get(self):
+        return map(lambda x: x.tuplify(), self.data)
+
 def handle_git_status_stdout(stdout) -> list[tuple[str, str]]:
     if not stdout:
         return []
