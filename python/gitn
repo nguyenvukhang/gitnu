@@ -12,7 +12,7 @@ import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
-def handle_git_status_stdout(stdout) -> list[tuple]:
+def handle_git_status_stdout(stdout) -> list[tuple[str, str]]:
     if not stdout:
         return []
 
@@ -41,8 +41,7 @@ def handle_git_status_stdout(stdout) -> list[tuple]:
             print(line, end="")
     return result
 
-
-def print_and_extract_git_status(args: list[str]) -> list[tuple]:
+def print_and_extract_git_status(args: list[str]) -> list[tuple[str, str]]:
     stdout = system_std(git.cmd.status + args)
     return handle_git_status_stdout(stdout)
 
@@ -50,10 +49,10 @@ def print_and_extract_git_status(args: list[str]) -> list[tuple]:
 # enumerate git status
 # update cache
 def gitn_status(args):
-    git_status = print_and_extract_git_status(args)
-    if not git_status:
+    output_lines: list[tuple[str, str]] = print_and_extract_git_status(args)
+    if len(output_lines) == 0:
         return
-    table = create_table(git_status)
+    table = create_table(output_lines)
     cache.update(cache.get_filepath(), table)
 
 

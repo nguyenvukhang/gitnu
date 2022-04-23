@@ -24,11 +24,11 @@ def add_delta(index, entry, table):
     table[index] = entry
 
 
-def create_table(git_status) -> dict:
+def create_table(indexed_lines: list[tuple[str, str]]) -> dict:
     table = {}
     cwd = getcwd()
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
-    for indexed_line in git_status:
+    for indexed_line in indexed_lines:
         index, line = indexed_line
         state = git.set_state.get(line, state)
         if line in git.set_state or state == "unset":
