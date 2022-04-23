@@ -5,21 +5,37 @@ all_tests:
 	@echo "running tests..."
 	@$(PYTHON) -m unittest discover
 
-local:
-	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
-	pip uninstall --yes gitnu
-	cd dist && pip install gitnu-0.0.4.tar.gz
-
-build:
-	$(PYTHON) setup.py sdist bdist_wheel
-
-upload:
-	twine upload dist/*
-
 clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf gitnu.egg-info
+
+uninstall:
+	pip uninstall --yes gitnu
+	rm -f ~/.local/bin/gitnu
+
+install-pip:
+	pip install gitnu
+
+i:
+	make install-pip
+
+u:
+	make uninstall
+
+local:
+	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
+	cd dist && pip install gitnu-0.0.4.tar.gz
+
+build:
+	make clean
+	$(PYTHON) setup.py sdist
+
+upload:
+	make clean
+	make build
+	twine upload --username "brew4k" dist/*
+	make clean
 
 bin:
 	echo "#!/usr/bin/env bash">bin_file
