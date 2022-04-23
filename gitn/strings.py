@@ -1,4 +1,3 @@
-
 def remove_ansi(string: str) -> str:
     ansi = [
         "\x1b[31m",
@@ -15,5 +14,5 @@ def remove_ansi(string: str) -> str:
     return string
 
 
-def sanitize(string: str) -> str:
+def sanitize_line(string: str) -> str:
     return remove_ansi(string.strip())

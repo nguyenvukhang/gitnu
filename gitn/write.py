@@ -1,6 +1,6 @@
 from .data_structure import fill_table, Entry, NumberedStatus
 from .shell import system_std
-from .strings import sanitize
+from .strings import sanitize_line
 from .git import git
 from . import cache
 
@@ -17,7 +17,7 @@ def read_stdout(stdout) -> NumberedStatus:
         return numbered_status
 
     for line in stdout_lines:
-        stripped = sanitize(line)
+        stripped = sanitize_line(line)
         result.append((index, stripped))
         entry = Entry(index, stripped)
         numbered_status.push(entry)

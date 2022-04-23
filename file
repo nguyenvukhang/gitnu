@@ -1,0 +1,22 @@
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+	modified:   gitn/strings.py
+	modified:   test/test_gitn.py
+
+Untracked files:
+	file
+
+no changes added to commit
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+	[31mmodified:   gitn/strings.py[m
+	[31mmodified:   test/test_gitn.py[m
+
+Untracked files:
+	[31mfile[m
+
+no changes added to commit
