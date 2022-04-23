@@ -3,14 +3,14 @@
 import sys
 from data_structure import *
 from _git import git
-from shell import  system_std
+from shell import system_std
 from tests import debug
 import cache
 import os
 from log import log
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
-VERBOSE = False
+VERBOSE = True
 
 
 def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent: bool):
@@ -21,7 +21,16 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent
 
     cmd = ["git", "-c", "status.color=always", "status"]
     cmd.extend(args)
-    stdout, _ = system_std(cmd)
+    stdout, stderr = system_std(cmd)
+
+    if len(stderr.readlines()) > 0:
+        while stderr.readable():
+            line = stderr.readline()
+            if not line:
+                break
+            print(line.strip())
+        return
+
     if not stdout:
         return
 
