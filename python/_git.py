@@ -7,6 +7,9 @@ def get_git_command(args: list[str]) -> tuple[str, int]:
 
 
 class git:
+    class cmd:
+        status = ["git", "-c", "status.color=always", "status"]
+
     set_state = {
         "Changes to be committed:": "staged",
         "Changes not staged for commit:": "unstaged",

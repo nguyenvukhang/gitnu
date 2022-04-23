@@ -13,7 +13,7 @@ import subprocess
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
-    cmd = ["git", "-c", "status.color=always", "status"]
+    cmd = git.cmd.status
     cmd.extend(args)
     stdout, stderr = system_std(cmd)
 
