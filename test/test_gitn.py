@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 import unittest
-from __future__ import absolute_import, division, print_function, unicode_literals
-import argparse
 
 from gitn import strings
-
 
 class TestStringMethods(unittest.TestCase):
 
@@ -16,5 +13,5 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue('FOO'.isupper())
         self.assertFalse('Foo'.isupper())
 
-# if __name__ == '__main__':
-#     unittest.main()
+if __name__ == '__main__':
+    unittest.main()

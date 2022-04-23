@@ -1,4 +1,6 @@
 PYTHON = $(shell (command -v python3))
+CWD = $(shell pwd)
 
-all:
-	$(PYTHON) test_main.py
+test:
+	@echo "running tests..."
+	@cd ../ && $(PYTHON) -m test.test_gitn
