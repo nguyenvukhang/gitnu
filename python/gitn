@@ -3,6 +3,7 @@
 import sys
 from data_structure import *
 from _git import git
+from strings import sanitize
 from shell import system_std
 from tests import debug
 import cache
@@ -10,8 +11,6 @@ from log import log
 import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
-VERBOSE = True
-
 
 def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
     cmd = ["git", "-c", "status.color=always", "status"]
@@ -35,9 +34,7 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
         return
 
     for line in stdout_lines:
-        stripped = line.strip()
-        for i in ansi:
-            stripped = stripped.replace(i, "")
+        stripped = sanitize(line)
         result.append((index, stripped))
         if counting:
             if stripped == "":
