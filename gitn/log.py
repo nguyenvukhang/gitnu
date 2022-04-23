@@ -18,12 +18,10 @@ def stringify(color):
 
     return fn
 
-
-class log:
-    gray = stringify(bcolors.GRAY)
-    red = stringify(bcolors.RED)
-    yellow = stringify(bcolors.YELLOW)
-    green = stringify(bcolors.GREEN)
-    blue = stringify(bcolors.BLUE)
-    cyan = stringify(bcolors.CYAN)
-    purple = stringify(bcolors.PURPLE)
+gray = stringify(bcolors.GRAY)
+red = stringify(bcolors.RED)
+yellow = stringify(bcolors.YELLOW)
+green = stringify(bcolors.GREEN)
+blue = stringify(bcolors.BLUE)
+cyan = stringify(bcolors.CYAN)
+purple = stringify(bcolors.PURPLE)

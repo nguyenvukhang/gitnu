@@ -1,6 +1,6 @@
 import json
-from shell import system
-from data_structure import NumberedStatus, Entry
+from .shell import system
+from .data_structure import NumberedStatus, Entry
 
 
 def get_filepath() -> str:

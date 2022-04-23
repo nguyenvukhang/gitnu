@@ -1,8 +1,8 @@
-from data_structure import fill_table, Entry, NumberedStatus
-from shell import system_std
-from strings import sanitize
-from _git import git
-import cache
+from .data_structure import fill_table, Entry, NumberedStatus
+from .shell import system_std
+from .strings import sanitize
+from .git import git
+from . import cache
 
 
 def read_stdout(stdout) -> NumberedStatus:

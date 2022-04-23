@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+INSTALL_DIR=$HOME/repos/git-number
+cd $INSTALL_DIR
+python3 -m gitn

@@ -1,6 +1,6 @@
-from _git import git
+from .git import git
 from os import getcwd, path
-from log import log
+from . import log
 
 
 class Entry:

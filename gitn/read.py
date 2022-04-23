@@ -1,8 +1,7 @@
 import subprocess
-from _git import git
-import cache
-from log import log
-
+from . import cache
+from .git import git
+from . import log
 
 def parse_ranges(args: list[str]) -> list[str]:
     result = []

@@ -1,9 +1,9 @@
-from log import log
-from shell import system
-import json
-import cache
-from shell import system
+from . import log
+from . import shell
+from . import cache
 import os
+
+system = shell.system
 
 
 def get_full_path(path: str, cwd: str) -> str:

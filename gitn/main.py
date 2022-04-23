@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import sys
-from _git import git
-from tests import debug
-import write
-import read
+from . import git
+from . import tests
+from . import write
+from . import read
 
+debug = tests.debug
 
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
-    command, command_index = git.get_commmand(args)
+    command, command_index = git.get_command(args)
     if num_args <= 1 or command == "status":
         write.gitn_status(args[command_index + 1 :])
     # from here on there are at least two args
@@ -24,7 +25,3 @@ def handle_arguments(args: list[str]) -> list[str]:
 def main():
     args = debug(sys.argv, handle_arguments)
     handle_arguments(args)
-
-
-if __name__ == "__main__":
-    main()
