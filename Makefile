@@ -6,4 +6,4 @@ all_tests:
 	@$(PYTHON) -m unittest discover
 
 install:
-	ln -sf $$PWD/bin/gitn $$HOME/.local/bin
+	ln -sf $$PWD/run $$HOME/.local/bin/gitn
