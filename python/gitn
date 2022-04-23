@@ -13,7 +13,7 @@ import subprocess
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 
-def handle_git_status_stdout(stdout) -> NumberedStatus:
+def read_stdout(stdout) -> NumberedStatus:
     numbered_status = NumberedStatus()
     if not stdout:
         return numbered_status
@@ -46,16 +46,12 @@ def handle_git_status_stdout(stdout) -> NumberedStatus:
     return numbered_status
 
 
-def print_and_extract_git_status(args: list[str]) -> NumberedStatus:
-    stdout = system_std(git.cmd.status + args)
-    return handle_git_status_stdout(stdout)
-
-
 # print and extract git status
 # enumerate git status
 # update cache
 def gitn_status(args):
-    numbered_status: NumberedStatus = print_and_extract_git_status(args)
+    stdout = system_std(git.cmd.status + args)
+    numbered_status: NumberedStatus = read_stdout(stdout)
     if numbered_status.is_empty():
         return
     fill_table(numbered_status)

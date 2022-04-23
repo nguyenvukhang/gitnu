@@ -40,7 +40,7 @@ class NumberedStatus:
     def push(self, entry: Entry):
         self.data.append(entry)
 
-    def pop(self, entry: Entry):
+    def remove(self, entry: Entry):
         self.data.remove(entry)
 
     def get_filename_by_index(self, index: str):
@@ -79,7 +79,7 @@ def fill_table(numbered_status: NumberedStatus) -> None:
         # these lines will not have filenames inside
         # and so do not need to remain indexed
         if line in git.set_state or state == "unset" or line.strip() == "":
-            numbered_status.pop(data)
+            numbered_status.remove(data)
             continue
 
         # untracked files will not have any keyword in front of them
