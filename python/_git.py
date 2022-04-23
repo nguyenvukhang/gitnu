@@ -14,6 +14,7 @@ class git:
         "Changes to be committed:": "staged",
         "Changes not staged for commit:": "unstaged",
         "Untracked files:": "untracked",
+        "": "unset",
     }
     set_action = {
         "deleted:": "deleted",
