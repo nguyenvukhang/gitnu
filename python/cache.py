@@ -11,7 +11,6 @@ def get_filepath() -> str:
 
 def update(cache_filepath: str, table: NumberedStatus):
     data = table.cache()
-    log.red(data)
     with open(cache_filepath, "w") as f:
         json.dump(table.cache(), f)
 

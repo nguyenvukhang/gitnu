@@ -58,8 +58,6 @@ def gitn_status(args):
     numbered_status: NumberedStatus = print_and_extract_git_status(args)
     if numbered_status.is_empty():
         return
-    log.purple('gitn status function')
-    # numbered_status.print()
     fill_table(numbered_status)
     cache.update(cache.get_filepath(), numbered_status)
 

@@ -122,8 +122,6 @@ def fill_table(numbered_status: NumberedStatus) -> None:
     cwd = getcwd()
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     data_list = numbered_status.get_data()
-    log.green('fill_table function')
-    numbered_status.print()
     for data in data_list:
         index = data.get_index()
         line = data.get_line()
@@ -131,7 +129,6 @@ def fill_table(numbered_status: NumberedStatus) -> None:
         # these lines will not have filenames inside
         # and so do not need to remain indexed
         if line in git.set_state or state == "unset":
-            log.cyan('rm', state, data.tuple())
             numbered_status.pop(data)
             continue
 
