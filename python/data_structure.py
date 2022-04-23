@@ -1,4 +1,4 @@
-from git_utils import keyphrases
+from git_utils import git
 
 def make_entry(status, action, filename):
     return [status, action, filename]
@@ -28,11 +28,11 @@ def create_table(git_status) -> dict:
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     for indexed_line in git_status:
         index, line = indexed_line
-        state = keyphrases.set_state.get(line, state)
-        if line in keyphrases.set_state or state == "unset":
+        state = git.set_state.get(line, state)
+        if line in git.set_state or state == "unset":
             continue
         action, filename = "", line.lstrip()
-        for key, value in keyphrases.set_action.items():
+        for key, value in git.set_action.items():
             if line.startswith(key):
                 action = value
                 line = line[len(key) :]

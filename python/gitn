@@ -5,7 +5,7 @@ import pprint
 import json
 import sys
 from data_structure import *
-from git_utils import keyphrases
+from git_utils import git
 from shell import system
 
 pp = pprint.PrettyPrinter(indent=4).pprint
@@ -26,10 +26,12 @@ class bcolors:
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 
-def print_and_extract_git_status(checkpoints: list[str]):
+def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
     result = []
+    cmd = ["git", "-c", "status.color=always", "status"]
+    cmd.extend(args)
     process = subprocess.Popen(
-        ["git", "-c", "status.color=always", "status"],
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
@@ -37,7 +39,7 @@ def print_and_extract_git_status(checkpoints: list[str]):
     if not process.stdout:
         return
     index = 1
-    started = False
+    counting = False
     while process.stdout.readable():
         line = process.stdout.readline()
         if not line:
@@ -46,19 +48,20 @@ def print_and_extract_git_status(checkpoints: list[str]):
         for i in ansi:
             stripped = stripped.replace(i, "")
         result.append((index, stripped))
-        if started:
-            if stripped in checkpoints:
+        if counting:
+            if stripped == '':
+                counting = False
                 print(line, end="")
-                continue
+            elif stripped in checkpoints:
+                print(line, end="")
             else:
                 print(index, line, end="")
                 index += 1
         else:
             if stripped in checkpoints:
-                started = True
+                counting = True
             print(line, end="")
     return result
-
 
 
 def get_cache_filepath() -> str:
@@ -69,17 +72,6 @@ def get_cache_filepath() -> str:
 def update_cache(cache_filepath: str, table: dict):
     with open(cache_filepath, "w") as f:
         json.dump(table, f)
-
-
-# print and extract git status
-# enumerate git status
-# update cache
-def gitn_status():
-    git_status = print_and_extract_git_status(keyphrases.set_state_keys)
-    if not git_status:
-        return
-    table = create_table(git_status)
-    update_cache(get_cache_filepath(), table)
 
 
 # read from existing cache (do a full git bypass if there's no cache)
@@ -113,25 +105,66 @@ def gitn_add(args):
     except:
         git_command.extend(args)
     git_command = list(filter(None, git_command))
-    subprocess.run(git_command)
+    # subprocess.run(git_command)
+
+
+# print and extract git status
+# enumerate git status
+# update cache
+def gitn_status(args):
+    print('gitn status args:', args)
+    git_status = print_and_extract_git_status(args, git.set_state_keys)
+    if not git_status:
+        return
+    table = create_table(git_status)
+    update_cache(get_cache_filepath(), table)
+
+
+def expand_ranges(args: list[str]) -> list[str]:
+    result = []
+    if len(args) == 0:
+        return []
+    for arg in args:
+        # straight bypass for certain keywords
+        if arg in git.commands:
+            result.append(arg)
+            continue
+        # handle number ranges
+        if "-" in arg:
+            try:
+                split = list(map(int, arg.split("-")))
+            except:
+                result.append(arg)
+                continue
+            if len(split) != 2 and not all(isinstance(x, int) for x in split):
+                result.append(arg)
+                continue
+            result.extend(map(str, range(split[0], split[1] + 1)))
+        # bypass for the rest
+        else:
+            result.append(arg)
+    return result
+
+
+def get_git_command(args: list[str]) -> tuple[str, int]:
+    for i in range(len(args)):
+        word = args[i]
+        if word in git.commands:
+            return (word, i)
+    return ("", 0)
 
 
 def handle_arguments(args: list[str]):
     num_args = len(args)
-    if num_args <= 1:
-        gitn_status()
+    command, command_index = get_git_command(args)
+    if num_args <= 1 or command == "status":
+        print("final", args)
+        gitn_status(args[command_index + 1 :])
         return
     # from here on there are at least two args
-    command, trailing = args[1], args[2:]
-    if command == "status":
-        gitn_status()
-    if command == "add":
-        if len(trailing) == 0:
-            print("Nothing specified, nothing added.")
-            return
-        gitn_add(trailing)
-    # print("command:", command)
-    # print("trailing:", trailing)
+    args[0] = "git"
+    args[1:] = expand_ranges(args[1:])
+    print("final", args)
 
 
 def main():

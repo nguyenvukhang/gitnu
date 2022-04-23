@@ -1,5 +1,6 @@
 import subprocess
 
+
 def system(cmd: list[str]) -> str:
     return systemlist(cmd)[0]
 
