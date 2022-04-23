@@ -23,11 +23,9 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent
     cmd.extend(args)
     stdout, stderr = system_std(cmd)
 
-    if len(stderr.readlines()) > 0:
-        while stderr.readable():
-            line = stderr.readline()
-            if not line:
-                break
+    stderr_lines = stderr.readlines()
+    if len(stderr_lines) > 0:
+        for line in stderr_lines:
             print(line.strip())
         return
 
@@ -36,10 +34,12 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent
 
     result, index, counting = [], 1, False
 
-    while stdout.readable():
-        line = stdout.readline()
-        if not line:
-            break
+    stdout_lines = stdout.readlines()
+
+    if len(stdout_lines) == 0:
+        return
+
+    for line in stdout_lines:
         stripped = line.strip()
         for i in ansi:
             stripped = stripped.replace(i, "")
