@@ -5,12 +5,12 @@ import cache
 from shell import system
 import os
 
+
 def get_full_path(path: str, cwd: str) -> str:
     result = path
-    if not path[0] == '/':
+    if not path[0] == "/":
         result = cwd + "/" + path
     return result
-
 
 
 def expect(tested, correct):
@@ -28,18 +28,16 @@ def test_remove_cache():
     system(["rm", cache_file])
 
 
-def TITLE(x):
+def TITLE(x, end="\n"):
     log.gray("\n[ ", end="")
     log.cyan(x, end="")
-    log.gray(" ]")
+    log.gray(" ]", end=end)
 
 
 def run_tests(args: list[str], handle_arguments):
     gitn = system(["which", "gitn"])
     original_dir = os.getcwd()
-    repo_root = system(["git", "rev-parse", "--show-toplevel"])
-    def repo_dir():
-        return system(['git', 'rev-parse', '--git-dir'])
+
     margin = 24
 
     def test(x):
@@ -48,7 +46,7 @@ def run_tests(args: list[str], handle_arguments):
     # run test suite
 
     # WRITE OPERATIONS
-    log.purple("\nwrite to cache")
+    log.purple("\nWRITE TO CACHE")
 
     def pre(string: str):
         spaces = " " * (margin - len(string))
@@ -70,13 +68,14 @@ def run_tests(args: list[str], handle_arguments):
 
     # change directory for next test
 
-    os.chdir(os.getcwd() + '/some/thing')
+    os.chdir(os.getcwd() + "/some/thing")
     # now_at = os.getcwd()
     # log.yellow('now at', now_at)
 
     # gitn status some/thing
 
-    TITLE('gitn status, from a nested directory')
+    TITLE("gitn status", end=" ")
+    log.gray("(from inside worktree)")
 
     result = test("gitn status")
     pre("command ran:")
@@ -91,16 +90,41 @@ def run_tests(args: list[str], handle_arguments):
     expect(table, correct_table)
 
     # READ OPERATIONS
-    log.purple("\nread from cache")
+    log.purple("\nREAD FROM CACHE")
 
-    # gitn add 1 2 3
-    # expect(test("gitn add 1 2 3"), ["git", "add", "1", "2", "3"])
+    # change directory for next test
 
-    # gitn add 1 2 4-7
-    # expect(test("gitn add 1 2 4-7"), ["git", "add", "1", "2", "4", "5", "6", "7"])
+    os.chdir(original_dir)
 
-    # gitn add 1-1 4-7
-    # expect(test("gitn add 1-1 4-7"), ["git", "add", "1", "4", "5", "6", "7"])
+    TITLE("gitn add 1 2 3")
+
+    result = test("gitn add 1 2 3")
+    pre("command ran:")
+    expect(result, ["git", "add", "1", "2", "3"])
+
+    TITLE("gitn add 1 2 4-7")
+
+    result = test("gitn add 1 2 4-7")
+    pre("command ran:")
+    expect(result, ["git", "add", "1", "2", "4", "5", "6", "7"])
+
+    TITLE("gitn add 1-1 4-7")
+
+    result = test("gitn add 1-1 4-7")
+    pre("command ran:")
+    expect(result, ["git", "add", "1", "4", "5", "6", "7"])
+
+    TITLE("gitn add alpha.py")
+
+    result = test("gitn add alpha.py")
+    pre("command ran:")
+    expect(result, ["git", "add", "alpha.py"])
+
+    TITLE("gitn add alpha.py 1-3")
+
+    result = test("gitn add alpha.py 1-3")
+    pre("command ran:")
+    expect(result, ["git", "add", "alpha.py", "1", "2", "3"])
 
 
 def debug(args: list[str], handle_arguments) -> list[str]:
