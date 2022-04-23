@@ -4,10 +4,10 @@ from log import log
 
 
 class Entry:
-    def __init__(self, index, line) -> None:
+    def __init__(self, index, line="", filename="") -> None:
         self.state = ""
         self.action = ""
-        self.filename = ""
+        self.filename = filename
         self.index = index
         self.line = line
 
@@ -58,11 +58,21 @@ class NumberedStatus:
     def clear(self):
         self.data = []
 
-    def push(self, element: Entry):
-        self.data.append(element)
+    def push(self, entry: Entry):
+        self.data.append(entry)
 
-    def pop(self, element: Entry):
-        self.data.remove(element)
+    def pop(self, entry: Entry):
+        self.data.remove(entry)
+
+    def get_filename_by_index(self, index: str):
+        # return if not a number
+        # this is gitn's promise to be nothing but an alias for numbers
+        if not index.isdigit():
+            return index
+        i = int(index)
+        if i in range(1, self.length() + 1):
+            return self.data[i].get_filename()
+        return index
 
     def get_data(self):
         return tuple(self.data)
@@ -81,6 +91,7 @@ class NumberedStatus:
 
     def length(self):
         return len(self.data)
+
 
 def make_entry(status, action, filename):
     return [status, action, filename]
@@ -111,13 +122,16 @@ def fill_table(numbered_status: NumberedStatus) -> None:
     cwd = getcwd()
     state = "unset"  # 'staged' | 'unstaged' | 'untracked'
     data_list = numbered_status.get_data()
+    log.green('fill_table function')
+    numbered_status.print()
     for data in data_list:
         index = data.get_index()
         line = data.get_line()
         state = git.set_state.get(line, state)
         # these lines will not have filenames inside
         # and so do not need to remain indexed
-        if line in git.set_state or state == "unset" or line == "":
+        if line in git.set_state or state == "unset":
+            log.cyan('rm', state, data.tuple())
             numbered_status.pop(data)
             continue
 

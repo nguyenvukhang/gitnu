@@ -58,6 +58,8 @@ def gitn_status(args):
     numbered_status: NumberedStatus = print_and_extract_git_status(args)
     if numbered_status.is_empty():
         return
+    log.purple('gitn status function')
+    # numbered_status.print()
     fill_table(numbered_status)
     cache.update(cache.get_filepath(), numbered_status)
 
@@ -105,14 +107,7 @@ def handle_arguments(args: list[str]) -> list[str]:
     table_exists, table = cache.get_table()
     if table_exists:
 
-        def get_filename_from_table(x) -> str:
-            s = x
-            if x.isdigit():
-                s = ""
-            elem = table.get(x, make_entry("", "", s))
-            return get_filename(elem)
-
-        trailing = list(filter(None, map(get_filename_from_table, trailing)))
+        trailing = list(filter(None, map(table.get_filename_by_index, trailing)))
         cmd = command_list + trailing
         log.gray(*cmd)
         subprocess.run(cmd)
