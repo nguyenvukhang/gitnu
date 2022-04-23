@@ -5,10 +5,6 @@ all_tests:
 	@echo "running tests..."
 	@$(PYTHON) -m unittest discover
 
-install:
-	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
-	sudo ln -s /opt/homebrew/lib/python3.9/site-packages/gitnu
-
 local:
 	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
 	pip uninstall --yes gitnu
@@ -25,8 +21,15 @@ clean:
 	rm -rf dist
 	rm -rf gitnu.egg-info
 
+bin:
+	echo "#!/usr/bin/env bash">bin_file
+	echo 'python3 -m gitnu "$$@"'>>bin_file
+	chmod +x bin_file
+	mv bin_file $$HOME/.local/bin/gitnu
+
 dev:
 	make clean
 	make build
 	make local
+	make bin
 	make clean

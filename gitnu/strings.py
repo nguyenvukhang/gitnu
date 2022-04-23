@@ -14,5 +14,9 @@ def remove_ansi(string: str) -> str:
     return string
 
 
+def handle_submodules(string: str) -> str:
+    return string.replace("(new commits)\n", "\n")
+
+
 def sanitize_line(string: str) -> str:
-    return remove_ansi(string.strip())
+    return handle_submodules(remove_ansi(string)).strip()
