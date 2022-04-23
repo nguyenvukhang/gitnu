@@ -90,12 +90,6 @@ def run_tests(args: list[str], handle_arguments):
     _, correct_table = cache.get_table(original_dir + "/../some-thing-gitn.json")
     expect(table, correct_table)
 
-    # log.yellow('correct_table')
-    # print(correct_table)
-    # log.yellow('actual table')
-    # print(table)
-
-
     # READ OPERATIONS
     log.purple("\nread from cache")
 
