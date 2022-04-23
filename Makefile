@@ -3,7 +3,7 @@ CWD = $(shell pwd)
 
 all_tests:
 	@echo "running tests..."
-	@$(PYTHON) -m test.test_gitn
+	@$(PYTHON) -m unittest discover
 
 install:
 	ln -sf $$PWD/bin/gitn $$HOME/.local/bin
