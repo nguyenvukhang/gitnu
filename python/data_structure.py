@@ -71,7 +71,7 @@ class NumberedStatus:
             return index
         i = int(index)
         if i in range(1, self.length() + 1):
-            return self.data[i].get_filename()
+            return self.data[i - 1].get_filename()
         return index
 
     def get_data(self):
@@ -128,13 +128,14 @@ def fill_table(numbered_status: NumberedStatus) -> None:
         state = git.set_state.get(line, state)
         # these lines will not have filenames inside
         # and so do not need to remain indexed
-        if line in git.set_state or state == "unset":
+        if line in git.set_state or state == "unset" or line.strip() == "":
             numbered_status.pop(data)
             continue
 
-        # obtain action and filename from line
-        action, filename = "", line.lstrip()
+        # untracked files will not have any keyword in front of them
+        filename = path.join(cwd, line.lstrip())
 
+        action = ""
         for keyword, action_value in git.set_action.items():
             if line.startswith(keyword):
                 action = action_value

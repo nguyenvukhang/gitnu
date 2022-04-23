@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from data_structure import fill_table, Entry, NumberedStatus, make_entry, get_filename
+from data_structure import fill_table, Entry, NumberedStatus
 from _git import git
 from strings import sanitize
 from shell import system_std
