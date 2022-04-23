@@ -4,7 +4,7 @@ from setuptools.command.install import install
 from setuptools.command.develop import develop
 from subprocess import run
 
-VERSION = "0.0.19"
+VERSION = "0.0.20"
 DESCRIPTION = "Enumerate git status"
 LONG_DESCRIPTION = "A cli tools that indexes the output of git status to use in subsequent git commands."
 
@@ -15,13 +15,13 @@ def _post_install():
     install_file = os.path.join(install_path, "gitnu")
     run(["touch", install_file])
     with open(install_file, "w") as f:
-        f.writelines(["#!/usr/bin/env bash\n", "python3 -m gitnu"])
+        f.writelines(["#!/usr/bin/env bash\n", "python3 -m gitnu \"$@\""])
     run(["chmod", "+x", install_file])
 
 
-class PostDevelopCommand(install):
+class PostDevelopCommand(develop):
     def run(self):
-        install.run(self)
+        develop.run(self)
         _post_install()
 
 

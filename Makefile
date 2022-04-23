@@ -11,10 +11,15 @@ clean:
 	rm -rf gitnu.egg-info
 
 uninstall:
+	make clear-cache
 	pip uninstall --yes gitnu
 	rm -f ~/.local/bin/gitnu
 
+clear-cache:
+	rm -rf ~/Library/Caches/pip/wheels
+
 install-pip:
+	make clear-cache
 	pip install gitnu
 
 i:
@@ -23,9 +28,14 @@ i:
 u:
 	make uninstall
 
+symlink:
+	ln -sf $$PWD/run $$HOME/.local/bin/gitnu
+
+s:
+	make symlink
+
 local:
-	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
-	cd dist && pip install gitnu-0.0.4.tar.gz
+	cd dist && pip install gitnu*
 
 build:
 	make clean
