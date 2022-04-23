@@ -1,61 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
-from data_structure import fill_table, Entry, NumberedStatus
 from _git import git
-from strings import sanitize, expand_ranges
-from shell import system_std
 from tests import debug
-import cache
-from log import log
-import subprocess
-
-ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
-
-
-def read_stdout(stdout) -> NumberedStatus:
-    numbered_status = NumberedStatus()
-    if not stdout:
-        return numbered_status
-
-    checkpoints = git.set_state_keys
-    result, index, counting = [], 1, False
-    stdout_lines = stdout.readlines()
-
-    if len(stdout_lines) == 0:
-        return numbered_status
-
-    for line in stdout_lines:
-        stripped = sanitize(line)
-        result.append((index, stripped))
-        entry = Entry(index, stripped)
-        numbered_status.push(entry)
-        if counting:
-            if stripped == "":
-                counting = False
-                print(line, end="")
-            elif stripped in checkpoints:
-                print(line, end="")
-            else:
-                print(index, line, end="")
-                index += 1
-        else:
-            if stripped in checkpoints:
-                counting = True
-            print(line, end="")
-    return numbered_status
-
-
-# print and extract git status
-# enumerate git status
-# update cache
-def gitn_status(args):
-    stdout = system_std(git.cmd.status + args)
-    numbered_status: NumberedStatus = read_stdout(stdout)
-    if numbered_status.is_empty():
-        return
-    fill_table(numbered_status)
-    cache.update(cache.get_filepath(), numbered_status)
+import write
+import read
 
 
 # processes arguments, and returns the list of processed args
@@ -63,20 +12,12 @@ def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
     command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
-        gitn_status(args[command_index + 1 :])
-        return args
+        write.gitn_status(args[command_index + 1 :])
     # from here on there are at least two args
     # if gitn command doesn't include status
     # it's essentially a full bypass with the numbers as file aliases
-    trailing = expand_ranges(args[command_index + 1 :])
-    command_list = args[: command_index + 1]
-    command_list[0] = "git"
-    table_exists, table = cache.get_table()
-    if table_exists:
-        trailing = list(filter(None, map(table.get_filename_by_index, trailing)))
-    cmd = command_list + trailing
-    log.gray(*cmd)
-    subprocess.run(cmd)
+    else:
+        read.gitn_use(args, command_index)
     return args
 
 

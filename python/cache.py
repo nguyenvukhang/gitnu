@@ -9,7 +9,7 @@ def get_filepath() -> str:
     return "%s/gitn.json" % (cache_directory)
 
 
-def update(cache_filepath: str, table: NumberedStatus):
+def write(cache_filepath: str, table: NumberedStatus):
     with open(cache_filepath, "w") as f:
         json.dump(table.cache(), f)
 
