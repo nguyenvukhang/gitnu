@@ -8,6 +8,7 @@ from tests import debug
 import cache
 import os
 from log import log
+import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 VERBOSE = True
@@ -108,10 +109,24 @@ def handle_arguments(args: list[str]) -> list[str]:
     # from here on there are at least two args
     # if gitn command doesn't include status
     # it's essentially a full bypass with the numbers as file aliases
-    args[0] = "git"
-    args[1:] = expand_ranges(args[1:])
+    trailing = expand_ranges(args[command_index + 1 :])
+    command_list = args[: command_index + 1]
+    command_list[0] = "git"
     table_exists, table = cache.get_table()
     if table_exists:
+
+        def get_filename_from_table(x) -> str:
+            s = x
+            if x.isdigit():
+                s = ''
+            elem = table.get(x, make_entry("", "", s))
+            return get_filename(elem)
+
+        trailing = list(filter(None, map(get_filename_from_table, trailing)))
+        cmd = command_list + trailing
+        log.gray(*cmd)
+        subprocess.run(cmd)
+
         return args
         # do the mapping
     else:
