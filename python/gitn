@@ -12,26 +12,16 @@ import subprocess
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
-def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
-    cmd = git.cmd.status
-    cmd.extend(args)
-    stdout, stderr = system_std(cmd)
-
-    stderr_lines = stderr.readlines()
-    if len(stderr_lines) > 0:
-        for line in stderr_lines:
-            print(line.strip())
-        return
-
+def handle_git_status_stdout(stdout) -> list[tuple]:
     if not stdout:
-        return
+        return []
 
+    checkpoints = git.set_state_keys
     result, index, counting = [], 1, False
-
     stdout_lines = stdout.readlines()
 
     if len(stdout_lines) == 0:
-        return
+        return []
 
     for line in stdout_lines:
         stripped = sanitize(line)
@@ -52,11 +42,18 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
     return result
 
 
+def print_and_extract_git_status(args: list[str]) -> list[tuple]:
+    cmd = git.cmd.status
+    cmd.extend(args)
+    stdout = system_std(cmd)
+
+    return handle_git_status_stdout(stdout)
+
 # print and extract git status
 # enumerate git status
 # update cache
 def gitn_status(args):
-    git_status = print_and_extract_git_status(args, git.set_state_keys)
+    git_status = print_and_extract_git_status(args)
     if not git_status:
         return
     table = create_table(git_status)

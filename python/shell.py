@@ -7,7 +7,7 @@ def system(cmd: list[str]) -> str:
 
 def systemlist(cmd: list[str]) -> list[str]:
     result = []
-    stdout, _ = system_std(cmd)
+    stdout = system_std(cmd)
     if not stdout:
         return []
     while stdout.readable():
@@ -20,8 +20,11 @@ def systemlist(cmd: list[str]) -> list[str]:
     return result
 
 
-def system_std(cmd: list[str]) -> tuple:
+def system_std(cmd: list[str]):
+    # process = subprocess.Popen(
+    #     cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    # )
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
     )
-    return (process.stdout, process.stderr)
+    return process.stdout
