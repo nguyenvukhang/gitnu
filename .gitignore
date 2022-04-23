@@ -2,3 +2,6 @@
 /tests/repo
 __pycache__
 .pytest_cache
+gitnu.egg-info
+dist
+build

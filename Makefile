@@ -7,3 +7,9 @@ all_tests:
 
 install:
 	ln -sf $$PWD/run $$HOME/.local/bin/gitnu
+
+build:
+	$(PYTHON) setup.py sdist bdist_wheel
+
+upload:
+	twine upload dist/*
