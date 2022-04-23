@@ -1,4 +1,4 @@
-from git_utils import git
+from _git import git
 from os import getcwd
 
 def make_entry(status, action, filename):

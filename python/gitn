@@ -5,40 +5,11 @@ import pprint
 import json
 import sys
 from data_structure import *
-from git_utils import git
+from _git import git
 from shell import system
+from tests import debug
 
 pp = pprint.PrettyPrinter(indent=4).pprint
-
-
-class bcolors:
-    PURPLE = "\033[95m"
-    BLUE = "\033[94m"
-    CYAN = "\033[96m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-
-
-def stringify(color):
-    def fn(*args):
-        text = " ".join(args)
-        print(color + text + bcolors.ENDC)
-
-    return fn
-
-
-class log:
-    red = stringify(bcolors.RED)
-    yellow = stringify(bcolors.YELLOW)
-    green = stringify(bcolors.GREEN)
-    blue = stringify(bcolors.BLUE)
-    cyan = stringify(bcolors.CYAN)
-    purple = stringify(bcolors.PURPLE)
-
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
@@ -174,18 +145,10 @@ def expand_ranges(args: list[str]) -> list[str]:
     return result
 
 
-def get_git_command(args: list[str]) -> tuple[str, int]:
-    for i in range(len(args)):
-        word = args[i]
-        if word in git.commands:
-            return (word, i)
-    return ("", 0)
-
-
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
-    command, command_index = get_git_command(args)
+    command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
         gitn_status(args[command_index + 1 :])
         return args
@@ -203,38 +166,8 @@ def handle_arguments(args: list[str]) -> list[str]:
         # do a full bypass
 
 
-def expect(tested, correct):
-    if tested == correct:
-        log.green("ok", *tested)
-    else:
-        log.red(*tested)
-        log.green(*correct)
-
-
-def debug(args: list[str]) -> list[str]:
-    which = system(["which", "gitn"])
-    gitn = args[0]
-    if len(args) == 2 and args[1] == "--test":
-
-        def test(x):
-            print(x)
-            return handle_arguments([gitn] + x.split(" ")[1:])
-
-        # run test suite
-        log.purple('\nwrite to cache')
-        expect(test("gitn status"), [which, "status"])
-        expect(test("gitn status some/thing"), [which, "status", "some/thing"])
-        log.purple('\nread from cache')
-        expect(test("gitn add 1 2 3"), ["git", "add", "1", "2", "3"])
-        expect(test("gitn add 1 2 4-7"), ["git", "add", "1", "2", "4", "5", "6", "7"])
-        expect(test("gitn add 1-1 4-7"), ["git", "add", "1", "4", "5", "6", "7"])
-        pass
-    # full bypass
-    return args
-
-
 def main():
-    args = debug(sys.argv)
+    args = debug(sys.argv, handle_arguments)
     handle_arguments(args)
 
 

@@ -1,3 +1,11 @@
+def get_git_command(args: list[str]) -> tuple[str, int]:
+    for i in range(len(args)):
+        word = args[i]
+        if word in git.commands:
+            return (word, i)
+    return ("", 0)
+
+
 class git:
     set_state = {
         "Changes to be committed:": "staged",
@@ -12,3 +20,4 @@ class git:
     }
     set_state_keys = list(set_state.keys())
     commands = ("status", "add", "reset", "diff", "checkout", "--")
+    get_commmand = lambda x: get_git_command(x)
