@@ -12,15 +12,23 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 class bcolors:
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKCYAN = "\033[96m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
+    PURPLE = "\033[95m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
+
+
+class log:
+    yellow = lambda x: print(bcolors.YELLOW + x + bcolors.ENDC)
+    green = lambda x: print(bcolors.GREEN + x + bcolors.ENDC)
+    blue = lambda x: print(bcolors.BLUE + x + bcolors.ENDC)
+    cyan = lambda x: print(bcolors.CYAN + x + bcolors.ENDC)
+    purple = lambda x: print(bcolors.PURPLE + x + bcolors.ENDC)
 
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
@@ -49,7 +57,7 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
             stripped = stripped.replace(i, "")
         result.append((index, stripped))
         if counting:
-            if stripped == '':
+            if stripped == "":
                 counting = False
                 print(line, end="")
             elif stripped in checkpoints:
@@ -108,11 +116,22 @@ def gitn_add(args):
     # subprocess.run(git_command)
 
 
+def retrieve_table() -> tuple[bool, dict]:
+    table = {}
+    status = True
+    try:
+        with open(get_cache_filepath(), "r") as f:
+            table = json.load(f)
+    except:
+        status = False
+    return (status, table)
+
+
 # print and extract git status
 # enumerate git status
 # update cache
 def gitn_status(args):
-    print('gitn status args:', args)
+    print("gitn status args:", args)
     git_status = print_and_extract_git_status(args, git.set_state_keys)
     if not git_status:
         return
@@ -158,17 +177,39 @@ def handle_arguments(args: list[str]):
     num_args = len(args)
     command, command_index = get_git_command(args)
     if num_args <= 1 or command == "status":
-        print("final", args)
-        gitn_status(args[command_index + 1 :])
+        print("sent", args)
+        # gitn_status(args[command_index + 1 :])
         return
     # from here on there are at least two args
+    # if gitn command doesn't include status
+    # it's essentially a full bypass with the numbers as file aliases
     args[0] = "git"
     args[1:] = expand_ranges(args[1:])
-    print("final", args)
+    table_exists, table = retrieve_table()
+    if table_exists:
+        print("sent", args)
+        pass
+        # do the mapping
+    else:
+        print("sent", args)
+        pass
+        # do a full bypass
+
+
+def debug(args: list[str]) -> list[str]:
+    gitn = args[0]
+    if len(args) == 2 and args[1] == "--test":
+        log.yellow("gitn status")
+        handle_arguments([gitn, "status"])
+        # run test suite
+        pass
+    # full bypass
+    return args
 
 
 def main():
-    handle_arguments(sys.argv)
+    args = debug(sys.argv)
+    handle_arguments(args)
 
 
 if __name__ == "__main__":
