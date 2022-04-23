@@ -1,9 +1,0 @@
-[package]
-name = "git-number"
-version = "0.0.1"
-edition = "2021"
-
-[dependencies]
-regex = "1.5.5"
-mapped-command = "0.3.0"
-strip-ansi-escapes = "0.1.1"
