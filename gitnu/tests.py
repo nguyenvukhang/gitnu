@@ -24,7 +24,7 @@ def expect(tested, correct):
 def test_remove_cache():
     # for pure debugging clutches
     cwd = os.getcwd()
-    cache_file = cwd + "/.git/gitn.json"
+    cache_file = cwd + "/.git/gitnu.json"
     system(["rm", cache_file])
 
 
@@ -35,7 +35,7 @@ def TITLE(x, end="\n"):
 
 
 def run_tests(args: list[str], handle_arguments):
-    gitn = system(["which", "gitn"])
+    gitnu = system(["which", "gitnu"])
     original_dir = os.getcwd()
 
     margin = 24
@@ -52,18 +52,18 @@ def run_tests(args: list[str], handle_arguments):
         spaces = " " * (margin - len(string))
         log.gray(string, end=spaces)
 
-    TITLE("gitn status")
+    TITLE("gitnu status")
 
-    result = test("gitn status")
+    result = test("gitnu status")
     pre("command ran:")
-    expect(result, [gitn, "status"])
+    expect(result, [gitnu, "status"])
 
     pre("cache existence:")
     table_exists, table = cache.get_table()
     expect(table_exists, True)
 
     pre("cache correctness:")
-    _, correct_table = cache.get_table(os.getcwd() + "/../root-gitn.json")
+    _, correct_table = cache.get_table(os.getcwd() + "/../root-gitnu.json")
     expect(table, correct_table)
 
     # change directory for next test
@@ -72,21 +72,21 @@ def run_tests(args: list[str], handle_arguments):
     # now_at = os.getcwd()
     # log.yellow('now at', now_at)
 
-    # gitn status some/thing
+    # gitnu status some/thing
 
-    TITLE("gitn status", end=" ")
+    TITLE("gitnu status", end=" ")
     log.gray("(from inside worktree)")
 
-    result = test("gitn status")
+    result = test("gitnu status")
     pre("command ran:")
-    expect(result, [gitn, "status"])
+    expect(result, [gitnu, "status"])
 
     pre("cache existence:")
     table_exists, table = cache.get_table()
     expect(table_exists, True)
 
     pre("cache correctness:")
-    _, correct_table = cache.get_table(original_dir + "/../some-thing-gitn.json")
+    _, correct_table = cache.get_table(original_dir + "/../some-thing-gitnu.json")
     expect(table, correct_table)
 
     # READ OPERATIONS
@@ -96,33 +96,33 @@ def run_tests(args: list[str], handle_arguments):
 
     os.chdir(original_dir)
 
-    TITLE("gitn add 1 2 3")
+    TITLE("gitnu add 1 2 3")
 
-    result = test("gitn add 1 2 3")
+    result = test("gitnu add 1 2 3")
     pre("command ran:")
     expect(result, ["git", "add", "1", "2", "3"])
 
-    TITLE("gitn add 1 2 4-7")
+    TITLE("gitnu add 1 2 4-7")
 
-    result = test("gitn add 1 2 4-7")
+    result = test("gitnu add 1 2 4-7")
     pre("command ran:")
     expect(result, ["git", "add", "1", "2", "4", "5", "6", "7"])
 
-    TITLE("gitn add 1-1 4-7")
+    TITLE("gitnu add 1-1 4-7")
 
-    result = test("gitn add 1-1 4-7")
+    result = test("gitnu add 1-1 4-7")
     pre("command ran:")
     expect(result, ["git", "add", "1", "4", "5", "6", "7"])
 
-    TITLE("gitn add alpha.py")
+    TITLE("gitnu add alpha.py")
 
-    result = test("gitn add alpha.py")
+    result = test("gitnu add alpha.py")
     pre("command ran:")
     expect(result, ["git", "add", "alpha.py"])
 
-    TITLE("gitn add alpha.py 1-3")
+    TITLE("gitnu add alpha.py 1-3")
 
-    result = test("gitn add alpha.py 1-3")
+    result = test("gitnu add alpha.py 1-3")
     pre("command ran:")
     expect(result, ["git", "add", "alpha.py", "1", "2", "3"])
 

@@ -30,7 +30,7 @@ def parse_ranges(args: list[str]) -> list[str]:
     return result
 
 
-def gitn_use(args: list[str], command_index: int) -> None:
+def gitnu_use(args: list[str], command_index: int) -> None:
     command_list = args[: command_index + 1]
     command_list[0] = "git"
     trailing = parse_ranges(args[command_index + 1 :])

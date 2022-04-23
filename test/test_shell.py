@@ -1,6 +1,6 @@
 import unittest
 
-from gitn.shell import system, system_std, systemlist
+from gitnu.shell import system, system_std, systemlist
 
 
 class TestShellMethods(unittest.TestCase):

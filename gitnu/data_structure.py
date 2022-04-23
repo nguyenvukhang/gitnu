@@ -45,7 +45,7 @@ class NumberedStatus:
 
     def get_filename_by_index(self, index: str):
         # return if not a number
-        # this is gitn's promise to be nothing but an alias for numbers
+        # this is gitnu's promise to be nothing but an alias for numbers
         if not index.isdigit():
             return index
         i = int(index)

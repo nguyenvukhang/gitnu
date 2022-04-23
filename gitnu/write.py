@@ -40,7 +40,7 @@ def read_stdout(stdout) -> NumberedStatus:
 # print and extract git status
 # enumerate git status
 # write cache
-def gitn_status(args):
+def gitnu_status(args):
     stdout = system_std(git.cmd.status + args)
     numbered_status = read_stdout(stdout)
     if numbered_status.is_empty():

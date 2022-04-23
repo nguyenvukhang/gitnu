@@ -1,4 +1,4 @@
-from gitn import main
+from gitnu import main
 import sys
 
 

@@ -12,12 +12,12 @@ def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
     command, command_index = git.get_command(args)
     if num_args <= 1 or command == "status":
-        write.gitn_status(args[command_index + 1 :])
+        write.gitnu_status(args[command_index + 1 :])
     # from here on there are at least two args
-    # if gitn command doesn't include status
+    # if gitnu command doesn't include status
     # it's essentially a full bypass with the numbers as file aliases
     else:
-        read.gitn_use(args, command_index)
+        read.gitnu_use(args, command_index)
     return args
 
 

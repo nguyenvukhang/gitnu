@@ -5,7 +5,7 @@ from .data_structure import NumberedStatus, Entry
 
 def get_filepath() -> str:
     cache_directory = system(["git", "rev-parse", "--git-dir"])
-    return "%s/gitn.json" % (cache_directory)
+    return "%s/gitnu.json" % (cache_directory)
 
 
 def write(cache_filepath: str, table: NumberedStatus):
