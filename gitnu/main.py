@@ -4,11 +4,9 @@ import sys
 from . import git
 from . import write
 from . import read
-from . import log
 
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:
-    log.gray(*args[1:])
     num_args = len(args)
     command, command_index = git.get_command(args)
     if num_args <= 1 or command == "status":

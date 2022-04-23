@@ -24,3 +24,13 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf gitnu.egg-info
+
+local:
+	# ln -sf $$PWD/run $$HOME/.local/bin/gitnu
+	pip uninstall gitnu
+	cd dist && pip install gitnu-0.0.4.tar.gz
+
+dev:
+	make clean
+	make build
+	make local
