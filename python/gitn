@@ -4,6 +4,9 @@ import subprocess
 import pprint
 import json
 import sys
+from data_structure import *
+from git_utils import keyphrases
+from shell import system
 
 pp = pprint.PrettyPrinter(indent=4).pprint
 
@@ -18,22 +21,6 @@ class bcolors:
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
-
-
-class static:
-    set_state = {
-        "Changes to be committed:": "staged",
-        "Changes not staged for commit:": "unstaged",
-        "Untracked files:": "untracked",
-        "": "none",
-    }
-    set_action = {
-        "deleted:": "deleted",
-        "new file:": "newfile",
-        "modified:": "modified",
-        "renamed:": "renamed",
-    }
-    set_state_keys = list(set_state.keys())
 
 
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
@@ -73,50 +60,6 @@ def print_and_extract_git_status(checkpoints: list[str]):
     return result
 
 
-def system(cmd: list[str]) -> str:
-    return systemlist(cmd)[0]
-
-
-def systemlist(cmd: list[str]) -> list[str]:
-    result = []
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
-    )
-    if not process.stdout:
-        return []
-    while process.stdout.readable():
-        line = process.stdout.readline()
-        if not line:
-            break
-        result.append(line.strip())
-    if len(result) == 0:
-        return [""]
-    return result
-
-
-def add_delta(index, entry, table):
-    table[index] = entry
-
-
-def create_table(git_status) -> dict:
-    table = {}
-    state = "unset"  # 'staged' | 'unstaged' | 'untracked'
-    for indexed_line in git_status:
-        index, line = indexed_line
-        state = static.set_state.get(line, state)
-        if line in static.set_state or state == "unset":
-            continue
-        action, filename = "", line.lstrip()
-        for key, value in static.set_action.items():
-            if line.startswith(key):
-                action = value
-                line = line[len(key) :]
-                filename = line.lstrip()
-                break
-        entry = make_entry(state, action, filename)
-        add_delta(index, entry, table)
-    return table
-
 
 def get_cache_filepath() -> str:
     cache_directory = system(["git", "rev-parse", "--git-dir"])
@@ -132,38 +75,18 @@ def update_cache(cache_filepath: str, table: dict):
 # enumerate git status
 # update cache
 def gitn_status():
-    git_status = print_and_extract_git_status(static.set_state_keys)
+    git_status = print_and_extract_git_status(keyphrases.set_state_keys)
     if not git_status:
         return
     table = create_table(git_status)
     update_cache(get_cache_filepath(), table)
 
 
-def make_entry(status, action, filename):
-    return [status, action, filename]
-
-
-def make_empty_entry():
-    return ["", "", ""]
-
-
-def get_status(elem):
-    return elem[0]
-
-
-def get_action(elem):
-    return elem[1]
-
-
-def get_filename(elem):
-    return elem[2]
-
-
 # read from existing cache (do a full git bypass if there's no cache)
 def gitn_add(args):
     # handles ranges in gitn add
     # gitn add 2-5 === gitn add 2 3 4 5
-    rm_range = []
+    add_range, rm_range = [], []
     for arg in args:
         if "-" in arg:
             try:
@@ -173,9 +96,10 @@ def gitn_add(args):
             if len(split) != 2 and not all(isinstance(x, int) for x in split):
                 continue
             rm_range.append(arg)
-            args.extend(map(str, range(split[0], split[1] + 1)))
+            add_range.extend(map(str, range(split[0], split[1] + 1)))
     for i in rm_range:
         args.remove(i)
+    args.extend(add_range)
     # read existing cache
     git_command = ["git", "add", "--"]
     table = {}
