@@ -4,7 +4,7 @@ import cache
 from log import log
 
 
-def expand_ranges(args: list[str]) -> list[str]:
+def parse_ranges(args: list[str]) -> list[str]:
     result = []
     if len(args) == 0:
         return []
@@ -31,12 +31,15 @@ def expand_ranges(args: list[str]) -> list[str]:
 
 
 def gitn_use(args: list[str], command_index: int) -> None:
-    trailing = expand_ranges(args[command_index + 1 :])
     command_list = args[: command_index + 1]
     command_list[0] = "git"
+    trailing = parse_ranges(args[command_index + 1 :])
+
     table_exists, table = cache.get_table()
+
     if table_exists:
-        trailing = list(filter(None, map(table.get_filename_by_index, trailing)))
+        trailing = list(map(table.get_filename_by_index, trailing))
+
     cmd = command_list + trailing
     log.gray(*cmd)
     subprocess.run(cmd)
