@@ -14,7 +14,12 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 ansi = ["\x1b[32m", "\x1b[31m", "\x1b[m"]
 
 
-def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
+def print_and_extract_git_status(args: list[str], checkpoints: list[str], silent: bool):
+    def controlled_print(*args, end):
+        if silent:
+            return
+        print(*args, end=end)
+
     result = []
     cmd = ["git", "-c", "status.color=always", "status"]
     cmd.extend(args)
@@ -39,16 +44,16 @@ def print_and_extract_git_status(args: list[str], checkpoints: list[str]):
         if counting:
             if stripped == "":
                 counting = False
-                print(line, end="")
+                controlled_print(line, end="")
             elif stripped in checkpoints:
-                print(line, end="")
+                controlled_print(line, end="")
             else:
-                print(index, line, end="")
+                controlled_print(index, line, end="")
                 index += 1
         else:
             if stripped in checkpoints:
                 counting = True
-            print(line, end="")
+            controlled_print(line, end="")
     return result
 
 
@@ -60,40 +65,6 @@ def get_cache_filepath() -> str:
 def update_cache(cache_filepath: str, table: dict):
     with open(cache_filepath, "w") as f:
         json.dump(table, f)
-
-
-# read from existing cache (do a full git bypass if there's no cache)
-def gitn_add(args):
-    # handles ranges in gitn add
-    # gitn add 2-5 === gitn add 2 3 4 5
-    add_range, rm_range = [], []
-    for arg in args:
-        if "-" in arg:
-            try:
-                split = list(map(int, arg.split("-")))
-            except:
-                continue
-            if len(split) != 2 and not all(isinstance(x, int) for x in split):
-                continue
-            rm_range.append(arg)
-            add_range.extend(map(str, range(split[0], split[1] + 1)))
-    for i in rm_range:
-        args.remove(i)
-    args.extend(add_range)
-    # read existing cache
-    git_command = ["git", "add", "--"]
-    table = {}
-    try:
-        with open(get_cache_filepath(), "r") as f:
-            table = json.load(f)
-        add_list = list(
-            map(lambda x: get_filename(table.get(x, make_empty_entry())), args)
-        )
-        git_command.extend(add_list)
-    except:
-        git_command.extend(args)
-    git_command = list(filter(None, git_command))
-    # subprocess.run(git_command)
 
 
 def retrieve_table() -> tuple[bool, dict]:
@@ -110,9 +81,9 @@ def retrieve_table() -> tuple[bool, dict]:
 # print and extract git status
 # enumerate git status
 # update cache
-def gitn_status(args):
+def gitn_status(args, silent=False):
     print("gitn status args:", args)
-    git_status = print_and_extract_git_status(args, git.set_state_keys)
+    git_status = print_and_extract_git_status(args, git.set_state_keys, silent)
     if not git_status:
         return
     table = create_table(git_status)
@@ -150,7 +121,7 @@ def handle_arguments(args: list[str]) -> list[str]:
     num_args = len(args)
     command, command_index = git.get_commmand(args)
     if num_args <= 1 or command == "status":
-        gitn_status(args[command_index + 1 :])
+        gitn_status(args[command_index + 1 :], silent=True)
         return args
     # from here on there are at least two args
     # if gitn command doesn't include status
