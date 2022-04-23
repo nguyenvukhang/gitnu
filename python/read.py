@@ -1,7 +1,34 @@
 import subprocess
+from _git import git
 import cache
-from strings import expand_ranges
 from log import log
+
+
+def expand_ranges(args: list[str]) -> list[str]:
+    result = []
+    if len(args) == 0:
+        return []
+    for arg in args:
+        # straight bypass for certain keywords
+        if arg in git.commands:
+            result.append(arg)
+            continue
+        # handle number ranges
+        if "-" in arg:
+            try:
+                split = list(map(int, arg.split("-")))
+            except:
+                result.append(arg)
+                continue
+            if len(split) != 2 and not all(isinstance(x, int) for x in split):
+                result.append(arg)
+                continue
+            result.extend(map(str, range(split[0], split[1] + 1)))
+        # bypass for the rest
+        else:
+            result.append(arg)
+    return result
+
 
 def gitn_use(args: list[str], command_index: int) -> None:
     trailing = expand_ranges(args[command_index + 1 :])
