@@ -12,11 +12,11 @@ class Entry:
     def get_index(self):
         return self.index
 
-    def cache(self):
+    def json(self):
         return [self.index, self.filename]
 
     def print(self):
-        log.cyan(self.cache())
+        log.cyan(self.json())
 
 
 class NumberedStatus:
@@ -42,8 +42,8 @@ class NumberedStatus:
     def copy(self):
         return tuple(self.data)
 
-    def cache(self):
-        return list(map(lambda x: x.cache(), self.data))
+    def json(self):
+        return list(map(lambda x: x.json(), self.data))
 
     def is_empty(self):
         return len(self.data) == 0
@@ -52,21 +52,4 @@ class NumberedStatus:
         return len(self.data)
 
     def print(self):
-        log.yellow(self.cache())
-
-    # def clean(self):
-    #     # new_numbered_status = NumberedStatus()
-    #     new_data: list[Entry] = []
-    #     for entry in self.data:
-    #         index = entry.get_index()
-    #         line = entry.get_line()
-    #         entry.set_filename(extract_filename(line))
-    #         # length = new_numbered_status.length()
-    #         length = len(new_data)
-    #         if index == length + 1:
-    #             new_data.append(entry)
-    #         elif index <= length:
-    #             new_data[index - 1] = entry
-    #         else:
-    #             log.yellow('NumberedStatus.clean(): index went beyond current max.')
-    #     self.data = new_data
+        log.yellow(self.json())

@@ -34,4 +34,4 @@ def gitnu_status(args):
     stdout.close()
     if numbered_status.is_empty():
         return
-    cache.write(cache.get_filepath(), numbered_status)
+    cache.write(numbered_status)
