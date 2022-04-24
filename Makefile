@@ -6,7 +6,8 @@ SITE_PKG=/opt/homebrew/lib/python3.9/site-packages
 
 FORCE:
 
-build:
+build: FORCE
+	make clean
 	$(PYTHON) -m black src test
 	$(PYTHON) -m build --sdist
 
@@ -18,7 +19,7 @@ clear-cache:
 
 build-full:
 	$(PYTHON) -m black src test
-	$(PYTHON) -m build
+	$(PYTHON) -m build --sdist
 
 clear-site-packages:
 	# if installed by pip, this will be a directory
