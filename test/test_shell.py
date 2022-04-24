@@ -12,7 +12,7 @@ def gitnu() -> list[str]:
 
 def run(cmd: list[str], verbose: bool = False) -> None:
     if verbose:
-        log.perma.gray(*cmd)
+        log.gray(*cmd)
     p = subprocess.Popen(cmd, stdout=None if verbose else subprocess.PIPE)
     p.wait()
     if not verbose and p.stdout:
@@ -125,15 +125,15 @@ class TestShellMethods(unittest.TestCase):
         git.init()
         make_committed_new_file("calista.txt")
         make_committed_new_file("MAIN_REPO.txt")
-        # log.perma.purple(" Setup tmp git repo.")
-        # log.perma.purple("─────────────────────")
+        # log.purple(" Setup tmp git repo.")
+        # log.purple("─────────────────────")
 
     # this runs after every function below
     def tearDown(self):
         # Remove the directory after the test
         shutil.rmtree(self.test_dir)
-        # log.perma.purple("─────────────────────")
-        # log.perma.purple(" Tore down temp dir.")
+        # log.purple("─────────────────────")
+        # log.purple(" Tore down temp dir.")
 
     def test_unstaged_new_file(self):
         make_new_file("alpha.txt")

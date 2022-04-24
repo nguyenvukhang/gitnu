@@ -5,7 +5,7 @@ import sys
 from . import git
 from . import write
 from . import read
-# from . import log
+from . import log
 
 # processes arguments, and returns the list of processed args
 def handle_arguments(args: list[str]) -> list[str]:

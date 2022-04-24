@@ -35,21 +35,3 @@ blue = stringify(bcolors.BLUE)
 cyan = stringify(bcolors.CYAN)
 purple = stringify(bcolors.PURPLE)
 warn = colored_warn(bcolors.YELLOW)
-
-class perma:
-    gray = stringify(bcolors.GRAY)
-    red = stringify(bcolors.RED)
-    yellow = stringify(bcolors.YELLOW)
-    green = stringify(bcolors.GREEN)
-    blue = stringify(bcolors.BLUE)
-    cyan = stringify(bcolors.CYAN)
-    purple = stringify(bcolors.PURPLE)
-
-class temp:
-    gray = stringify(bcolors.GRAY)
-    red = stringify(bcolors.RED)
-    yellow = stringify(bcolors.YELLOW)
-    green = stringify(bcolors.GREEN)
-    blue = stringify(bcolors.BLUE)
-    cyan = stringify(bcolors.CYAN)
-    purple = stringify(bcolors.PURPLE)

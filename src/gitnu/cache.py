@@ -29,5 +29,5 @@ def get_table(path: str = "") -> tuple[bool, NumberedStatus]:
     except:
         status = False
     for i in cache_table:
-        table.push(Entry(i[0], "", i[1]))
+        table.push(Entry(i[0], i[1]))
     return (status, table)

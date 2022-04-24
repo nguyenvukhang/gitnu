@@ -1,14 +1,10 @@
-from .strings import extract_filename
 from . import log
 
 
 class Entry:
-    def __init__(self, index, line="", filename="") -> None:
-        self.state = ""
-        self.action = ""
+    def __init__(self, index, filename) -> None:
         self.filename = filename
         self.index = index
-        self.line = line
 
     def get_filename(self):
         return self.filename
@@ -16,20 +12,11 @@ class Entry:
     def get_index(self):
         return self.index
 
-    def get_line(self):
-        return self.line
-
-    def set_state(self, value):
-        self.state = value
-
-    def set_action(self, value):
-        self.action = value
-
-    def set_filename(self, value):
-        self.filename = value
-
     def cache(self):
         return [self.index, self.filename]
+
+    def print(self):
+        log.cyan(self.cache())
 
 
 class NumberedStatus:
@@ -67,19 +54,19 @@ class NumberedStatus:
     def print(self):
         log.yellow(self.cache())
 
-    def clean(self):
-        # new_numbered_status = NumberedStatus()
-        new_data: list[Entry] = []
-        for entry in self.data:
-            index = entry.get_index()
-            line = entry.get_line()
-            entry.set_filename(extract_filename(line))
-            # length = new_numbered_status.length()
-            length = len(new_data)
-            if index == length + 1:
-                new_data.append(entry)
-            elif index <= length:
-                new_data[index - 1] = entry
-            else:
-                log.perma.yellow('NumberedStatus.clean(): index went beyond current max.')
-        self.data = new_data
+    # def clean(self):
+    #     # new_numbered_status = NumberedStatus()
+    #     new_data: list[Entry] = []
+    #     for entry in self.data:
+    #         index = entry.get_index()
+    #         line = entry.get_line()
+    #         entry.set_filename(extract_filename(line))
+    #         # length = new_numbered_status.length()
+    #         length = len(new_data)
+    #         if index == length + 1:
+    #             new_data.append(entry)
+    #         elif index <= length:
+    #             new_data[index - 1] = entry
+    #         else:
+    #             log.yellow('NumberedStatus.clean(): index went beyond current max.')
+    #     self.data = new_data

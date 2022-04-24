@@ -69,8 +69,6 @@ def run_tests(args: list[str], handle_arguments):
     # change directory for next test
 
     os.chdir(os.getcwd() + "/some/thing")
-    # now_at = os.getcwd()
-    # log.yellow('now at', now_at)
 
     # gitnu status some/thing
 
