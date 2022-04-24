@@ -18,16 +18,14 @@ def write(numbered_status: NumberedStatus):
         json.dump(numbered_status.json(), f)
 
 
-def get_table(path: str = "") -> tuple[bool, NumberedStatus]:
+def get_table(path: str = "") -> NumberedStatus:
     if path == "":
         path = get_filepath()
     table = NumberedStatus()
-    status = True
     try:
         with open(path, "r") as f:
             for i in json.load(f):
                 table.push(Entry(i[0], i[1]))
     except FileNotFoundError:
         log.warn("Cache doesn't exist yet. Run gitnu first.")
-        status = False
-    return (status, table)
+    return table
