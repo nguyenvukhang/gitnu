@@ -30,4 +30,5 @@ class git:
         "renamed:": "renamed",
     }
     set_state_keys = list(set_state.keys())
+    actions = list(set_action.keys())
     commands = ("status", "add", "reset", "diff", "checkout", "--")

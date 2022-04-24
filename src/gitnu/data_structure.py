@@ -1,3 +1,4 @@
+from .strings import extract_filename
 from .git import git
 from os import getcwd, path
 from . import log
@@ -68,37 +69,19 @@ class NumberedStatus:
     def print(self):
         log.yellow(self.cache())
 
-
-def fill_table(numbered_status: NumberedStatus) -> None:
-    cwd = getcwd()
-    state = "unset"  # 'staged' | 'unstaged' | 'untracked'
-    data_list = numbered_status.copy()
-    for data in data_list:
-        line = data.get_line()
-        state = git.set_state.get(line, state)
-        # these lines will not have filenames inside
-        # and so do not need to remain indexed
-        if line in git.set_state or state == "unset" or line.strip() == "":
-            numbered_status.remove(data)
-            continue
-
-        # untracked files will not have any keyword in front of them
-        filename = path.join(cwd, line.lstrip())
-
-        action = ""
-        for keyword, action_value in git.set_action.items():
-            if line.startswith(keyword):
-                action = action_value
-                # too lazy to regex start-of-line,
-                # so this too shall pass
-                line = line[len(keyword) :]
-                if action == "renamed":
-                    after_arrow = line.lstrip().split(" -> ", 1)[1]
-                    filename = path.join(cwd, after_arrow)
-                else:
-                    filename = path.join(cwd, line.lstrip())
-                # use the first match only, so break after first if
-                break
-        data.set_action(action)
-        data.set_state(state)
-        data.set_filename(filename)
+    def clean(self):
+        # new_numbered_status = NumberedStatus()
+        new_data: list[Entry] = []
+        for entry in self.data:
+            index = entry.get_index()
+            line = entry.get_line()
+            entry.set_filename(extract_filename(line))
+            # length = new_numbered_status.length()
+            length = len(new_data)
+            if index == length + 1:
+                new_data.append(entry)
+            elif index <= length:
+                new_data[index - 1] = entry
+            else:
+                log.yellow('NumberedStatus.clean(): index went beyond current max.')
+        self.data = new_data

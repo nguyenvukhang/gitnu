@@ -1,9 +1,8 @@
-from .data_structure import fill_table, Entry, NumberedStatus
+from .data_structure import Entry, NumberedStatus
 from .shell import system_std
-from .strings import sanitize_line
+from .strings import has_red_or_green, sanitize_line
 from .git import git
 from . import cache
-from . import log
 
 
 def read_stdout(stdout) -> NumberedStatus:
@@ -11,31 +10,22 @@ def read_stdout(stdout) -> NumberedStatus:
     if not stdout:
         return numbered_status
 
-    checkpoints = git.set_state_keys
-    result, index, counting = [], 1, False
+    index = 1
     stdout_lines = stdout.readlines()
     if len(stdout_lines) == 0:
         return numbered_status
 
     for line in stdout_lines:
-        stripped = sanitize_line(line)
-        result.append((index, stripped))
-        entry = Entry(index, stripped)
+        red_or_green = has_red_or_green(line)
+        entry = Entry(index, sanitize_line(line))
         numbered_status.push(entry)
-        log.yellow(line)
-        if counting:
-            if stripped == "":
-                counting = False
-                print(line, end="")
-            elif stripped in checkpoints:
-                print(line, end="")
-            else:
-                print(index, line, end="")
-                index += 1
+
+        if red_or_green:
+            print(index, line, end="")
+            index += 1
         else:
-            if stripped in checkpoints:
-                counting = True
             print(line, end="")
+
     return numbered_status
 
 
@@ -45,7 +35,8 @@ def read_stdout(stdout) -> NumberedStatus:
 def gitnu_status(args):
     stdout = system_std(git.cmd.status + args)
     numbered_status = read_stdout(stdout)
+    numbered_status.clean()
     if numbered_status.is_empty():
         return
-    fill_table(numbered_status)
+    # fill_table(numbered_status)
     cache.write(cache.get_filepath(), numbered_status)
