@@ -3,6 +3,7 @@ from .shell import system_std
 from .strings import sanitize_line
 from .git import git
 from . import cache
+from . import log
 
 
 def read_stdout(stdout) -> NumberedStatus:
@@ -21,6 +22,7 @@ def read_stdout(stdout) -> NumberedStatus:
         result.append((index, stripped))
         entry = Entry(index, stripped)
         numbered_status.push(entry)
+        log.yellow(line)
         if counting:
             if stripped == "":
                 counting = False

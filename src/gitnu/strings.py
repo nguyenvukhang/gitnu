@@ -1,3 +1,9 @@
+def replace_all(string: str, src: list[str], dest: str) -> str:
+    for i in src:
+        string = string.replace(i, dest)
+    return string
+
+
 def remove_ansi(string: str) -> str:
     ansi = [
         "\x1b[31m",
@@ -9,13 +15,15 @@ def remove_ansi(string: str) -> str:
         "\x1b[37m",
         "\x1b[m",
     ]
-    for i in ansi:
-        string = string.replace(i, "")
-    return string
+    return replace_all(string, ansi, "")
 
 
 def handle_submodules(string: str) -> str:
-    return string.replace("(new commits)\n", "\n")
+    suffixes = [
+        "(new commits)\n",
+        "(modified content)\n",
+    ]
+    return replace_all(string, suffixes, "\n")
 
 
 def sanitize_line(string: str) -> str:

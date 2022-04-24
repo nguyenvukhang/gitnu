@@ -17,7 +17,12 @@ class git:
         "nothing to commit, working tree clean": "unset",
         "": "unset",
     }
-    ignore = ["no changes added to commit"]
+    ignore = [
+        "no changes added to commit\n",
+        '(use "git add <file>..." to update what will be committed)\n',
+        '(use "git restore <file>..." to discard changes in working directory)\n',
+        "(commit or discard the untracked or modified content in submodules)\n",
+    ]
     set_action = {
         "deleted:": "deleted",
         "new file:": "newfile",
