@@ -12,7 +12,7 @@ clean:
 	rm -rf build dist src/gitnu.egg-info
 
 build:
-	$(PYTHON) -m build
+	$(PYTHON) -m build --sdist
 
 clear-site:
 	# if installed by pip, this will be a directory
@@ -55,3 +55,6 @@ fi:
 
 u:
 	make pip-uninstall
+
+fb: 
+	make fresh-build
