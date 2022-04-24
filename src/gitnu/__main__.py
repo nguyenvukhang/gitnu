@@ -4,7 +4,7 @@ from . import read
 import sys
 
 
-def main() -> None:
+def run() -> None:
     args = sys.argv
     command, command_index = git.get_command(args)
     if len(args) <= 1 or command == "status":
@@ -14,4 +14,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run()
