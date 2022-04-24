@@ -1,6 +1,6 @@
 import unittest, shutil, tempfile, os, subprocess
 
-from gitnu.shell import system
+from gitnu.shell import system as i, system_std
 from gitnu import log
 
 
@@ -22,7 +22,8 @@ class TestShellMethods(unittest.TestCase):
 
     def test_something(self):
         os.chdir(self.test_dir)
-        system(["git", "init"])
+        stdout, _ = system_std(["git", "init"])
+        stdout.close()
         with subprocess.Popen(["ls", "-a"]):
             pass
         with subprocess.Popen(["git", "status"]):
