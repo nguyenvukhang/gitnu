@@ -2,20 +2,18 @@ PYTHON = $(shell (command -v python3))
 CWD = $(shell pwd)
 SITE_PKG=/opt/homebrew/lib/python3.9/site-packages
 
-all_tests:
-	@echo "running tests..."
-	@$(PYTHON) -m unittest discover
-
 # MODULAR CORE STUFF
+
+build:
+	$(PYTHON) -m build --sdist
+
+FORCE:
 
 clean:
 	rm -rf build dist src/gitnu.egg-info
 
 build-full:
 	$(PYTHON) -m build
-
-build:
-	$(PYTHON) -m build --sdist
 
 clear-site-packages:
 	# if installed by pip, this will be a directory
@@ -44,7 +42,7 @@ upload:
 
 dev: # use with caution
 	@pip show gitnu || pip install .
-	@make clear-site-packages
+	make clear-site-packages
 	ln -sf $$PWD/src/gitnu $(SITE_PKG)
 
 # aliases
@@ -57,3 +55,13 @@ fi:
 
 u:
 	make pip-uninstall
+
+test: FORCE
+	@echo "Running all tests..."
+	@$(PYTHON) -m unittest discover
+
+test-shell:
+	@$(PYTHON) -m unittest test.test_shell
+
+ts:
+	make test-shell

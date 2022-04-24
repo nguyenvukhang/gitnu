@@ -1,12 +1,7 @@
 import unittest, shutil, tempfile, os, subprocess
 
-from gitnu.shell import system as i, system_std
+from gitnu.shell import system, system_std
 from gitnu import log
-
-
-def system(*args):
-    a = subprocess.Popen(*args)
-    a.wait()
 
 
 class TestShellMethods(unittest.TestCase):
