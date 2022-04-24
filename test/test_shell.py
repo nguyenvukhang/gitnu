@@ -100,6 +100,13 @@ def make_committed_submodule(submodule_name: str):
     make_submodule(submodule_name)
     git.commit("added submodule: %s" % submodule_name)
 
+def make_modified_submodule(submodule_name: str):
+    make_committed_submodule(submodule_name)
+    os.chdir(submodule_name)
+    change_file("smash")
+    git.add("smash")
+    git.commit("created smash")
+    os.chdir("..")
 
 class TestShellMethods(unittest.TestCase):
     # this runs before every function below
@@ -191,20 +198,19 @@ class TestShellMethods(unittest.TestCase):
         )
 
     def test_modified_submodule(self):
-        SUBMODULE = "daniel_ricciardo"
-        make_committed_submodule(SUBMODULE)
-        git.status()
-        ls()
-        os.chdir(os.path.join("..", SUBMODULE))
-        change_file("smash")
-        git.add("smash")
-        git.commit("created smash")
-        # git.log()
-        os.chdir(os.path.join("..", "main_repo"))
-        # git.status()
-        # self.assertListEqual(
-        #     gitnu(), []
-        # )
+        make_modified_submodule('kimi_raikkonen')
+        self.assertListEqual(
+            gitnu(),
+            [
+                "On branch master",
+                "Changes not staged for commit:",
+                '(use "git add <file>..." to update what will be committed)',
+                '(use "git restore <file>..." to discard changes in working directory)',
+                "1 \t\x1b[31mmodified:   kimi_raikkonen\x1b[m (new commits)",
+                "",
+                'no changes added to commit (use "git add" and/or "git commit -a")',
+            ],
+        )
 
 
 if __name__ == "__main__":
