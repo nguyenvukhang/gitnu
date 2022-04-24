@@ -40,6 +40,7 @@ def gitnu_status(args):
     if returncode != 0:
         return
     numbered_status = read_stdout(stdout)
+    stdout.close()
     numbered_status.clean()
     if numbered_status.is_empty():
         return

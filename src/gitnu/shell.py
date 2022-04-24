@@ -1,7 +1,6 @@
 import subprocess
 from typing import IO, TextIO
 from . import log
-import io
 
 # actually used a lot
 def system(cmd: list[str]) -> str:
@@ -16,10 +15,8 @@ def system(cmd: list[str]) -> str:
 def systemlist(cmd: list[str]) -> list[str]:
     result = []
     stdout, _ = system_std(cmd)
-    if not stdout:
-        log.warn("systemlist: no stdout.")
-        return [""]
     stdout_lines = stdout.readlines()
+    stdout.close()
     for line in stdout_lines:
         result.append(line.strip())
     return result
@@ -36,5 +33,6 @@ def system_std(cmd: list[str]) -> tuple[IO[str], int]:
     )
     p.wait()
     if not p.stdout:
+        # return an empty TextIO object, so it still can close
         return (TextIO(), p.returncode)
     return (p.stdout, p.returncode)
