@@ -33,7 +33,12 @@ def read_stdout(stdout) -> NumberedStatus:
 # enumerate git status
 # write cache
 def gitnu_status(args):
-    stdout = system_std(git.cmd.status + args)
+    stdout, returncode = system_std(git.cmd.status + args)
+    # if there is an error running the git command,
+    # stderr (bypass) will be printed to terminal
+    # stop execution
+    if returncode != 0:
+        return
     numbered_status = read_stdout(stdout)
     numbered_status.clean()
     if numbered_status.is_empty():

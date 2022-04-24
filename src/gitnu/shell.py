@@ -1,30 +1,39 @@
 import subprocess
+from . import log
 
-
+# actually used a lot
 def system(cmd: list[str]) -> str:
-    return systemlist(cmd)[0]
+    l = systemlist(cmd)
+    if len(l) == 0:
+        log.warn('system: empty output.')
+        return ''
+    return l[0]
 
 
+# not used anywhere
 def systemlist(cmd: list[str]) -> list[str]:
     result = []
-    stdout = system_std(cmd)
+    stdout, _ = system_std(cmd)
     if not stdout:
-        return []
-    while stdout.readable():
-        line = stdout.readline()
+        log.warn('systemlist: no stdout.')
+        return [""]
+    stdout_lines = stdout.readlines()
+    for line in stdout_lines:
         if not line:
             break
         result.append(line.strip())
-    if len(result) == 0:
-        return [""]
     return result
 
 
+# used once in write
 def system_std(cmd: list[str]):
-    # process = subprocess.Popen(
-    #     cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
-    # )
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
+        # keep the line below commented to let stderr text
+        # bypass straight to user's terminal as stderr
+        # stderr=subprocess.PIPE,
     )
-    return process.stdout
+    p.wait()
+    return (p.stdout, p.returncode)

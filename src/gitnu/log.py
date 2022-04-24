@@ -1,3 +1,5 @@
+import warnings
+
 class bcolors:
     GRAY = "\033[90m"
     RED = "\033[91m"
@@ -18,6 +20,13 @@ def stringify(color):
 
     return fn
 
+def colored_warn(color):
+    def fn(*args):
+        text = " ".join(map(str, args))
+        warnings.warn(color + '\n' + text + bcolors.ENDC)
+
+    return fn
+
 gray = stringify(bcolors.GRAY)
 red = stringify(bcolors.RED)
 yellow = stringify(bcolors.YELLOW)
@@ -25,3 +34,22 @@ green = stringify(bcolors.GREEN)
 blue = stringify(bcolors.BLUE)
 cyan = stringify(bcolors.CYAN)
 purple = stringify(bcolors.PURPLE)
+warn = colored_warn(bcolors.YELLOW)
+
+class perma:
+    gray = stringify(bcolors.GRAY)
+    red = stringify(bcolors.RED)
+    yellow = stringify(bcolors.YELLOW)
+    green = stringify(bcolors.GREEN)
+    blue = stringify(bcolors.BLUE)
+    cyan = stringify(bcolors.CYAN)
+    purple = stringify(bcolors.PURPLE)
+
+class temp:
+    gray = stringify(bcolors.GRAY)
+    red = stringify(bcolors.RED)
+    yellow = stringify(bcolors.YELLOW)
+    green = stringify(bcolors.GREEN)
+    blue = stringify(bcolors.BLUE)
+    cyan = stringify(bcolors.CYAN)
+    purple = stringify(bcolors.PURPLE)

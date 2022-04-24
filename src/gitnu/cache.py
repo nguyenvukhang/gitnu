@@ -1,10 +1,14 @@
 import json
+
+from . import log
 from .shell import system
 from .data_structure import NumberedStatus, Entry
 
 
 def get_filepath() -> str:
     cache_directory = system(["git", "rev-parse", "--git-dir"])
+    if cache_directory == '':
+        log.warn('get_filepath: cache_directory empty.')
     return "%s/gitnu.json" % (cache_directory)
 
 
