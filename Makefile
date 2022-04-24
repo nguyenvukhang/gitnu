@@ -10,7 +10,7 @@ build:
 FORCE:
 
 clean:
-	rm -rf build dist src/gitnu.egg-info
+	rm -rf build dist src/gitnu.egg-info .pytest_cache src/gitnu/__pycache__ test/__pycache__
 
 build-full:
 	$(PYTHON) -m build
