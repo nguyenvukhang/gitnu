@@ -2,8 +2,7 @@ import unittest, shutil, tempfile, os, subprocess
 from gitnu.shell import systemlist
 from gitnu import log
 
-STRING1 = "lox63af3ldbem2tlx7i8"
-STRING2 = "ybk63ns3yqorz2gyk7v8"
+STRING = "Still I Rise"
 
 
 def gitnu() -> list[str]:
@@ -25,61 +24,81 @@ def run_list(cmd_list: list[list[str]], verbose: bool = False) -> None:
         run(cmd, verbose)
 
 
+class _git:
+    def commit(self, message: str = "lalala"):
+        run(["git", "commit", "-m", "%s" % message])
+
+    def status(self):
+        run(["git", "status"], verbose=True)
+
+    def nu(self):
+        run(["gitnu"], verbose=True)
+
+    def log(self):
+        run(["git", "log", "--all", "--oneline", "--graph"], verbose=True)
+
+    def init(self):
+        run(["git", "init"])
+
+    def add(self, *filenames):
+        run(["git", "add", *filenames])
+
+    class _submodule:
+        def add(self, submodule_path: str):
+            run(["git", "submodule", "add", "--quiet", submodule_path])
+
+    submodule = _submodule()
+
+
+git = _git()
+
+
 def ls():
-    run(["ls", "-la"], verbose=True)
-
-
-def gs():
-    run(["git", "status"], verbose=True)
-
-
-def gn():
-    run(["gitnu"], verbose=True)
+    run(["ls", "-lA"], verbose=True)
 
 
 def cat(filename: str):
     run(["cat", filename], verbose=True)
 
 
-def initialize_git_repo():
-    run(["git", "init"])
-
-
-def make_new_file(filename: str, contents: str = STRING1):
+def make_new_file(filename: str):
     run(["touch", filename])
-    with open(filename, "w") as f:
+    change_file(filename)
+
+
+def change_file(filename: str, contents: str = STRING):
+    with open(filename, "a") as f:
         f.write(contents)
 
 
 def make_staged_new_file(filename: str):
     make_new_file(filename)
-    run(["git", "add", filename])
+    git.add(filename)
 
 
 def make_committed_new_file(filename: str):
     make_staged_new_file(filename)
-    run(["git", "commit", "-m", "committed file %s" % filename])
+    git.commit("committed file %s" % filename)
 
 
-def make_unstaged_modified(filename: str, contents: str = STRING2):
+def make_unstaged_modified(filename: str):
     make_committed_new_file(filename)
-    with open(filename, "w") as f:
-        f.write(contents)
+    change_file(filename)
 
 
 def make_submodule(submodule_name: str):
     os.chdir("..")
     os.mkdir(submodule_name)
     os.chdir(submodule_name)
-    initialize_git_repo()
+    git.init()
     make_committed_new_file("submodule_first_file")
     os.chdir("../main_repo")
-    run_list([["git", "submodule", "add", "../%s" % (submodule_name)]])
+    git.submodule.add("../%s" % (submodule_name))
 
 
 def make_committed_submodule(submodule_name: str):
     make_submodule(submodule_name)
-    run_list([["git", "commit", "-m", "added submodule: %s" % submodule_name]])
+    git.commit("added submodule: %s" % submodule_name)
 
 
 class TestShellMethods(unittest.TestCase):
@@ -96,8 +115,9 @@ class TestShellMethods(unittest.TestCase):
         # make a repo dir so can test submodules in root temp dir
         os.mkdir("main_repo")
         os.chdir("main_repo")
-        initialize_git_repo()
+        git.init()
         make_committed_new_file("calista.txt")
+        make_committed_new_file("MAIN_REPO.txt")
         # log.perma.purple(" Setup tmp git repo.")
         # log.perma.purple("─────────────────────")
 
@@ -165,10 +185,26 @@ class TestShellMethods(unittest.TestCase):
         )
 
     def test_committed_submodule(self):
-        make_committed_submodule('daniel_ricciardo')
+        make_committed_submodule("daniel_ricciardo")
         self.assertListEqual(
             gitnu(), ["On branch master", "nothing to commit, working tree clean"]
         )
+
+    def test_modified_submodule(self):
+        SUBMODULE = "daniel_ricciardo"
+        make_committed_submodule(SUBMODULE)
+        git.status()
+        ls()
+        os.chdir(os.path.join("..", SUBMODULE))
+        change_file("smash")
+        git.add("smash")
+        git.commit("created smash")
+        # git.log()
+        os.chdir(os.path.join("..", "main_repo"))
+        # git.status()
+        # self.assertListEqual(
+        #     gitnu(), []
+        # )
 
 
 if __name__ == "__main__":
