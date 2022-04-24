@@ -29,7 +29,7 @@ class NumberedStatus:
     def remove(self, entry: Entry):
         self.data.remove(entry)
 
-    def get_filename_by_index(self, index: str):
+    def get_filename(self, index: str):
         # return if not a number
         # this is gitnu's promise to be nothing but an alias for numbers
         if not index.isdigit():
