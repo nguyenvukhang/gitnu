@@ -1,6 +1,4 @@
 from .strings import extract_filename
-from .git import git
-from os import getcwd, path
 from . import log
 
 
@@ -83,5 +81,5 @@ class NumberedStatus:
             elif index <= length:
                 new_data[index - 1] = entry
             else:
-                log.yellow('NumberedStatus.clean(): index went beyond current max.')
+                log.perma.yellow('NumberedStatus.clean(): index went beyond current max.')
         self.data = new_data
