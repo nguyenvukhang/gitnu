@@ -18,7 +18,7 @@ def write(numbered_status: NumberedStatus):
         json.dump(numbered_status.json(), f)
 
 
-def get_table(path: str = "") -> NumberedStatus:
+def get(path: str = "") -> NumberedStatus:
     if path == "":
         path = get_filepath()
     table = NumberedStatus()

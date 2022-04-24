@@ -1,15 +1,14 @@
 from . import git
 
 
-def has_red_or_green(string: str) -> bool:
-    red, green = "\x1b[31m", "\x1b[32m"
-    return red in string or green in string
-
-
 class StdoutLine:
     def __init__(self, string: str) -> None:
         self.value: str = string
-        self.has_filename: bool = has_red_or_green(string)
+        self.has_filename: bool = self.has_red_or_green()
+
+    def has_red_or_green(self) -> bool:
+        red, green = "\x1b[31m", "\x1b[32m"
+        return red in self.value or green in self.value
 
     def replace_list(self, src: list[str], dest: str):
         for i in src:

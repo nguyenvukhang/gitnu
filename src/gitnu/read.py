@@ -3,9 +3,9 @@ from . import cache
 
 
 def is_range(string: str) -> bool:
-    if '-' not in string:
+    if "-" not in string:
         return False
-    if string[-1] == '-' or string[0] == '-':
+    if string[-1] == "-" or string[0] == "-":
         return False
     undash = string.replace("-", "", 1)
     # undash being only digits means it was originally
@@ -37,7 +37,7 @@ def gitnu_use(args: list[str], command_index: int) -> None:
     # parse everything after command
     post_cmd = parse_ranges(args[command_index + 1 :])
     # read from cache
-    table = cache.get_table()
+    table = cache.get()
     if not table.is_empty():
         post_cmd = list(map(table.get_filename, post_cmd))
     subprocess.run(pre_cmd + post_cmd)

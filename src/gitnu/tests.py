@@ -59,11 +59,11 @@ def run_tests(args: list[str], handle_arguments):
     expect(result, [gitnu, "status"])
 
     pre("cache existence:")
-    table_exists, table = cache.get_table()
-    expect(table_exists, True)
+    table = cache.get()
+    expect(table.is_empty(), False)
 
     pre("cache correctness:")
-    _, correct_table = cache.get_table(os.getcwd() + "/../root-gitnu.json")
+    correct_table = cache.get(os.getcwd() + "/../root-gitnu.json")
     expect(table, correct_table)
 
     # change directory for next test
@@ -80,11 +80,11 @@ def run_tests(args: list[str], handle_arguments):
     expect(result, [gitnu, "status"])
 
     pre("cache existence:")
-    table_exists, table = cache.get_table()
-    expect(table_exists, True)
+    table = cache.get()
+    expect(table.is_empty(), False)
 
     pre("cache correctness:")
-    _, correct_table = cache.get_table(original_dir + "/../some-thing-gitnu.json")
+    correct_table = cache.get(original_dir + "/../some-thing-gitnu.json")
     expect(table, correct_table)
 
     # READ OPERATIONS

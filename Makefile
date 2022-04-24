@@ -5,6 +5,7 @@ SITE_PKG=/opt/homebrew/lib/python3.9/site-packages
 # MODULAR CORE STUFF
 
 build:
+	$(PYTHON) -m black src test
 	$(PYTHON) -m build --sdist
 
 FORCE:
@@ -13,6 +14,7 @@ clean:
 	rm -rf build dist src/gitnu.egg-info .pytest_cache src/gitnu/__pycache__ test/__pycache__
 
 build-full:
+	$(PYTHON) -m black src test
 	$(PYTHON) -m build
 
 clear-site-packages:

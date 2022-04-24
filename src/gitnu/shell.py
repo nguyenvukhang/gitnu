@@ -21,6 +21,7 @@ def systemlist(cmd: list[str]) -> list[str]:
         result.append(line.strip())
     return result
 
+
 # used once in write
 def system_std(cmd: list[str]) -> tuple[IO[str], int]:
     p = subprocess.Popen(

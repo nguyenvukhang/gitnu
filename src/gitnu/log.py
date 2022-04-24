@@ -1,5 +1,6 @@
 import warnings
 
+
 class bcolors:
     GRAY = "\033[90m"
     RED = "\033[91m"
@@ -20,14 +21,16 @@ def stringify(color):
 
     return fn
 
+
 def colored_warn(color):
     def fn(*args):
         text = " ".join(map(str, args))
-        gitnu = (color + '\n' + text + bcolors.ENDC, RuntimeWarning)
+        gitnu = (color + "\n" + text + bcolors.ENDC, RuntimeWarning)
         stay_calm_and = warnings.warn
         stay_calm_and(*gitnu)
 
     return fn
+
 
 gray = stringify(bcolors.GRAY)
 red = stringify(bcolors.RED)

@@ -2,6 +2,7 @@ class cmd:
     status = ["git", "-c", "status.color=always", "status"]
     get_repo = ["git", "rev-parse", "--git-dir"]
 
+
 commands = ["status", "add", "reset", "diff", "checkout"]
 
 actions = [

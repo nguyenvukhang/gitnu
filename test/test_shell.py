@@ -100,6 +100,7 @@ def make_committed_submodule(submodule_name: str):
     make_submodule(submodule_name)
     git.commit("added submodule: %s" % submodule_name)
 
+
 def make_modified_submodule(submodule_name: str):
     make_committed_submodule(submodule_name)
     os.chdir(submodule_name)
@@ -107,6 +108,7 @@ def make_modified_submodule(submodule_name: str):
     git.add("smash")
     git.commit("created smash")
     os.chdir("..")
+
 
 class TestShellMethods(unittest.TestCase):
     # this runs before every function below
@@ -198,7 +200,7 @@ class TestShellMethods(unittest.TestCase):
         )
 
     def test_modified_submodule(self):
-        make_modified_submodule('kimi_raikkonen')
+        make_modified_submodule("kimi_raikkonen")
         self.assertListEqual(
             gitnu(),
             [
