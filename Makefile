@@ -20,9 +20,6 @@ install-pip:
 	make clear-cache
 	pip install gitnu
 
-install-local:
-	pip install .
-
 # derivative stuff
 
 fresh-build:
@@ -33,9 +30,9 @@ upload:
 	make fresh-build
 	twine upload --username "brew4k" dist/*
 
-dev:
-	make uninstall-pip
-	make install-local
+dev: # use with caution
+	@pip show gitnu || pip install .
+	@pip show gitnu && ln -sf $$PWD/src/gitnu /opt/homebrew/lib/python3.9/site-packages
 
 # aliases
 
