@@ -58,10 +58,16 @@ u:
 
 test: FORCE
 	@echo "Running all tests..."
-	@$(PYTHON) -m unittest discover
+	$(PYTHON) -m unittest discover
+
+pytest:
+	pytest
+
+pt:
+	pytest
 
 test-shell:
-	@$(PYTHON) -m unittest test.test_shell
+	pytest test/test_shell.py
 
 ts:
 	make test-shell
