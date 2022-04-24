@@ -1,7 +1,7 @@
 import json
 
 from . import log
-from .git import git
+from . import git
 from .shell import system
 from .data_structure import NumberedStatus, Entry
 

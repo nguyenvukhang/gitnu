@@ -1,4 +1,4 @@
-from .git import git
+from . import git
 
 
 def has_red_or_green(string: str) -> bool:

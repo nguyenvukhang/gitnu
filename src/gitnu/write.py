@@ -2,7 +2,7 @@ from .data_structure import Entry, NumberedStatus
 from typing import IO
 from .shell import system_std
 from .strings import StdoutLine
-from .git import git
+from . import git
 from . import cache
 
 
