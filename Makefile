@@ -39,7 +39,7 @@ local:
 
 build:
 	make clean
-	$(PYTHON) setup.py sdist
+	$(PYTHON) -m build
 
 upload:
 	make clean
