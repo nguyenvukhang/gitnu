@@ -25,6 +25,22 @@ def run_list(cmd_list: list[list[str]], verbose: bool = False) -> None:
         run(cmd, verbose)
 
 
+def ls():
+    run(["ls", "-la"], verbose=True)
+
+
+def gs():
+    run(["git", "status"], verbose=True)
+
+
+def gn():
+    run(["gitnu"], verbose=True)
+
+
+def cat(filename: str):
+    run(["cat", filename], verbose=True)
+
+
 def initialize_git_repo():
     run(["git", "init"])
 
@@ -50,8 +66,20 @@ def make_unstaged_modified(filename: str, contents: str = STRING2):
     with open(filename, "w") as f:
         f.write(contents)
 
-def make_submodule(submodule: str):
-    run_list([['git', 'submodule']])
+
+def make_submodule(submodule_name: str):
+    os.chdir("..")
+    os.mkdir(submodule_name)
+    os.chdir(submodule_name)
+    initialize_git_repo()
+    make_committed_new_file("submodule_first_file")
+    os.chdir("../main_repo")
+    run_list([["git", "submodule", "add", "../%s" % (submodule_name)]])
+
+
+def make_committed_submodule(submodule_name: str):
+    make_submodule(submodule_name)
+    run_list([["git", "commit", "-m", "added submodule: %s" % submodule_name]])
 
 
 class TestShellMethods(unittest.TestCase):
@@ -66,8 +94,8 @@ class TestShellMethods(unittest.TestCase):
         os.chdir(self.test_dir)
 
         # make a repo dir so can test submodules in root temp dir
-        os.mkdir('main_repo')
-        os.chdir('main_repo')
+        os.mkdir("main_repo")
+        os.chdir("main_repo")
         initialize_git_repo()
         make_committed_new_file("calista.txt")
         # log.perma.purple(" Setup tmp git repo.")
@@ -120,6 +148,26 @@ class TestShellMethods(unittest.TestCase):
                 "",
                 'no changes added to commit (use "git add" and/or "git commit -a")',
             ],
+        )
+
+    def test_new_submodule(self):
+        make_submodule("daniel_ricciardo")
+        self.assertListEqual(
+            gitnu(),
+            [
+                "On branch master",
+                "Changes to be committed:",
+                '(use "git restore --staged <file>..." to unstage)',
+                "1 \t\x1b[32mnew file:   .gitmodules\x1b[m",
+                "2 \t\x1b[32mnew file:   daniel_ricciardo\x1b[m",
+                "",
+            ],
+        )
+
+    def test_committed_submodule(self):
+        make_committed_submodule('daniel_ricciardo')
+        self.assertListEqual(
+            gitnu(), ["On branch master", "nothing to commit, working tree clean"]
         )
 
 
