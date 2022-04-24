@@ -50,6 +50,9 @@ def make_unstaged_modified(filename: str, contents: str = STRING2):
     with open(filename, "w") as f:
         f.write(contents)
 
+def make_submodule(submodule: str):
+    run_list([['git', 'submodule']])
+
 
 class TestShellMethods(unittest.TestCase):
     # this runs before every function below
@@ -62,6 +65,9 @@ class TestShellMethods(unittest.TestCase):
         # explicitly done so
         os.chdir(self.test_dir)
 
+        # make a repo dir so can test submodules in root temp dir
+        os.mkdir('main_repo')
+        os.chdir('main_repo')
         initialize_git_repo()
         make_committed_new_file("calista.txt")
         # log.perma.purple(" Setup tmp git repo.")
