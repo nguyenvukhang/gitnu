@@ -18,9 +18,9 @@ def read_stdout(stdout) -> NumberedStatus:
     for line in stdout_lines:
         red_or_green = has_red_or_green(line)
         entry = Entry(index, sanitize_line(line))
-        numbered_status.push(entry)
 
         if red_or_green:
+            numbered_status.push(entry)
             print(index, line, end="")
             index += 1
         else:
