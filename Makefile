@@ -14,13 +14,21 @@ clean:
 build:
 	$(PYTHON) -m build
 
-uninstall-pip:
-	rm -f $(SITE_PKG)/gitnu
+clear-site:
+	# if installed by pip, this will be a directory
+	# if installed by make dev, this will be a symlink to src/gitnu
+	rm -rf $(SITE_PKG)/gitnu
+
+pip-uninstall:
+	make clear-site
 	pip uninstall --yes gitnu
 
-install-pip:
-	make clear-cache
+pip-install:
 	pip install gitnu
+
+fresh-pip-install:
+	make pip-uninstall
+	make pip-install
 
 # derivative stuff
 
@@ -34,12 +42,16 @@ upload:
 
 dev: # use with caution
 	@pip show gitnu || pip install .
-	@pip show gitnu && ln -sf $$PWD/src/gitnu $(SITE_PKG)
+	@make clear-site
+	ln -sf $$PWD/src/gitnu $(SITE_PKG)
 
 # aliases
 
 i:
-	make install-pip
+	make pip-install
+
+fi:
+	make fresh-pip-install
 
 u:
-	make uninstall-pip
+	make pip-uninstall
