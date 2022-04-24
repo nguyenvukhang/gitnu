@@ -31,9 +31,16 @@ pip-uninstall:
 pip-install:
 	pip install gitnu
 
+local-install:
+	make build
+	cd dist && pip install *.tar.gz
+
 fresh-pip-install:
 	make pip-uninstall
 	make pip-install
+
+unpack:
+	cd dist && tar -xvf *.tar.gz
 
 # derivative stuff
 
