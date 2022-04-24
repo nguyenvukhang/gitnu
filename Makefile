@@ -46,6 +46,9 @@ fresh-pip-install:
 unpack:
 	cd dist && tar -xvf *.tar.gz
 
+lint:
+	pylint src/gitnu --disable=missing-class-docstring --disable=missing-function-docstring
+
 # derivative stuff
 
 upload:
