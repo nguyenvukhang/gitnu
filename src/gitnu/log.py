@@ -23,7 +23,9 @@ def stringify(color):
 def colored_warn(color):
     def fn(*args):
         text = " ".join(map(str, args))
-        warnings.warn(color + '\n' + text + bcolors.ENDC)
+        gitnu = (color + '\n' + text + bcolors.ENDC, RuntimeWarning)
+        stay_calm_and = warnings.warn
+        stay_calm_and(*gitnu)
 
     return fn
 

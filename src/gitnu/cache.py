@@ -23,12 +23,11 @@ def get_table(path: str = "") -> tuple[bool, NumberedStatus]:
         path = get_filepath()
     table = NumberedStatus()
     status = True
-    cache_table = []
     try:
         with open(path, "r") as f:
-            cache_table = json.load(f)
-    except:
+            for i in json.load(f):
+                table.push(Entry(i[0], i[1]))
+    except FileNotFoundError:
+        log.warn("Cache doesn't exist yet. Run gitnu first.")
         status = False
-    for i in cache_table:
-        table.push(Entry(i[0], i[1]))
     return (status, table)
