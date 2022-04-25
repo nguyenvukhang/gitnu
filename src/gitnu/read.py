@@ -40,4 +40,4 @@ def gitnu_use(args: list[str], command_index: int) -> None:
     table = cache.get()
     if not table.is_empty():
         post_cmd = list(map(table.get_filename, post_cmd))
-    subprocess.run(pre_cmd + post_cmd)
+    subprocess.run(pre_cmd + post_cmd, check=False)

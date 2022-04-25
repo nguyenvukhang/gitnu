@@ -67,8 +67,8 @@ def make_new_file(filename: str):
 
 
 def change_file(filename: str, contents: str = STRING):
-    with open(filename, "a") as f:
-        f.write(contents)
+    with open(filename, "a", encoding="UTF-8") as file:
+        file.write(contents)
 
 
 def make_staged_new_file(filename: str):
