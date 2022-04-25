@@ -67,7 +67,7 @@ def make_new_file(filename: str):
 
 
 def change_file(filename: str, contents: str = STRING):
-    with open(filename, "a") as file:
+    with open(filename, "a", encoding="UTF-8") as file:
         file.write(contents)
 
 
