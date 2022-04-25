@@ -23,6 +23,8 @@ def systemlist(cmd: list[str]) -> list[str]:
 
 
 # used once in write
+# TODO: implement this with `with`
+# possible solution: pass in a function to execute per-line
 def system_std(cmd: list[str]) -> tuple[IO[str], int]:
     proc = subprocess.Popen(
         cmd,
