@@ -6,11 +6,6 @@ SITE_PKG=/opt/homebrew/lib/python3.9/site-packages
 
 FORCE:
 
-build: FORCE
-	make clean
-	$(PYTHON) -m black src test
-	$(PYTHON) -m build --sdist
-
 clean:
 	rm -rf build dist src/gitnu.egg-info .pytest_cache src/gitnu/__pycache__ test/__pycache__
 
@@ -21,6 +16,9 @@ build-full:
 	make clean
 	$(PYTHON) -m black src test
 	$(PYTHON) -m build
+
+build: FORCE
+	make build-full
 
 clear-site-packages:
 	# if installed by pip, this will be a directory
@@ -52,10 +50,13 @@ lint:
 
 # derivative stuff
 
+send-to-pypi:
+	twine upload --username "brew4k" dist/*
+
 upload:
 	make clean
 	make build-full
-	twine upload --username "brew4k" dist/*
+	make send-to-pypi
 
 dev: # use with caution
 	@pip show gitnu || pip install .
