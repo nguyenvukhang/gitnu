@@ -1,7 +1,7 @@
+import os
 from . import log
 from . import shell
 from . import cache
-import os
 
 system = shell.system
 
