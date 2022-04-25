@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -9,26 +8,50 @@
 
 using namespace std;
 
-
-
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
+bool printer(int index, char *line) {
+    char red[6] = "\x1b[31m";
+    char green[6] = "\x1b[32m";
+    char *has_red, *has_green = NULL;
+    has_red = strstr(line, red);
+    has_green = strstr(line, green);
+    if (has_red || has_green) {
+        cout << index << line;
+        index++;
+        return true;
+    } else {
+        cout << line;
+        return false;
     }
+}
+
+string exec(const char* cmd) {
+    // and array of characters, length 128
+    array<char, 128> buffer;
+    string result;
+    // no idea what this does
+    // but if I sub pipe() with a variable name, it fails
+    // pipe is a given name
+    // FILE is probably a typedef struct
+    // popen, pclose seem to be methods of either FILE or unique_ptr
+    unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    // if no pipe, throw error: subprocess failed to start
+    if (!pipe) {
+        throw runtime_error("popen() failed!");
+    }
+    int index = 1;
+    bool had_filename;
+    // iterates through the output as long as there is still output
+    // note that this operates in real-time, concurrently as stdout
+    // received output line by line
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        cout << buffer.data();
+        had_filename = printer(index, buffer.data());
+        index += had_filename;
         result += buffer.data();
-        /* result += "hello"; */
     }
     return result;
 }
 
 int main() {
-  /* system("git status"); */
-  std::string output;
   exec("git -c status.color=always status");
   return 0;
 }
