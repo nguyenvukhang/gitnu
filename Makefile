@@ -18,8 +18,9 @@ clear-cache:
 	rm -rf ~/Library/Caches/pip
 
 build-full:
+	make clean
 	$(PYTHON) -m black src test
-	$(PYTHON) -m build --sdist
+	$(PYTHON) -m build
 
 clear-site-packages:
 	# if installed by pip, this will be a directory
