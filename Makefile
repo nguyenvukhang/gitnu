@@ -1,6 +1,7 @@
 PYTHON = $(shell (command -v python3))
 CWD = $(shell pwd)
 SITE_PKG=/opt/homebrew/lib/python3.9/site-packages
+PIP = $(shell (command -v pip3))
 
 # MODULAR CORE STUFF
 
@@ -29,14 +30,14 @@ clear-site-packages:
 
 pip-uninstall:
 	make clear-site-packages
-	pip uninstall --yes gitnu
+	$(PIP) uninstall --yes gitnu
 
 pip-install:
-	pip install gitnu
+	$(PIP) install gitnu
 
 local-install:
 	make build
-	cd dist && pip install *.tar.gz
+	cd dist && $(PIP) install *.tar.gz
 
 fresh-pip-install:
 	make pip-uninstall
@@ -59,7 +60,7 @@ upload:
 	make send-to-pypi
 
 dev: # use with caution
-	@pip show gitnu || pip install .
+	@$(PIP) show gitnu || $(PIP) install .
 	make clear-site-packages
 	ln -sf $$PWD/src/gitnu $(SITE_PKG)
 
