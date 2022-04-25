@@ -10,7 +10,7 @@ def get_filepath() -> str:
     cache_directory = system(git.cmd.get_repo)
     if cache_directory == "":
         log.warn("get_filepath: cache_directory empty.")
-    return "%s/gitnu.json" % (cache_directory)
+    return f"{cache_directory}/gitnu.json"
 
 
 def write(numbered_status: NumberedStatus):

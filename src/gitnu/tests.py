@@ -28,20 +28,18 @@ def test_remove_cache():
     system(["rm", cache_file])
 
 
-def TITLE(x, end="\n"):
+def title(string: str, end="\n"):
     log.gray("\n[ ", end="")
-    log.cyan(x, end="")
+    log.cyan(string, end="")
     log.gray(" ]", end=end)
 
 
 def run_tests(args: list[str], handle_arguments):
     gitnu = system(["which", "gitnu"])
-    original_dir = os.getcwd()
+    original_dir, margin = os.getcwd(), 24
 
-    margin = 24
-
-    def test(x):
-        return handle_arguments(args[0:1] + x.split(" ")[1:])
+    def test(string: str):
+        return handle_arguments(args[0:1] + string.split(" ")[1:])
 
     # run test suite
 
@@ -52,7 +50,7 @@ def run_tests(args: list[str], handle_arguments):
         spaces = " " * (margin - len(string))
         log.gray(string, end=spaces)
 
-    TITLE("gitnu status")
+    title("gitnu status")
 
     result = test("gitnu status")
     pre("command ran:")
@@ -72,7 +70,7 @@ def run_tests(args: list[str], handle_arguments):
 
     # gitnu status some/thing
 
-    TITLE("gitnu status", end=" ")
+    title("gitnu status", end=" ")
     log.gray("(from inside worktree)")
 
     result = test("gitnu status")
@@ -94,31 +92,31 @@ def run_tests(args: list[str], handle_arguments):
 
     os.chdir(original_dir)
 
-    TITLE("gitnu add 1 2 3")
+    title("gitnu add 1 2 3")
 
     result = test("gitnu add 1 2 3")
     pre("command ran:")
     expect(result, ["git", "add", "1", "2", "3"])
 
-    TITLE("gitnu add 1 2 4-7")
+    title("gitnu add 1 2 4-7")
 
     result = test("gitnu add 1 2 4-7")
     pre("command ran:")
     expect(result, ["git", "add", "1", "2", "4", "5", "6", "7"])
 
-    TITLE("gitnu add 1-1 4-7")
+    title("gitnu add 1-1 4-7")
 
     result = test("gitnu add 1-1 4-7")
     pre("command ran:")
     expect(result, ["git", "add", "1", "4", "5", "6", "7"])
 
-    TITLE("gitnu add alpha.py")
+    title("gitnu add alpha.py")
 
     result = test("gitnu add alpha.py")
     pre("command ran:")
     expect(result, ["git", "add", "alpha.py"])
 
-    TITLE("gitnu add alpha.py 1-3")
+    title("gitnu add alpha.py 1-3")
 
     result = test("gitnu add alpha.py 1-3")
     pre("command ran:")
