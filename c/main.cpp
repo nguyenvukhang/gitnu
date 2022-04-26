@@ -14,11 +14,11 @@ bool printer(int index, char *line) {
   has_red = strstr(line, red);
   has_green = strstr(line, green);
   if (has_red || has_green) {
-    /* std::cout << index << line; */
+    std::cout << index << line;
     index++;
     return true;
   } else {
-    /* std::cout << line; */
+    std::cout << line;
     return false;
   }
 }
@@ -47,7 +47,8 @@ std::string gitnu_status(const char *cmd) {
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     had_filename = printer(index, buffer.data());
     Entry entry(index, buffer.data());
-    /* entry.display(); */
+    if (entry.hasf)
+      entry.display();
     index += had_filename;
     result += buffer.data();
   }
@@ -60,9 +61,7 @@ namespace gitnu {} // namespace gitnu
 int main() {
   gitnu_status("git -c status.color=always status");
   std::string output;
-  output = shell::line("printf \"hello world\\nsecond line\"");
-  std::cout << output;
-  output = shell::line("git add");
+  /* output = shell::line("git add"); */
   std::cout << output;
   return 0;
 }
