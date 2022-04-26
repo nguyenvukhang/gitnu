@@ -145,11 +145,13 @@ untracked > /dev/null
 # show
 
 benchmark() {
-  for i in {1..1000}; do
+  start=1
+  fin=${1-100}
+  for ((i=start; i<=fin; i++)); do
     ../dist/cgit
   done
 }
 
-time benchmark
+benchmark $@
 
 quit > /dev/null
