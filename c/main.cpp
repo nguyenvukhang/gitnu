@@ -14,11 +14,11 @@ bool printer(int index, char *line) {
   has_red = strstr(line, red);
   has_green = strstr(line, green);
   if (has_red || has_green) {
-    std::cout << index << line;
+    /* std::cout << index << line; */
     index++;
     return true;
   } else {
-    std::cout << line;
+    /* std::cout << line; */
     return false;
   }
 }
@@ -47,7 +47,7 @@ std::string gitnu_status(const char *cmd) {
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     had_filename = printer(index, buffer.data());
     Entry entry(index, buffer.data());
-    entry.display();
+    /* entry.display(); */
     index += had_filename;
     result += buffer.data();
   }

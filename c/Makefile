@@ -5,7 +5,7 @@ G++ = g++
 run:
 	make build
 	@echo "────────────────────────────────────────────────"
-	@./dist/cgit
+	@[ -d repo ] && cd repo && ../dist/cgit
 
 build:
 	@mkdir -p dist
@@ -13,6 +13,7 @@ build:
 	$(G++) -std=c++17 shell.cpp -c -o dist/shell.o
 	$(G++) -std=c++17 entry.cpp -c -o dist/entry.o
 	$(G++) -std=c++17 dist/main.o dist/shell.o dist/entry.o -o dist/cgit
+	rm dist/*.o
 
 clean:
 	rm -rf dist

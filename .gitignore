@@ -5,3 +5,4 @@ gitnu.egg-info
 dist
 build
 test/repo
+c/repo
