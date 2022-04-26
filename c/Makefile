@@ -24,3 +24,6 @@ cache:
 all:
 	make run
 	make cache
+
+bench:
+	cd repo && python3 ../benchmark.py
