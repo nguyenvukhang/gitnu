@@ -2,9 +2,14 @@
 # G++ = clang++
 G++ = g++
 
-build:
-	$(G++) -std=c++17 main.cpp -o cgit
-
 run:
 	make build
-	./cgit
+	@echo "────────────────────────────────────────────────"
+	@./cgit
+
+build:
+	@mkdir dist
+	$(G++) -std=c++17 main.cpp -o dist/cgit
+
+clean:
+	rm -rf dist
