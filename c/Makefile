@@ -29,11 +29,7 @@ bench-all:
 	cd repo && python3 ../benchmark.py
 
 bench: FORCE
-	TIMEFORMAT='%9R'; time ./cbench 3 >> tmp.txt
+	./cbench
 	git rev-parse --verify HEAD >> time.txt
-	@echo "RESULTS"
-	@cat tmp.txt
-	@cat tmp.txt >> time.txt
-	@rm tmp.txt
 
 FORCE:
