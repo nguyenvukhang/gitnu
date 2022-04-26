@@ -35,21 +35,9 @@ std::string strbf(std::string str, std::string query) {
   }
 }
 
-// (in-place) get a string in between two substrings
-// only if the both substrings are found
-static inline bool getbtw(std::string &s, const char start[], const char end[]) {
-  int si = s.find(start);
-  int ei = s.find(end);
-  if (si >= 0 && ei >= 0) {
-    s = s.substr(si + strlen(start), ei - strlen(end));
-    return true;
-  }
-  return false;
-}
-
 // naively extract filename, given a line from git status
 // that is guaranteed to have a filename inside
-static inline void exgitfn(std::string &s) {
+static inline void remove_git_action(std::string &s) {
   char action[6][10] = {
       "modified:", "added:", "deleted:", "renamed:", "copied:", "new file:"};
   for (int i = 0; i < 6; i++) {
@@ -62,16 +50,30 @@ static inline void exgitfn(std::string &s) {
   }
 }
 
+// (in-place) get a string in between two substrings
+// only if the both substrings are found
+static inline bool get_between_colors(std::string &s, const char start[6], const char end[5]) {
+  int si = s.find(start);
+  int ei = s.find(end);
+  if (si >= 0 && ei >= 0) {
+    s = s.substr(si + 5, ei - 6);
+    return true;
+  }
+  return false;
+}
+
+
 // extract filename from a line of git status
 std::string exfn(std::string line, bool &hasf) {
   const char red[6] = "\x1b[31m";
   const char green[6] = "\x1b[32m";
   const char reset[5] = "\x1b[m";
   const char newline[2] = "\n";
-  hasf = getbtw(line, red, reset) || hasf;
-  hasf = getbtw(line, green, reset) || hasf;
+
+  hasf = get_between_colors(line, red, reset) || hasf;
+  hasf = get_between_colors(line, green, reset) || hasf;
   if (hasf)
-    exgitfn(line);
+    remove_git_action(line);
   /* std::cout << "end result:|" << line << "|" << std::endl; */
   return line;
 }
@@ -83,3 +85,6 @@ Entry::Entry(int index, std::string filename) {
   this->hasf = hasf;
 }
 void Entry::display() { std::cout << "entry::filename [" << filename << "]" << std::endl; }
+std::string Entry::cache() {
+  return std::to_string(this->index) + " " + this->filename;
+}

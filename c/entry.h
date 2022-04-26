@@ -10,4 +10,5 @@ class Entry {
     bool hasf;
     Entry(int index, std::string filename);
     void display();
+    std::string cache();
 };

@@ -20,3 +20,7 @@ clean:
 
 cache:
 	nvim repo/.git/gitnu.txt
+
+all:
+	make run
+	make cache

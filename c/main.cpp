@@ -59,9 +59,11 @@ std::string gitnu_status(const char *cmd) {
   // received output line by line
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     had_filename = printer(index, buffer.data());
-    if (had_filename)
+    if (had_filename) {
       Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since
                                          // it's done here already
+      cache_file << entry.cache() << std::endl;
+    }
     index += had_filename;
     result += buffer.data();
   }
