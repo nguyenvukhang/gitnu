@@ -2,6 +2,7 @@
 #include "shell.h"
 #include <array>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -45,8 +46,8 @@ std::string gitnu_status(const char *cmd) {
   const char cache_filename[12] = "/gitnu.txt";
   const std::string cache_path =
       shell::line("git rev-parse --git-dir").append(cache_filename);
-  /* std::cout << "cache file target --------- |" << target << "|" << std::endl;
-   */
+  const std::string cwd = std::__fs::filesystem::current_path();
+
   cache_file.open(cache_path);
 
   if (!cache_file.is_open())
@@ -62,7 +63,7 @@ std::string gitnu_status(const char *cmd) {
     if (had_filename) {
       Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since
                                          // it's done here already
-      cache_file << entry.cache() << std::endl;
+      cache_file << index << " " << cwd << entry.filename << std::endl;
     }
     index += had_filename;
     result += buffer.data();
