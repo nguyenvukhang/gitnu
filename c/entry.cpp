@@ -8,7 +8,6 @@
 
 const std::string WHITESPACE = " \n\r\t\f\v";
 
-
 std::string cltrim(const std::string &s) {
   size_t start = s.find_first_not_of(WHITESPACE);
   return (start == std::string::npos) ? "" : s.substr(start);
@@ -38,12 +37,19 @@ std::string strbf(std::string str, std::string query) {
 // naively extract filename, given a line from git status
 // that is guaranteed to have a filename inside
 static inline void remove_git_action(std::string &s) {
-  char action[6][10] = {
-      "modified:", "added:", "deleted:", "renamed:", "copied:", "new file:"};
+  const char action[6][10] = {
+      "renamed:", "modified:", "added:", "deleted:", "copied:", "new file:"};
+  const char arrow[5] = " -> ";
   for (int i = 0; i < 6; i++) {
-    int m = s.rfind(action[i]);
+    int m = s.find(action[i]);
     if (m == 0) {
       s = s.substr(strlen(action[i]));
+      if (i == 0) {
+        int a = s.find(arrow);
+        s = s.substr(a + 3);
+        std::cout << "got here (" << a << ", " << s << ")" << std::endl;
+        // this is the renamed case. handle double filename by taking RHS
+      }
       iltrim(s);
       break;
     }
@@ -52,7 +58,8 @@ static inline void remove_git_action(std::string &s) {
 
 // (in-place) get a string in between two substrings
 // only if the both substrings are found
-static inline bool get_between_colors(std::string &s, const char start[6], const char end[5]) {
+static inline bool get_between_colors(std::string &s, const char start[6],
+                                      const char end[5]) {
   int si = s.find(start);
   int ei = s.find(end);
   if (si >= 0 && ei >= 0) {
@@ -61,7 +68,6 @@ static inline bool get_between_colors(std::string &s, const char start[6], const
   }
   return false;
 }
-
 
 // extract filename from a line of git status
 std::string exfn(std::string line, bool &hasf) {
@@ -84,7 +90,9 @@ Entry::Entry(int index, std::string filename) {
   this->filename = exfn(filename, hasf);
   this->hasf = hasf;
 }
-void Entry::display() { std::cout << "entry::filename [" << filename << "]" << std::endl; }
+void Entry::display() {
+  std::cout << "entry::filename [" << filename << "]" << std::endl;
+}
 std::string Entry::cache() {
   return std::to_string(this->index) + " " + this->filename;
 }
