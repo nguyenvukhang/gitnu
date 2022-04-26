@@ -17,3 +17,6 @@ build:
 
 clean:
 	rm -rf dist
+
+cache:
+	nvim repo/.git/gitnu.txt

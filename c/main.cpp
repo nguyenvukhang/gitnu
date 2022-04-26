@@ -1,12 +1,12 @@
+#include "entry.h"
+#include "shell.h"
 #include <array>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <fstream>
-#include "shell.h"
-#include "entry.h"
 
 bool printer(int index, char *line) {
   char red[6] = "\x1b[31m";
@@ -37,15 +37,20 @@ std::string gitnu_status(const char *cmd) {
   // popen, pclose seem to be methods of either FILE or unique_ptr
   std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
   // if no pipe, throw error: subprocess failed to start
-  if (!pipe) {
+  if (!pipe)
     throw std::runtime_error("popen() failed!");
-  }
 
   // open write stream to cache file
   std::ofstream cache_file;
-  std::string target = shell::line("git rev-parse --git-dir");
-  std::cout << "cache file target --------- |" << target << "|" << std::endl;
+  const char cache_filename[12] = "/gitnu.txt";
+  const std::string cache_path =
+      shell::line("git rev-parse --git-dir").append(cache_filename);
+  /* std::cout << "cache file target --------- |" << target << "|" << std::endl;
+   */
+  cache_file.open(cache_path);
 
+  if (!cache_file.is_open())
+    throw std::runtime_error("failed to open cache file!");
 
   int index = 1;
   bool had_filename;
@@ -55,13 +60,14 @@ std::string gitnu_status(const char *cmd) {
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     had_filename = printer(index, buffer.data());
     if (had_filename)
-      Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since it's done here already
+      Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since
+                                         // it's done here already
     index += had_filename;
     result += buffer.data();
   }
+  cache_file.close();
   return result;
 }
-
 
 namespace gitnu {} // namespace gitnu
 
