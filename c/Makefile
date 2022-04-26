@@ -30,8 +30,7 @@ bench-all:
 
 bench: FORCE
 	node bench.js
-	git rev-parse --verify HEAD >> time.txt
-	$$EDITOR time.txt
+	$$EDITOR time.json
 
 time:
 	@make bench
