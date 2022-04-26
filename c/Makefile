@@ -25,5 +25,10 @@ all:
 	make run
 	make cache
 
-bench:
+bench-all:
 	cd repo && python3 ../benchmark.py
+
+bench: FORCE
+	./cbench
+
+FORCE:
