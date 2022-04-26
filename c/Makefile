@@ -29,7 +29,11 @@ bench-all:
 	cd repo && python3 ../benchmark.py
 
 bench: FORCE
-	./cbench
+	node bench.js
 	git rev-parse --verify HEAD >> time.txt
+	$$EDITOR time.txt
+
+time:
+	@make bench
 
 FORCE:
