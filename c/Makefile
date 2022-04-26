@@ -5,7 +5,7 @@ G++ = g++
 run:
 	make build
 	@echo "────────────────────────────────────────────────"
-	@[ -d repo ] && cd repo && ../dist/cgit
+	@[ -d repo ] && cd repo/some/thing && ../../../dist/cgit
 
 build:
 	@mkdir -p dist

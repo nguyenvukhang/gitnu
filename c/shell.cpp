@@ -1,10 +1,14 @@
+#include "shell.h"
 #include <array>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-#include "shell.h"
 /* #include <string> */
+
+void remove_newline(std::string &s) {
+  s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+}
 
 namespace shell {
 /**
@@ -23,6 +27,7 @@ std::string line(const char *cmd) {
     if (fgets(buffer.data(), 128, pipe.get()) != nullptr) {
       written = true;
       result += buffer.data();
+      remove_newline(result);
     }
   }
   int rc = pclose(pipe.get());

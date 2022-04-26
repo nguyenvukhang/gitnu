@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <fstream>
 #include "shell.h"
 #include "entry.h"
 
@@ -39,6 +40,13 @@ std::string gitnu_status(const char *cmd) {
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }
+
+  // open write stream to cache file
+  std::ofstream cache_file;
+  std::string target = shell::line("git rev-parse --git-dir");
+  std::cout << "cache file target --------- |" << target << "|" << std::endl;
+
+
   int index = 1;
   bool had_filename;
   // iterates through the output as long as there is still output
@@ -46,9 +54,8 @@ std::string gitnu_status(const char *cmd) {
   // received output line by line
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     had_filename = printer(index, buffer.data());
-    Entry entry(index, buffer.data());
-    if (entry.hasf)
-      entry.display();
+    if (had_filename)
+      Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since it's done here already
     index += had_filename;
     result += buffer.data();
   }
