@@ -5,10 +5,10 @@ G++ = g++
 run:
 	make build
 	@echo "────────────────────────────────────────────────"
-	@./cgit
+	@./dist/cgit
 
 build:
-	@mkdir dist
+	@mkdir -p dist
 	$(G++) -std=c++17 main.cpp -o dist/cgit
 
 clean:
