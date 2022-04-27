@@ -1,5 +1,4 @@
 #include "git.h"
-#include "shell.h"
 #include <array>
 #include <future>
 #include <iostream>
@@ -20,7 +19,39 @@ void get_stdout(const char *cmd, std::promise<std::queue<std::string>> &&p) {
   p.set_value(result);
 }
 
-std::string get_filename(std::string s) { return s; }
+void remove_newline(std::string &s) {
+  s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+}
+
+std::string get_filename(std::string s) {
+  if (s == "") {
+    return s;
+  }
+  remove_newline(s);
+  return s.substr(3);
+}
+
+// (in-place) get a string in between two substrings
+// only if the both substrings are found
+static inline void get_between_colors(std::string &s, const char start[6],
+                                      const char end[5]) {
+  int si = s.find(start);
+  int ei = s.find(end);
+  if (si >= 0 && ei >= 0) {
+    s = s.substr(si + 5, ei - 6);
+  }
+}
+
+// extract colored text from git status (red/green only)
+std::string get_colored(std::string line) {
+  const char red[6] = "\x1b[31m";
+  const char green[6] = "\x1b[32m";
+  const char reset[5] = "\x1b[m";
+  const char newline[2] = "\n";
+  get_between_colors(line, red, reset);
+  get_between_colors(line, green, reset);
+  return line;
+}
 
 namespace git {
 void get_parallel(const char *cmd) {
@@ -37,9 +68,21 @@ void get_parallel(const char *cmd) {
   t2.join();
   std::queue<std::string> pretty = f_pretty.get();
   std::queue<std::string> porcelain = f_porcelain.get();
+  int index = 1;
   while (!pretty.empty()) {
-    std::cout << pretty.front();
+    std::string next = get_filename(porcelain.front());
+    std::string colored = get_colored(pretty.front());
+    std::cout << "|" << colored << "|" << std::endl;
+    std::cout << "|" << next << "|" << std::endl;
+    if (colored.find(next) >= 0) {
+      std::cout << index << pretty.front();
+      index++;
+      porcelain.pop();
+    } else {
+      std::cout << pretty.front();
+    }
     pretty.pop();
   }
+  std::cout << "GOT HERE" << std::endl;
 }
 } // namespace git

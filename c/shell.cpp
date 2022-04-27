@@ -6,10 +6,6 @@
 #include <stdexcept>
 /* #include <string> */
 
-void remove_newline(std::string &s) {
-  s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
-}
-
 namespace shell {
 /**
  * first line of output of a shell command
@@ -27,7 +23,7 @@ std::string line(const char *cmd) {
     if (fgets(buffer.data(), 128, pipe.get()) != nullptr) {
       written = true;
       result += buffer.data();
-      remove_newline(result);
+      /* remove_newline(result); */
     }
   }
   int rc = pclose(pipe.get());
