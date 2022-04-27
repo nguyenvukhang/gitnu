@@ -30,7 +30,8 @@ void get_parallel(const char *cmd) {
   std::promise<std::queue<std::string>> p_porcelain;
   std::future<std::queue<std::string>> f_porcelain = p_porcelain.get_future();
 
-  std::thread t1(&get_stdout, "git -c status.color=always status", std::move(p_pretty));
+  std::thread t1(&get_stdout, "git -c status.color=always status",
+                 std::move(p_pretty));
   std::thread t2(&get_stdout, "git status --porcelain", std::move(p_porcelain));
   t1.join();
   t2.join();
