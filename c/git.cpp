@@ -143,14 +143,15 @@ void get_parallel(const char *cmd) {
 
   int index = 1;
   while (!pretty.empty()) {
-    const string next = porcelain.front();
-    if (next == "") {
+    if (porcelain.front() == "") {
       cout << pretty.front();
-    } else if (pretty.front().find(next) != string::npos) {
+    } else if (pretty.front().find(porcelain.front()) != string::npos) {
+      // gitnu goodness
       cout << index << pretty.front();
       index++;
       porcelain.pop();
     } else {
+      // bypass
       cout << pretty.front();
     }
     pretty.pop();
