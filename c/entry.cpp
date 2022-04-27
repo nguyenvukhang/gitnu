@@ -57,35 +57,31 @@ static inline void remove_git_action(std::string &s) {
 
 // (in-place) get a string in between two substrings
 // only if the both substrings are found
-static inline bool get_between_colors(std::string &s, const char start[6],
+static inline void get_between_colors(std::string &s, const char start[6],
                                       const char end[5]) {
   int si = s.find(start);
   int ei = s.find(end);
   if (si >= 0 && ei >= 0) {
     s = s.substr(si + 5, ei - 6);
-    return true;
   }
-  return false;
 }
 
 // extract filename from a line of git status
-std::string exfn(std::string line, bool &hasf) {
+std::string exfn(std::string line) {
   const char red[6] = "\x1b[31m";
   const char green[6] = "\x1b[32m";
   const char reset[5] = "\x1b[m";
   const char newline[2] = "\n";
-
-  hasf = get_between_colors(line, red, reset) || hasf;
-  hasf = get_between_colors(line, green, reset) || hasf;
-  if (hasf)
-    remove_git_action(line);
+  get_between_colors(line, red, reset);
+  get_between_colors(line, green, reset);
+  remove_git_action(line);
   return line;
 }
 
 Entry::Entry(int index, std::string filename) {
   this->index = index;
   bool hasf = false;
-  this->filename = exfn(filename, hasf);
+  this->filename = exfn(filename);
   this->hasf = hasf;
 }
 void Entry::display() {
