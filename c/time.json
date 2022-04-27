@@ -10,5 +10,23 @@
     "result": 1198.0775420013815,
     "timestamp": "4/27/2022 12:21:11 AM",
     "commit": "d4e876c12e8c3c533535e7cecc040efad5ca5b59"
+  },
+  {
+    "use": "CPP",
+    "result": 1180.3907079994678,
+    "timestamp": "4/28/2022 1:13:43 AM",
+    "commit": "b573fc0a0493710423f27e84d743c7d002bc3c72"
+  },
+  {
+    "use": "CPP",
+    "result": 1164.1485419943929,
+    "timestamp": "4/28/2022 1:13:59 AM",
+    "commit": "b573fc0a0493710423f27e84d743c7d002bc3c72"
+  },
+  {
+    "use": "CPP",
+    "result": 1159.6496670022607,
+    "timestamp": "4/28/2022 1:14:07 AM",
+    "commit": "b573fc0a0493710423f27e84d743c7d002bc3c72"
   }
 ]

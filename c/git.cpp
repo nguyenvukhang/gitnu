@@ -13,7 +13,7 @@ void remove_newline(string &s) {
   s.erase(remove(s.begin(), s.end(), '\n'), s.end());
 }
 
-string get_filename(string s) {
+string parse_porcelain_line(string s) {
   if (s == "") {
     return s;
   }
@@ -30,7 +30,7 @@ string get_filename(string s) {
   return s;
 }
 
-void get_stdout(const char *cmd, promise<queue<string>> &&p) {
+void get_pretty_stdout(const char *cmd, promise<queue<string>> &&p) {
   queue<string> result;
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -54,7 +54,7 @@ void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
     const string line = buffer.data();
     const char first = line.at(0);
     const char second = line.at(1);
-    const string filename = get_filename(line);
+    const string filename = parse_porcelain_line(line);
     if (first != ' ' && first != '?') {
       staged.push(filename);
     }
@@ -76,33 +76,6 @@ void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
   p.set_value(staged);
 }
 
-// void get_stdout_arr(const char *cmd,
-//                     promise<array<string, 128>> &&p) {
-//   array<string, 128> arr;
-//   array<char, 128> buffer;
-//   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-//   int index = 0;
-//   if (!pipe)
-//     throw runtime_error("popen() failed!");
-//   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr &&
-//          index < 128) {
-//     arr[index] = buffer.data();
-//     index++;
-//   }
-//   p.set_value(arr);
-// }
-
-// (in-place) get a string in between two substrings
-// only if the both substrings are found
-static inline void get_between_colors(string &s, const char start[6],
-                                      const char end[5]) {
-  int si = s.find(start);
-  int ei = s.find(end);
-  if (si >= 0 && ei >= 0) {
-    s = s.substr(si + 5, ei - 6);
-  }
-}
-
 namespace git {
 void get_parallel(const char *cmd) {
   promise<queue<string>> p_pretty;
@@ -112,7 +85,7 @@ void get_parallel(const char *cmd) {
   future<queue<string>> f_porcelain =
       p_porcelain.get_future();
 
-  thread t1(&get_stdout, "git -c status.color=always status",
+  thread t1(&get_pretty_stdout, "git -c status.color=always status",
                  move(p_pretty));
   thread t2(&get_porcelain_stdout, "git status --porcelain",
                  move(p_porcelain));
