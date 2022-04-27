@@ -1,12 +1,12 @@
 #include "git.h"
 #include <array>
+#include <functional>
 #include <future>
 #include <iostream>
 #include <memory>
 #include <queue>
 #include <string>
 #include <thread>
-#include <functional>
 
 using namespace std;
 
@@ -31,7 +31,7 @@ string parse_porcelain_line(string s) {
   return s;
 }
 
-void loop_pretty(queue<string> &pretty) {
+void loop_pretty(queue<string> &pretty, bool &stopped) {
   // initialize `git status`
   const char cmd[] = "git -c status.color=always status";
   array<char, 128> buffer;
@@ -42,6 +42,7 @@ void loop_pretty(queue<string> &pretty) {
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     pretty.push(buffer.data());
   }
+  stopped = true;
 }
 
 void loop_porcelain(queue<string> &staged) {
@@ -78,34 +79,43 @@ void loop_porcelain(queue<string> &staged) {
   }
 }
 
+void loop_print(queue<string> &pretty, queue<string> &porcelain,
+                bool &stopped) {
+  int index = 1;
+  // breaks if (stopped and pretty is empty)
+  while (!(pretty.empty() && stopped)) {
+    // wait if pretty is empty
+    if (!pretty.empty()) {
+      if (pretty.front().find(porcelain.front()) != string::npos) {
+        // gitnu goodness
+        cout << index << pretty.front();
+        index++;
+        porcelain.pop();
+      } else {
+        // bypass
+        cout << pretty.front();
+      }
+      pretty.pop();
+    }
+  }
+}
+
 namespace git {
 void get_parallel(const char *cmd) {
   queue<string> pretty;
   queue<string> porcelain;
+  bool stopped = false;
 
   // loop `git status`
-  thread t1(loop_pretty, std::ref(pretty));
-  thread t2(loop_porcelain, std::ref(porcelain));
+  thread t1(loop_pretty, ref(pretty), ref(stopped));
+  thread t2(loop_porcelain, ref(porcelain));
+  thread t3(loop_print, ref(pretty), ref(porcelain), ref(stopped));
 
   t1.join();
   t2.join();
+  t3.join();
 
-  int index = 1;
   cout << pretty.size() << endl;
   cout << "GOT HERE" << endl;
-  while (!pretty.empty()) {
-    if (porcelain.front() == "") {
-      cout << pretty.front();
-    } else if (pretty.front().find(porcelain.front()) != string::npos) {
-      // gitnu goodness
-      cout << index << pretty.front();
-      index++;
-      porcelain.pop();
-    } else {
-      // bypass
-      cout << pretty.front();
-    }
-    pretty.pop();
-  }
 }
 } // namespace git
