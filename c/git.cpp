@@ -156,7 +156,5 @@ void get_parallel(const char *cmd) {
     }
     pretty.pop();
   }
-
-  cout << "COMPLETED" << endl;
 }
 } // namespace git
