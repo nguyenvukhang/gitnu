@@ -1,7 +1,7 @@
+import sys
 from . import git
 from . import write
 from . import read
-import sys
 
 
 def main() -> None:

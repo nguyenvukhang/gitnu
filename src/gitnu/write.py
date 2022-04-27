@@ -1,5 +1,5 @@
-from .data_structure import Entry, NumberedStatus
 from typing import IO
+from .data_structure import Entry, NumberedStatus
 from .shell import system_std
 from .strings import StdoutLine
 from . import git
@@ -25,7 +25,7 @@ def read_stdout(stdout: IO[str]) -> NumberedStatus:
 
 # print, enumerate, and extract git status, then write cache
 def gitnu_status(args):
-    stdout, returncode = system_std(git.cmd.status + args)
+    stdout, returncode = system_std(git.status + args)
     # if there is an error running the git command,
     # stderr (bypass) will be printed to terminal
     if returncode != 0:

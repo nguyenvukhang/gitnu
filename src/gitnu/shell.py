@@ -4,11 +4,11 @@ from . import log
 
 # actually used a lot
 def system(cmd: list[str]) -> str:
-    l = systemlist(cmd)
-    if len(l) == 0:
+    lst = systemlist(cmd)
+    if len(lst) == 0:
         log.warn("system: empty output.")
         return ""
-    return l[0]
+    return lst[0]
 
 
 # not used anywhere
@@ -23,8 +23,10 @@ def systemlist(cmd: list[str]) -> list[str]:
 
 
 # used once in write
+# TODO: implement this with `with`
+# possible solution: pass in a function to execute per-line
 def system_std(cmd: list[str]) -> tuple[IO[str], int]:
-    p = subprocess.Popen(
+    proc = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         universal_newlines=True,
@@ -32,8 +34,8 @@ def system_std(cmd: list[str]) -> tuple[IO[str], int]:
         # bypass straight to user's terminal as stderr
         # stderr=subprocess.PIPE,
     )
-    p.wait()
-    if not p.stdout:
+    proc.wait()
+    if not proc.stdout:
         # return an empty TextIO object, so it still can close
-        return (TextIO(), p.returncode)
-    return (p.stdout, p.returncode)
+        return (TextIO(), proc.returncode)
+    return (proc.stdout, proc.returncode)

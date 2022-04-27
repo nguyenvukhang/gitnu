@@ -1,6 +1,5 @@
-class cmd:
-    status = ["git", "-c", "status.color=always", "status"]
-    get_repo = ["git", "rev-parse", "--git-dir"]
+status = ["git", "-c", "status.color=always", "status"]
+get_repo = ["git", "rev-parse", "--git-dir"]
 
 
 commands = ["status", "add", "reset", "diff", "checkout"]
@@ -10,6 +9,7 @@ actions = [
     "new file:",
     "modified:",
     "renamed:",
+    "both modified:"
 ]
 
 suffix_list = [
@@ -31,8 +31,7 @@ ansi_colors = [
 
 
 def get_command(args: list[str]) -> tuple[str, int]:
-    for i in range(len(args)):
-        word = args[i]
+    for index, word in enumerate(args):
         if word in commands:
-            return (word, i)
+            return (word, index)
     return ("", 0)

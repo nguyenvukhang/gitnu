@@ -47,7 +47,7 @@ unpack:
 	cd dist && tar -xvf *.tar.gz
 
 lint:
-	pylint src/gitnu --disable=missing-class-docstring --disable=missing-function-docstring
+	pylint src/gitnu --disable=missing-class-docstring --disable=missing-function-docstring --disable=missing-module-docstring
 
 # derivative stuff
 
