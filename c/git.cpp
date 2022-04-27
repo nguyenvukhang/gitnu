@@ -19,6 +19,19 @@ void get_stdout(const char *cmd, std::promise<std::queue<std::string>> &&p) {
   p.set_value(result);
 }
 
+void get_stdout_arr(const char *cmd, std::promise<std::array<std::string, 128>> &&p) {
+  std::array<std::string, 128> arr;
+  std::array<char, 128> buffer;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  int index = 0;
+  if (!pipe)
+    throw std::runtime_error("popen() failed!");
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr && index < 128) {
+    arr[index] = buffer.data();
+  }
+  p.set_value(arr);
+}
+
 void remove_newline(std::string &s) {
   s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
 }
@@ -28,6 +41,12 @@ std::string get_filename(std::string s) {
     return s;
   }
   remove_newline(s);
+  if (s.front() == 'R') {
+    // special parsing for renames
+    // "R  pre-rename -> post-rename"
+    int i = s.find(" -> ");
+    return s.substr(i + 4);
+  }
   return s.substr(3);
 }
 
@@ -68,23 +87,30 @@ void get_parallel(const char *cmd) {
   t2.join();
   std::queue<std::string> pretty = f_pretty.get();
   std::queue<std::string> porcelain = f_porcelain.get();
+
+  std::queue<std::string> backup;
+
   int index = 1;
   while (!pretty.empty()) {
     std::string next = get_filename(porcelain.front());
-    std::string colored = get_colored(pretty.front());
-    std::cout << "|" << colored << "|" << std::endl;
-    std::cout << "|" << next << "|" << std::endl;
     if (next == "") {
       std::cout << pretty.front();
-    } else if (colored.find(next) >= 0) {
+      pretty.pop();
+      continue;
+    }
+    std::string colored = get_colored(pretty.front());
+    // std::cout << "(" << colored << ", " << next << ") [" <<
+    // colored.find(next) << "]" << std::endl;
+    if (colored.find(next) != std::string::npos) {
       std::cout << index << pretty.front();
       index++;
       porcelain.pop();
     } else {
+      std::cout << "(" << colored << ", " << next << ")" << std::endl;
       std::cout << pretty.front();
     }
     pretty.pop();
   }
-  std::cout << "GOT HERE" << std::endl;
+  std::cout << "COMPLETED" << std::endl;
 }
 } // namespace git

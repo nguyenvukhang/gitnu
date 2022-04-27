@@ -29,6 +29,9 @@ build:
 clean:
 	rm -rf dist
 
+check:
+	git -C repo/some/thing status --porcelain
+
 cache:
 	nvim repo/.git/gitnu.txt
 
