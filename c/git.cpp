@@ -74,7 +74,9 @@ void get_parallel(const char *cmd) {
     std::string colored = get_colored(pretty.front());
     std::cout << "|" << colored << "|" << std::endl;
     std::cout << "|" << next << "|" << std::endl;
-    if (colored.find(next) >= 0) {
+    if (next == "") {
+      std::cout << pretty.front();
+    } else if (colored.find(next) >= 0) {
       std::cout << index << pretty.front();
       index++;
       porcelain.pop();

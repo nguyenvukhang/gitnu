@@ -17,13 +17,11 @@ run:
 build:
 	@mkdir -p dist
 	$(G++) -std=c++17 main.cpp -c -o dist/main.o
-	$(G++) -std=c++17 shell.cpp -c -o dist/shell.o
-	$(G++) -std=c++17 entry.cpp -c -o dist/entry.o
+	# $(G++) -std=c++17 shell.cpp -c -o dist/shell.o
+	# $(G++) -std=c++17 entry.cpp -c -o dist/entry.o
 	# $(G++) -std=c++17 shelf.cpp -c -o dist/shelf.o
 	$(G++) -std=c++17 git.cpp -c -o dist/git.o
 	$(G++) -std=c++17 dist/main.o \
-		dist/shell.o \
-		dist/entry.o \
 		dist/git.o -o \
 		dist/cgit
 	rm dist/*.o
