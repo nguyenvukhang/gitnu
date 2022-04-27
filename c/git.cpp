@@ -103,28 +103,8 @@ static inline void get_between_colors(string &s, const char start[6],
   }
 }
 
-// extract colored text from git status (red/green only)
-string get_colored(string line) {
-  const char red[6] = "\x1b[31m";
-  const char green[6] = "\x1b[32m";
-  const char reset[5] = "\x1b[m";
-  const char newline[2] = "\n";
-  get_between_colors(line, red, reset);
-  get_between_colors(line, green, reset);
-  return line;
-}
-
 namespace git {
 void get_parallel(const char *cmd) {
-  // QUEUES
-  // promise<queue<string>> p_pretty;
-  // future<queue<string>> f_pretty = p_pretty.get_future();
-  //
-  // promise<queue<string>> p_porcelain;
-  // future<queue<string>> f_porcelain =
-  // p_porcelain.get_future();
-
-  // ARRAYS
   promise<queue<string>> p_pretty;
   future<queue<string>> f_pretty = p_pretty.get_future();
 
