@@ -32,6 +32,9 @@ clean:
 check:
 	git -C repo/some/thing status --porcelain
 
+status:
+	git -C repo/some/thing status
+
 cache:
 	nvim repo/.git/gitnu.txt
 
