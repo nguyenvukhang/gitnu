@@ -3,5 +3,5 @@
 #include <string>
 
 namespace git {
-void get_porcelain();
+void get_porcelain(const char *cmd);
 }
