@@ -35,7 +35,7 @@ void get_stdout(const char *cmd, promise<queue<string>> &&p) {
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
   if (!pipe)
-    throw std::runtime_error("popen() failed!");
+    throw runtime_error("popen() failed!");
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     result.push(buffer.data());
   }
@@ -49,7 +49,7 @@ void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
   queue<string> staged, unstaged, untracked;
 
   if (!pipe)
-    throw std::runtime_error("popen() failed!");
+    throw runtime_error("popen() failed!");
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     const string line = buffer.data();
     const char first = line.at(0);
@@ -136,25 +136,22 @@ void get_parallel(const char *cmd) {
                  move(p_pretty));
   thread t2(&get_porcelain_stdout, "git status --porcelain",
                  move(p_porcelain));
-  t1.join();
   t2.join();
-  queue<string> pretty = f_pretty.get();
   queue<string> porcelain = f_porcelain.get();
+  t1.join();
+  queue<string> pretty = f_pretty.get();
 
   int index = 1;
   while (!pretty.empty()) {
-    std::string next = porcelain.front();
-    std::string colored = get_colored(pretty.front());
-    // std::cout << "|" << colored << "|" << std::endl;
-    // std::cout << "|" << next << "|" << std::endl;
+    const string next = porcelain.front();
     if (next == "") {
-      std::cout << pretty.front();
-    } else if (colored.find(next) != string::npos) {
-      std::cout << index << pretty.front();
+      cout << pretty.front();
+    } else if (pretty.front().find(next) != string::npos) {
+      cout << index << pretty.front();
       index++;
       porcelain.pop();
     } else {
-      std::cout << pretty.front();
+      cout << pretty.front();
     }
     pretty.pop();
   }
