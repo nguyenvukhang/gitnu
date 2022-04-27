@@ -63,7 +63,7 @@ std::string gitnu_status(const char *cmd) {
     if (had_filename) {
       Entry entry(index, buffer.data()); // TODO: remove hasf from entry, since
                                          // it's done here already
-      cache_file << index << " " << cwd << entry.filename << std::endl;
+      cache_file << index << " " << cwd << "/" << entry.filename << std::endl;
     }
     index += had_filename;
     result += buffer.data();

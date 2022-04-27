@@ -37,8 +37,8 @@ std::string strbf(std::string str, std::string query) {
 // naively extract filename, given a line from git status
 // that is guaranteed to have a filename inside
 static inline void remove_git_action(std::string &s) {
-  const char action[6][10] = {
-      "renamed:", "modified:", "added:", "deleted:", "copied:", "new file:"};
+  const char action[7][15] = {
+      "renamed:", "modified:", "added:", "deleted:", "copied:", "new file:", "both modified:"};
   const char arrow[5] = " -> ";
   for (int i = 0; i < 6; i++) {
     int m = s.find(action[i]);
@@ -47,7 +47,6 @@ static inline void remove_git_action(std::string &s) {
       if (i == 0) {
         int a = s.find(arrow);
         s = s.substr(a + 3);
-        std::cout << "got here (" << a << ", " << s << ")" << std::endl;
         // this is the renamed case. handle double filename by taking RHS
       }
       iltrim(s);
@@ -80,7 +79,6 @@ std::string exfn(std::string line, bool &hasf) {
   hasf = get_between_colors(line, green, reset) || hasf;
   if (hasf)
     remove_git_action(line);
-  /* std::cout << "end result:|" << line << "|" << std::endl; */
   return line;
 }
 

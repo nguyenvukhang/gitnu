@@ -4,13 +4,7 @@ get_repo = ["git", "rev-parse", "--git-dir"]
 
 commands = ["status", "add", "reset", "diff", "checkout"]
 
-actions = [
-    "deleted:",
-    "new file:",
-    "modified:",
-    "renamed:",
-    "both modified:"
-]
+actions = ["deleted:", "new file:", "modified:", "renamed:", "both modified:"]
 
 suffix_list = [
     "(new commits)\n",
