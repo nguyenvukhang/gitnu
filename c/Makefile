@@ -48,4 +48,8 @@ bench: FORCE
 time:
 	@make bench
 
+test:
+	./harsh
+	nvim harsh.log
+
 FORCE:

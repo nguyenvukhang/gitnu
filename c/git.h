@@ -5,5 +5,5 @@
 #include <queue>
 
 namespace git {
-void get_parallel(const char *cmd);
+void get_parallel();
 }

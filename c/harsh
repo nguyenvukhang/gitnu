@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+LOG=$PWD/harsh.log
+rm -f $LOG
+pushd repo/some/thing 
+
+for i in {1..100}; do
+	../../../dist/cgit &>> $LOG
+  echo "">>$LOG
+done
+
+popd

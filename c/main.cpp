@@ -6,6 +6,6 @@
 
 int main() {
   /* gitnu_status("git -c status.color=always status"); */
-  git::get_parallel("git status --porcelain");
+  git::get_parallel();
   return 0;
 }

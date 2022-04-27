@@ -2,6 +2,7 @@
 #include <array>
 #include <functional>
 #include <future>
+#include <iomanip> // boolalpha
 #include <iostream>
 #include <memory>
 #include <queue>
@@ -31,7 +32,7 @@ string parse_porcelain_line(string s) {
   return s;
 }
 
-void loop_pretty(queue<string> &pretty, bool &done) {
+void loop_pretty(queue<string> &pretty) {
   // initialize `git status`
   const char cmd[] = "git -c status.color=always status";
   array<char, 128> buffer;
@@ -42,10 +43,10 @@ void loop_pretty(queue<string> &pretty, bool &done) {
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     pretty.push(buffer.data());
   }
-  done = true;
+  cout << "PRETTY DONE" << endl;
 }
 
-void loop_porcelain(queue<string> &staged, bool &done) {
+void loop_porcelain(queue<string> &staged) {
   // initialize `git status --porcelain`
   const char cmd[] = "git status --porcelain";
   array<char, 128> buffer;
@@ -70,55 +71,55 @@ void loop_porcelain(queue<string> &staged, bool &done) {
     }
   }
   while (!unstaged.empty()) {
+    // sleep(1);
     staged.push(unstaged.front());
     unstaged.pop();
   }
   while (!untracked.empty()) {
+    // sleep(1);
     staged.push(untracked.front());
     untracked.pop();
   }
-  done = true;
+  cout << "PORCELAIN DONE" << endl;
 }
 
 void loop_print(queue<string> &pretty, queue<string> &porcelain,
-                bool &pretty_done, bool &porcelain_done) {
+                bool *pretty_done, bool *porcelain_done) {
   int index = 1;
-
-  // when a queue is truly done:
-  // is when queue.empty() AND queue_done
-
-  // while pretty is not truly done
-  while (!(pretty.empty() && pretty_done)) {
-    // 1: pretty is empty, pretty is done => end
-    if (pretty.empty() && pretty_done) {
-      break;
-    } else if (pretty.empty() && !pretty_done) {
+  cout << boolalpha;
+  while (!(pretty.size() == 0 && *pretty_done)) {
+    if (pretty.size() == 0) {
       continue;
     } else {
       // execute
-      if (porcelain.empty() && porcelain_done) {
+      if (porcelain.size() == 0 && *porcelain_done) {
         // bypass
         cout << pretty.front();
         pretty.pop();
-      } else if (porcelain.empty() && !porcelain_done) {
+        continue;
+      } else if (porcelain.size() == 0 && !*porcelain_done) {
         continue;
       } else {
         // check for match
         const bool has_filename =
             pretty.front().find(porcelain.front()) != string::npos;
-        if (has_filename) {
-          cout << index << pretty.front();
+        if (has_filename && !porcelain.empty()) {
+          cout << index << pretty.empty() << pretty.front();
           index++;
           pretty.pop();
           porcelain.pop();
+          continue;
         } else {
           // no filename, bypass
           cout << pretty.front();
           pretty.pop();
+          continue;
         }
       }
     }
   }
+  cout << "EXITED PRINT LOOP" << pretty.size() << ", " << porcelain.size()
+       << endl;
 }
 
 // 1: pretty is     empty, pretty is     done => end
@@ -131,20 +132,23 @@ void loop_print(queue<string> &pretty, queue<string> &porcelain,
 // 8: porcelain is not empty, porcelain is not done => compare
 
 namespace git {
-void get_parallel(const char *cmd) {
+void get_parallel() {
   queue<string> pretty;
   queue<string> porcelain;
   bool pretty_done = false;
   bool porcelain_done = false;
 
   // loop `git status`
-  thread t1(loop_pretty, ref(pretty), ref(pretty_done));
-  thread t2(loop_porcelain, ref(porcelain), ref(porcelain_done));
-  thread t3(loop_print, ref(pretty), ref(porcelain), ref(pretty_done),
-            ref(porcelain_done));
+  thread t1(loop_pretty, ref(pretty));
+  thread t2(loop_porcelain, ref(porcelain));
+  thread t3(loop_print, ref(pretty), ref(porcelain), &pretty_done,
+            &porcelain_done);
 
   t1.join();
+  pretty_done = true;
   t2.join();
+  porcelain_done = true;
   t3.join();
+  cout << "Completed execution." << endl;
 }
 } // namespace git

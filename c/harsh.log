@@ -1,0 +1,2587 @@
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+PORCELAIN DONE
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+PORCELAIN DONE
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONEChanges not staged for commit:
+PORCELAIN DONE
+
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+fPRETTY DONEalse	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+PRETTY DONE
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8falsePORCELAIN DONEPRETTY DONE
+
+	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 2
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8falPRETTY DONE
+se	[31mmodified:   ../../staged-modified-then-modified[m
+
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE7
+fPORCELAIN DONE
+alse	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+PRETTY DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PRETTY DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PORCELAIN DONE9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE
+PORCELAIN DONE7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+PRETTY DONE
+PORCELAIN DONE
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PORCELAIN DONE
+Changes not staged for commit:
+PRETTY DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONEChanges not staged for commit:
+PORCELAIN DONE
+7false
+	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE
+PRETTY DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PRETTY DONE
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE7false	[31mdeleted:    ../../staged-modified[m
+
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+PORCELAIN DONE
+12falsePRETTY DONE	[31m../../staged-deleted-then-created[m
+
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONEPORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PORCELAIN DONE
+PRETTY DONE
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONEPRETTY DONE
+
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+PORCELAIN DONE
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8falsePRETTY DONE	[31mmodified:   ../../staged-modified-then-modified[m
+
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONEPORCELAIN DONE
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+	[31mdeleted:    ../../unstaged-deleted[m
+	[31mmodified:   ../../unstaged-modified[m
+	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../staged-deleted-then-created[m
+	[31m../../unstaged-post-rename[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 7
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+PRETTY DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONEPRETTY DONE
+
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONE
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+Changes not staged for commit:
+
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE
+PRETTY DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE7
+false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONEPRETTY DONE
+
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PORCELAIN DONE
+9false	[31mdeleted:    ../../unstaged-deleted[m
+PRETTY DONE10false
+	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PRETTY DONE9false	[31mdeleted:    ../../unstaged-deleted[m
+
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONEChanges not staged for commit:
+
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../unstaged-post-rename[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 3
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PRETTY DONEfalse	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+PORCELAIN DONE
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PRETTY DONE
+PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8falsPRETTY DONE
+e	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONEPORCELAIN DONE
+
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+PRETTY DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 2
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE7
+false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+PRETTY DONE
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7falsePORCELAIN DONE
+	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+PRETTY DONE8false	[31mmodified:   ../../staged-modified-then-modified[m
+
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../unstaged-post-rename[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 3
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PRETTY DONEPORCELAIN DONE
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8fal
+se	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONEPRETTY DONE
+
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+PRETTY DONE11
+false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8PRETTY DONE
+false	[31mmodified:   ../../staged-modified-then-modified[m
+
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8false	[31mmodified:   ../../staged-modified-then-modified[m
+	[31mmodified:   ../../unstaged-modified[m
+	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../staged-deleted-then-created[m
+	[31m../../unstaged-post-rename[m
+	[31m../../untracked-new-file[m
+
+
+PRETTY DONE
+EXITED PRINT LOOP0, 6
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7fPRETTY DONE
+alse	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../unstaged-post-rename[m
+	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 3
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONEPORCELAIN DONE
+
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PORCELAIN DONE
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+PRETTY DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+7PORCELAIN DONE
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PRETTY DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PORCELAIN DONE
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+PORCELAIN DONE
+PRETTY DONE
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONE7PORCELAIN DONE
+
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PORCELAIN DONEfalse	[31mdeleted:    ../../staged-modified[m
+
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PRETTY DONE9
+false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+PORCELAIN DONE
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+	[31mdeleted:    ../../unstaged-deleted[m
+	[31mmodified:   ../../unstaged-modified[m
+	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+	[31m../../staged-deleted-then-created[m
+	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 7
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PRETTY DONEPORCELAIN DONE7false	[31mdeleted:    ../../staged-modified[m
+
+
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+PRETTY DONE10false	[31mmodified:   ../../unstaged-modified[m
+11
+false	[31mdeleted:    ../../unstaged-pre-rename[m
+PORCELAIN DONE
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+PORCELAIN DONE
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+PRETTY DONE
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+PORCELAIN DONE
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PRETTY DONEfalse
+PORCELAIN DONE
+	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+PORCELAIN DONE
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONE
+
+Changes not staged for commit:
+PORCELAIN DONE7
+false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE8
+false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+PRETTY DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+PORCELAIN DONE
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+PRETTY DONE
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+
+Changes not staged for commit:
+7PRETTY DONE
+false	[31mdeleted:    ../../staged-modified[m
+PORCELAIN DONE
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
+On branch master
+Changes to be committed:
+1false	[32mdeleted:    ../../staged-deleted[m
+2false	[32mdeleted:    ../../staged-deleted-then-created[m
+3false	[32mmodified:   ../../staged-modified[m
+4false	[32mmodified:   ../../staged-modified-then-modified[m
+5false	[32mnew file:   ../../staged-new-file[m
+6false	[32mrenamed:    ../../staged-pre-rename -> ../../staged-post-rename[m
+PRETTY DONEPORCELAIN DONE
+
+
+Changes not staged for commit:
+7false	[31mdeleted:    ../../staged-modified[m
+8false	[31mmodified:   ../../staged-modified-then-modified[m
+9false	[31mdeleted:    ../../unstaged-deleted[m
+10false	[31mmodified:   ../../unstaged-modified[m
+11false	[31mdeleted:    ../../unstaged-pre-rename[m
+
+Untracked files:
+12false	[31m../../staged-deleted-then-created[m
+13false	[31m../../unstaged-post-rename[m
+14false	[31m../../untracked-new-file[m
+
+EXITED PRINT LOOP0, 0
+Completed execution.
+
