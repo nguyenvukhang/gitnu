@@ -42,6 +42,40 @@ void get_stdout(const char *cmd, promise<queue<string>> &&p) {
   p.set_value(result);
 }
 
+void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
+  queue<string> result;
+  array<char, 128> buffer;
+  unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  queue<string> staged, unstaged, untracked;
+
+  if (!pipe)
+    throw std::runtime_error("popen() failed!");
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    const string line = buffer.data();
+    const char first = line.at(0);
+    const char second = line.at(1);
+    const string filename = get_filename(line);
+    if (first != ' ' && first != '?') {
+      staged.push(filename);
+    }
+    if (second != ' ' && second != '?') {
+      unstaged.push(filename);
+    }
+    if (first == '?' && second == '?') {
+      untracked.push(filename);
+    }
+  }
+  while (!unstaged.empty()) {
+    staged.push(unstaged.front());
+    unstaged.pop();
+  }
+  while (!untracked.empty()) {
+    staged.push(untracked.front());
+    untracked.pop();
+  }
+  p.set_value(staged);
+}
+
 // void get_stdout_arr(const char *cmd,
 //                     promise<array<string, 128>> &&p) {
 //   array<string, 128> arr;
@@ -100,44 +134,16 @@ void get_parallel(const char *cmd) {
 
   thread t1(&get_stdout, "git -c status.color=always status",
                  move(p_pretty));
-  thread t2(&get_stdout, "git status --porcelain",
+  thread t2(&get_porcelain_stdout, "git status --porcelain",
                  move(p_porcelain));
   t1.join();
   t2.join();
   queue<string> pretty = f_pretty.get();
   queue<string> porcelain = f_porcelain.get();
 
-  queue<string> porcelain_sorted;
-
-  queue<string> unstaged, untracked;
-  while (!porcelain.empty()) {
-    const string line = porcelain.front();
-    const char first = line.at(0);
-    const char second = line.at(1);
-    const string filename = get_filename(line);
-    if (first != ' ' && first != '?') {
-      porcelain_sorted.push(filename);
-    }
-    if (second != ' ' && second != '?') {
-      unstaged.push(filename);
-    }
-    if (first == '?' && second == '?') {
-      untracked.push(filename);
-    }
-    porcelain.pop();
-  }
-  while (!unstaged.empty()) {
-    porcelain_sorted.push(unstaged.front());
-    unstaged.pop();
-  }
-  while (!untracked.empty()) {
-    porcelain_sorted.push(untracked.front());
-    untracked.pop();
-  }
-
   int index = 1;
   while (!pretty.empty()) {
-    std::string next = porcelain_sorted.front();
+    std::string next = porcelain.front();
     std::string colored = get_colored(pretty.front());
     // std::cout << "|" << colored << "|" << std::endl;
     // std::cout << "|" << next << "|" << std::endl;
@@ -146,7 +152,7 @@ void get_parallel(const char *cmd) {
     } else if (colored.find(next) != string::npos) {
       std::cout << index << pretty.front();
       index++;
-      porcelain_sorted.pop();
+      porcelain.pop();
     } else {
       std::cout << pretty.front();
     }
