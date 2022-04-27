@@ -2,14 +2,21 @@
 # G++ = clang++
 G++ = g++
 
-run:
+default:
 	make build
-	@echo "────────────────────────────────────────────────"
+	make run
+
+all:
+	make build
+	make run
+	make cache
+
+run:
 	@[ -d repo ] && cd repo/some/thing && ../../../dist/cgit
 
 build:
 	@mkdir -p dist
-	$(G++) -std=c++17 main.cpp  -c -o dist/main.o
+	$(G++) -std=c++17 main.cpp -c -o dist/main.o
 	$(G++) -std=c++17 shell.cpp -c -o dist/shell.o
 	$(G++) -std=c++17 entry.cpp -c -o dist/entry.o
 	# $(G++) -std=c++17 shelf.cpp -c -o dist/shelf.o
@@ -26,10 +33,6 @@ clean:
 
 cache:
 	nvim repo/.git/gitnu.txt
-
-all:
-	make run
-	make cache
 
 bench-all:
 	cd repo && python3 ../benchmark.py
