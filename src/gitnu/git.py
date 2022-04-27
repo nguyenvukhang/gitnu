@@ -9,6 +9,7 @@ actions = [
     "new file:",
     "modified:",
     "renamed:",
+    "both modified:"
 ]
 
 suffix_list = [
