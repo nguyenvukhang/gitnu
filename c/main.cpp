@@ -1,4 +1,5 @@
 #include "entry.h"
+#include "git.h"
 #include "shell.h"
 #include <array>
 #include <cstring>
@@ -72,10 +73,11 @@ std::string gitnu_status(const char *cmd) {
   return result;
 }
 
-namespace gitnu {} // namespace gitnu
+/* namespace gitnu {} // namespace gitnu */
 
 int main() {
-  gitnu_status("git -c status.color=always status");
+  /* gitnu_status("git -c status.color=always status"); */
+  git::get_porcelain();
   std::string output;
   /* output = shell::line("git add"); */
   std::cout << output;

@@ -3,5 +3,5 @@
 #include <string>
 
 namespace shell {
-  std::string line(const char *cmd);
+std::string line(const char *cmd);
 }
