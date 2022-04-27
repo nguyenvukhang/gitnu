@@ -137,16 +137,16 @@ void get_parallel(const char *cmd) {
 
   int index = 1;
   while (!pretty.empty()) {
-    std::string next = get_filename(porcelain.front());
+    std::string next = porcelain_sorted.front();
     std::string colored = get_colored(pretty.front());
-    std::cout << "|" << colored << "|" << std::endl;
-    std::cout << "|" << next << "|" << std::endl;
+    // std::cout << "|" << colored << "|" << std::endl;
+    // std::cout << "|" << next << "|" << std::endl;
     if (next == "") {
       std::cout << pretty.front();
-    } else if (colored.find(next) >= 0) {
+    } else if (colored.find(next) != string::npos) {
       std::cout << index << pretty.front();
       index++;
-      porcelain.pop();
+      porcelain_sorted.pop();
     } else {
       std::cout << pretty.front();
     }
