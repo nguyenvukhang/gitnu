@@ -30,28 +30,22 @@ string parse_porcelain_line(string s) {
   return s;
 }
 
-void get_pretty_stdout(const char *cmd, promise<queue<string>> &&p) {
-  queue<string> result;
-  array<char, 128> buffer;
-  unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-  if (!pipe)
-    throw runtime_error("popen() failed!");
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-    result.push(buffer.data());
+void loop_pretty(array<char, 128> buf_pr,
+                 unique_ptr<FILE, decltype(&pclose)> pipe_pr,
+                 queue<string> res_pr) {
+  // loop `git status`
+  while (fgets(buf_pr.data(), buf_pr.size(), pipe_pr.get()) != nullptr) {
+    res_pr.push(buf_pr.data());
   }
-  p.set_value(result);
 }
 
-void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
-  queue<string> result;
-  array<char, 128> buffer;
-  unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-  queue<string> staged, unstaged, untracked;
-
-  if (!pipe)
-    throw runtime_error("popen() failed!");
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-    const string line = buffer.data();
+void loop_porcelain(array<char, 128> buf_po,
+                    unique_ptr<FILE, decltype(&pclose)> pipe_po,
+                    queue<string> staged) {
+  // loop `git status --porcelain`
+  queue<string> unstaged, untracked;
+  while (fgets(buf_po.data(), buf_po.size(), pipe_po.get()) != nullptr) {
+    const string line = buf_po.data();
     const char first = line.at(0);
     const char second = line.at(1);
     const string filename = parse_porcelain_line(line);
@@ -73,41 +67,42 @@ void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
     staged.push(untracked.front());
     untracked.pop();
   }
-  p.set_value(staged);
 }
 
 namespace git {
 void get_parallel(const char *cmd) {
-  promise<queue<string>> p_pretty;
-  future<queue<string>> f_pretty = p_pretty.get_future();
+  // initialize `git status`
+  queue<string> res_pr;
+  array<char, 128> buf_pr;
+  unique_ptr<FILE, decltype(&pclose)> pipe_pr(popen(cmd, "r"), pclose);
+  if (!pipe_pr)
+    throw runtime_error("popen() failed!");
 
-  promise<queue<string>> p_porcelain;
-  future<queue<string>> f_porcelain =
-      p_porcelain.get_future();
+  // initialize `git status --porcelain`
+  array<char, 128> buf_po;
+  unique_ptr<FILE, decltype(&pclose)> pipe_po(popen(cmd, "r"), pclose);
+  queue<string> res_po;
+  if (!pipe_po)
+    throw runtime_error("popen() failed!");
 
-  thread t1(&get_pretty_stdout, "git -c status.color=always status",
-                 move(p_pretty));
-  thread t2(&get_porcelain_stdout, "git status --porcelain",
-                 move(p_porcelain));
-  t2.join();
-  queue<string> porcelain = f_porcelain.get();
-  t1.join();
-  queue<string> pretty = f_pretty.get();
+  // loop `git status`
+  thread t1(loop_pretty, buf_pr, pipe_pr, ref(res_pr));
+  thread t2(loop_porcelain, buf_po, pipe_po, ref(res_po));
 
-  int index = 1;
-  while (!pretty.empty()) {
-    if (porcelain.front() == "") {
-      cout << pretty.front();
-    } else if (pretty.front().find(porcelain.front()) != string::npos) {
-      // gitnu goodness
-      cout << index << pretty.front();
-      index++;
-      porcelain.pop();
-    } else {
-      // bypass
-      cout << pretty.front();
-    }
-    pretty.pop();
-  }
+  // int index = 1;
+  // while (!pretty.empty()) {
+  //   if (porcelain.front() == "") {
+  //     cout << pretty.front();
+  //   } else if (pretty.front().find(porcelain.front()) != string::npos) {
+  //     // gitnu goodness
+  //     cout << index << pretty.front();
+  //     index++;
+  //     porcelain.pop();
+  //   } else {
+  //     // bypass
+  //     cout << pretty.front();
+  //   }
+  //   pretty.pop();
+  // }
 }
 } // namespace git
