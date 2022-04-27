@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <string>
+#include <queue>
 
 namespace git {
-void get_porcelain(const char *cmd);
+void get_parallel(const char *cmd);
 }

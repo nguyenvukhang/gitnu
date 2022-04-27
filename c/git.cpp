@@ -1,20 +1,26 @@
 #include "git.h"
 #include "shell.h"
-
+#include <__memory/unique_ptr.h>
+#include <array>
 #include <iostream>
 #include <string>
-#include <array>
-#include <__memory/unique_ptr.h>
+#include <queue>
 
 namespace git {
-  void get_porcelain(const char *cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    // no idea what this does
-    // but if I sub pipe() with a variable name, it fails
-    // pipe is a given name
-    // FILE is probably a typedef struct
-    // popen, pclose seem to be methods of either FILE or unique_ptr
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+void get_parallel(const char *cmd) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::queue<std::string> status_list;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe)
+    throw std::runtime_error("popen() failed!");
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+    status_list.push(buffer.data());
   }
+  while (!status_list.empty()) {
+    std::cout << status_list.front();
+    status_list.pop();
+  }
+}
 } // namespace git

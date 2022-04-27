@@ -8,7 +8,7 @@
 
 int main() {
   /* gitnu_status("git -c status.color=always status"); */
-  git::get_porcelain("git status");
+  git::get_parallel("git status --porcelain");
   std::string output;
   /* output = shell::line("git add"); */
   std::cout << output;
