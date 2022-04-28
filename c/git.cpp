@@ -34,7 +34,7 @@ string parse_porcelain_line(string s) {
 
 void loop_pretty(queue<string> &pretty) {
   // initialize `git status`
-  const char cmd[] = "git -c status.color=always status";
+  const char cmd[34] = "git -c status.color=always status";
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
   if (!pipe)
@@ -48,7 +48,7 @@ void loop_pretty(queue<string> &pretty) {
 
 void loop_porcelain(queue<string> &staged) {
   // initialize `git status --porcelain`
-  const char cmd[] = "git status --porcelain";
+  const char cmd[23] = "git status --porcelain";
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
   if (!pipe)
