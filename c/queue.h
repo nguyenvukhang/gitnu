@@ -26,12 +26,7 @@ public:
   ThreadsafeQueue(const ThreadsafeQueue<T> &) = delete;
   ThreadsafeQueue &operator=(const ThreadsafeQueue<T> &) = delete;
   ThreadsafeQueue(ThreadsafeQueue<T> &&other) noexcept(false);
-  virtual ~ThreadsafeQueue() noexcept(false) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!empty()) {
-      throw non_empty_queue("Destroying a non-empty queue"s);
-    }
-  }
+  virtual ~ThreadsafeQueue() noexcept(false);
   [[nodiscard]] unsigned long size() const;
   std::optional<T> pop();
   void push(const T &item);
