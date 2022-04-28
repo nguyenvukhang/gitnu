@@ -40,6 +40,11 @@ template <typename T> std::optional<T> ThreadsafeQueue<T>::pop() {
   return tmp;
 };
 
+template <typename T> unsigned long ThreadsafeQueue<T>::size() const {
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  return this->queue_.size();
+};
+
 template <typename T> class ThreadsafeQueue {
 public:
   ThreadsafeQueue() = default;
@@ -61,8 +66,5 @@ public:
     }
   }
 
-  [[nodiscard]] unsigned long size() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return queue_.size();
-  }
+  [[nodiscard]] unsigned long size() const {}
 };
