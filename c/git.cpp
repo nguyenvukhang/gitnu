@@ -1,15 +1,15 @@
 #include "git.h"
 #include "shell.h"
 #include <array>
+#include <filesystem>
+#include <fstream>
 #include <future>
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <thread>
-#include <fstream>
-#include <stdexcept>
-#include <filesystem>
 
 using namespace std;
 
@@ -20,7 +20,8 @@ void remove_newline(string &s) {
 string get_git_dir() {
   array<char, 128> buffer;
   string result = "";
-  unique_ptr<FILE, decltype(&pclose)> pipe(popen("git rev-parse --git-dir", "r"), pclose);
+  unique_ptr<FILE, decltype(&pclose)> pipe(
+      popen("git rev-parse --git-dir", "r"), pclose);
   bool written = false;
   if (!pipe)
     throw runtime_error("popen() failed!");
@@ -119,34 +120,33 @@ void get_parallel(const char *cmd) {
   queue<string> pretty = f[0].get();
 
   // open write stream to cache file
-  ofstream cache_file;
   const char cache_filename[12] = "/gitnu.txt";
   const string git_dir = get_git_dir();
   const string cache_path = git_dir + cache_filename;
   const string cwd = __fs::filesystem::current_path();
-  cout << "-----" << cache_path << endl;
+  ofstream cache_file (cache_path);
 
-  cache_file.open(cache_path);
-
-  if (!cache_file.is_open())
-    throw runtime_error("failed to open cache file!");
-
-  int index = 1;
-  while (!pretty.empty()) {
-    if (porcelain.empty() || porcelain.front() == "") {
-      cout << pretty.front();
-    } else if (pretty.front().find(porcelain.front()) != string::npos) {
-      // gitnu goodness
-      cout << index << pretty.front();
-      cache_file << index << " " << git_dir << "/" << porcelain.front() << endl;
-      index++;
-      porcelain.pop();
-    } else {
-      // bypass
-      cout << pretty.front();
+  if (cache_file.is_open()) {
+    int index = 1;
+    while (!pretty.empty()) {
+      if (porcelain.empty() || porcelain.front() == "") {
+        cout << pretty.front();
+      } else if (pretty.front().find(porcelain.front()) != string::npos) {
+        // gitnu goodness
+        cout << index << pretty.front();
+        cache_file << index << " " << git_dir << "/" << porcelain.front()
+                   << endl;
+        index++;
+        porcelain.pop();
+      } else {
+        // bypass
+        cout << pretty.front();
+      }
+      pretty.pop();
     }
-    pretty.pop();
+    cache_file.close();
+  } else {
+    throw runtime_error("failed to open cache file!");
   }
-  cache_file.close();
 }
 } // namespace git
