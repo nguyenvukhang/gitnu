@@ -1,4 +1,5 @@
 #include "git.h"
+#include "queue.h"
 #include <array>
 #include <functional>
 #include <future>
@@ -31,7 +32,8 @@ string parse_porcelain_line(string s) {
   return s;
 }
 
-void loop_pretty(queue<string> &pretty) {
+void loop_pretty(ThreadsafeQueue<string> &pretty) {
+  cout << "STARTED PRETTY" << endl;
   // initialize `git status`
   const char cmd[34] = "git -c status.color=always status";
   array<char, 128> buffer;
@@ -45,7 +47,8 @@ void loop_pretty(queue<string> &pretty) {
   cout << "PRETTY DONE" << endl;
 }
 
-void loop_porcelain(queue<string> &staged) {
+void loop_porcelain(ThreadsafeQueue<string> &staged) {
+  cout << "STARTED PORCELAIN" << endl;
   // initialize `git status --porcelain`
   const char cmd[23] = "git status --porcelain";
   array<char, 128> buffer;
@@ -82,40 +85,37 @@ void loop_porcelain(queue<string> &staged) {
   cout << "PORCELAIN DONE" << endl;
 }
 
-void loop_print(queue<string> &pretty, queue<string> &porcelain,
+void loop_print(ThreadsafeQueue<string> &pretty, ThreadsafeQueue<string> &porcelain,
                 bool *pretty_done, bool *porcelain_done) {
+  std::this_thread::sleep_for(100us);
+  cout << "STARTED LOOP" << endl;
   int index = 1;
-  while (!(pretty.size() == 0 && *pretty_done)) {
-    if (pretty.size() == 0) {
-      continue;
-    } else {
-      // execute
-      if (porcelain.size() == 0 && *porcelain_done) {
-        // bypass
-        cout << pretty.front();
-        pretty.pop();
-        continue;
-      } else if (porcelain.size() == 0 && !*porcelain_done) {
-        continue;
-      } else {
-        // check for match
-        const bool has_filename =
-            pretty.front().find(porcelain.front()) != string::npos;
-        if (has_filename && !porcelain.empty()) {
-          cout << index << pretty.front();
-          index++;
-          pretty.pop();
-          porcelain.pop();
-          continue;
-        } else {
-          // no filename, bypass
-          cout << pretty.front();
-          pretty.pop();
-          continue;
-        }
-      }
-    }
+  optional<string> _pretty = pretty.pop();
+  optional<string> _porcelain = porcelain.pop();
+  if (_pretty) {
+    string s = *_pretty;
+    cout << "GOT HERE" << s;
   }
+  // while (_pretty) {
+  //   string prstr = *_pretty;
+  //   if (!_porcelain) {
+  //     std::this_thread::sleep_for(100us);
+  //     _porcelain = porcelain.pop();
+  //   }
+  //   string postr = *_porcelain;
+  //   // do comparison
+  //   const bool has_filename = prstr.find(postr) != string::npos;
+  //   if (has_filename) {
+  //     cout << index << prstr;
+  //   } else {
+  //     cout << prstr;
+  //   }
+  //   _pretty = pretty.pop();
+  //   if (!_pretty) {
+  //     std::this_thread::sleep_for(100us);
+  //     _pretty = pretty.pop();
+  //   }
+  // }
   cout << "EXITED PRINT LOOP" << pretty.size() << ", " << porcelain.size()
        << endl;
 }
@@ -131,8 +131,9 @@ void loop_print(queue<string> &pretty, queue<string> &porcelain,
 
 namespace git {
 void get_parallel() {
-  queue<string> pretty;
-  queue<string> porcelain;
+  cout << "started execution" << endl;
+  ThreadsafeQueue<string> pretty;
+  ThreadsafeQueue<string> porcelain;
   bool pretty_done = false;
   bool porcelain_done = false;
 
