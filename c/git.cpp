@@ -57,8 +57,8 @@ void loop_porcelain(queue<string> &staged) {
   queue<string> unstaged, untracked;
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
     const string line = buffer.data();
-    const char first = line.at(0);
-    const char second = line.at(1);
+    const char first = line[0];
+    const char second = line[1];
     const string filename = parse_porcelain_line(line);
     if (first != ' ' && first != '?') {
       staged.push(filename);
