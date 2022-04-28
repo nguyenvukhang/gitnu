@@ -85,17 +85,9 @@ void get_parallel(const char *cmd) {
     f[i] = p[i].get_future();
   }
 
-  promise<queue<string>> p_pretty;
-  future<queue<string>> f_pretty = p_pretty.get_future();
-
-  promise<queue<string>> p_porcelain;
-  future<queue<string>> f_porcelain =
-      p_porcelain.get_future();
-
   thread t1(&get_pretty_stdout, "git -c status.color=always status",
-                 move(p[0]));
-  thread t2(&get_porcelain_stdout, "git status --porcelain",
-                 move(p[1]));
+            move(p[0]));
+  thread t2(&get_porcelain_stdout, "git status --porcelain", move(p[1]));
   t2.join();
   queue<string> porcelain = f[1].get();
   t1.join();
@@ -103,7 +95,7 @@ void get_parallel(const char *cmd) {
 
   int index = 1;
   while (!pretty.empty()) {
-    if (porcelain.front() == "") {
+    if (porcelain.empty() || porcelain.front() == "") {
       cout << pretty.front();
     } else if (pretty.front().find(porcelain.front()) != string::npos) {
       // gitnu goodness
