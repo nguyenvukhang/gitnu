@@ -11,8 +11,6 @@
 
 using namespace std;
 
-/* non_empty_queue::non_empty_queue { this->what_ = std::move(msg); } */
-
 non_empty_queue::non_empty_queue(std::string msg) {
   this->what_ = std::move(msg);
 }
@@ -55,18 +53,10 @@ ThreadsafeQueue<T>::ThreadsafeQueue(ThreadsafeQueue<T> &&other) noexcept(
   this->queue_ = std::move(other.queue_);
 };
 
-template <typename T> class ThreadsafeQueue {
-public:
-  ThreadsafeQueue() = default;
-  ThreadsafeQueue(const ThreadsafeQueue<T> &) = delete;
-  ThreadsafeQueue &operator=(const ThreadsafeQueue<T> &) = delete;
-
-  virtual ~ThreadsafeQueue() noexcept(false) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!empty()) {
+template <typename T>
+ThreadsafeQueue<T>::~ThreadsafeQueue() noexcept(false) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    if (!this->empty()) {
       throw non_empty_queue("Destroying a non-empty queue"s);
     }
-  }
-
-  [[nodiscard]] unsigned long size() const {}
 };
