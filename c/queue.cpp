@@ -45,19 +45,21 @@ template <typename T> unsigned long ThreadsafeQueue<T>::size() const {
   return this->queue_.size();
 };
 
+template <typename T>
+ThreadsafeQueue<T>::ThreadsafeQueue(ThreadsafeQueue<T> &&other) noexcept(
+    false) {
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  if (!this->empty()) {
+    throw non_empty_queue("Moving into a non-empty queue"s);
+  }
+  this->queue_ = std::move(other.queue_);
+};
+
 template <typename T> class ThreadsafeQueue {
 public:
   ThreadsafeQueue() = default;
   ThreadsafeQueue(const ThreadsafeQueue<T> &) = delete;
   ThreadsafeQueue &operator=(const ThreadsafeQueue<T> &) = delete;
-
-  ThreadsafeQueue(ThreadsafeQueue<T> &&other) noexcept(false) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!empty()) {
-      throw non_empty_queue("Moving into a non-empty queue"s);
-    }
-    queue_ = std::move(other.queue_);
-  }
 
   virtual ~ThreadsafeQueue() noexcept(false) {
     std::lock_guard<std::mutex> lock(mutex_);
