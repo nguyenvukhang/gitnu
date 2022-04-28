@@ -78,6 +78,13 @@ void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
 
 namespace git {
 void get_parallel(const char *cmd) {
+
+  promise<queue<string>> p[2];
+  future<queue<string>> f[2];
+  for (int i = 0; i < 2; i++) {
+    f[i] = p[i].get_future();
+  }
+
   promise<queue<string>> p_pretty;
   future<queue<string>> f_pretty = p_pretty.get_future();
 
@@ -86,13 +93,13 @@ void get_parallel(const char *cmd) {
       p_porcelain.get_future();
 
   thread t1(&get_pretty_stdout, "git -c status.color=always status",
-                 move(p_pretty));
+                 move(p[0]));
   thread t2(&get_porcelain_stdout, "git status --porcelain",
-                 move(p_porcelain));
+                 move(p[1]));
   t2.join();
-  queue<string> porcelain = f_porcelain.get();
+  queue<string> porcelain = f[1].get();
   t1.join();
-  queue<string> pretty = f_pretty.get();
+  queue<string> pretty = f[0].get();
 
   int index = 1;
   while (!pretty.empty()) {
