@@ -21,10 +21,10 @@ build:
 	# $(G++) -std=c++17 entry.cpp -c -o dist/entry.o
 	# $(G++) -std=c++17 shelf.cpp -c -o dist/shelf.o
 	$(G++) -std=c++17 git.cpp -c -o dist/git.o
-	$(G++) -std=c++17 tsq.cpp -c -o dist/tsq.o
+	$(G++) -std=c++17 queue.cpp -c -o dist/queue.o
 	$(G++) -std=c++17 dist/main.o \
 		dist/git.o -o \
-		dist/tsq.o -o \
+		dist/queue.o -o \
 		dist/cgit
 	rm dist/*.o
 

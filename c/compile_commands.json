@@ -6,8 +6,8 @@
   },
   {
     "directory": ".",
-    "arguments": ["/usr/bin/clang++ -std=c++17 tsq.cpp -c -o dist/tsq.o"],
-    "file": "tsq.cpp"
+    "arguments": ["/usr/bin/clang++ -std=c++17 queue.cpp -c -o dist/queue.o"],
+    "file": "queue.cpp"
   },
   {
     "directory": ".",
