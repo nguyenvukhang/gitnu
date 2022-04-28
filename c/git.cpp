@@ -2,7 +2,6 @@
 #include <array>
 #include <functional>
 #include <future>
-#include <iomanip> // boolalpha
 #include <iostream>
 #include <memory>
 #include <queue>
@@ -86,7 +85,6 @@ void loop_porcelain(queue<string> &staged) {
 void loop_print(queue<string> &pretty, queue<string> &porcelain,
                 bool *pretty_done, bool *porcelain_done) {
   int index = 1;
-  cout << boolalpha;
   while (!(pretty.size() == 0 && *pretty_done)) {
     if (pretty.size() == 0) {
       continue;
@@ -104,7 +102,7 @@ void loop_print(queue<string> &pretty, queue<string> &porcelain,
         const bool has_filename =
             pretty.front().find(porcelain.front()) != string::npos;
         if (has_filename && !porcelain.empty()) {
-          cout << index << pretty.empty() << pretty.front();
+          cout << index << pretty.front();
           index++;
           pretty.pop();
           porcelain.pop();

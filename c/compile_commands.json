@@ -1,0 +1,17 @@
+[
+  {
+    "directory": ".",
+    "arguments": ["/usr/bin/clang++ -std=c++17 main.cpp -c -o dist/main.o"],
+    "file": "main.cpp"
+  },
+  {
+    "directory": ".",
+    "arguments": ["/usr/bin/clang++ -std=c++17 tsq.cpp -c -o dist/tsq.o"],
+    "file": "tsq.cpp"
+  },
+  {
+    "directory": ".",
+    "arguments": ["/usr/bin/clang++ -std=c++17 git.cpp -c -o dist/git.o"],
+    "file": "git.cpp"
+  }
+]
