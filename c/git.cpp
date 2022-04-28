@@ -30,7 +30,7 @@ string parse_porcelain_line(string s) {
   return s;
 }
 
-void get_pretty_stdout(const char *cmd, promise<queue<string>> &&p) {
+void get_pretty(const char *cmd, promise<queue<string>> &&p) {
   queue<string> result;
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -42,7 +42,7 @@ void get_pretty_stdout(const char *cmd, promise<queue<string>> &&p) {
   p.set_value(result);
 }
 
-void get_porcelain_stdout(const char *cmd, promise<queue<string>> &&p) {
+void get_porcelain(const char *cmd, promise<queue<string>> &&p) {
   queue<string> result;
   array<char, 128> buffer;
   unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -85,9 +85,8 @@ void get_parallel(const char *cmd) {
     f[i] = p[i].get_future();
   }
 
-  thread t1(&get_pretty_stdout, "git -c status.color=always status",
-            move(p[0]));
-  thread t2(&get_porcelain_stdout, "git status --porcelain", move(p[1]));
+  thread t1(&get_pretty, "git -c status.color=always status", move(p[0]));
+  thread t2(&get_porcelain, "git status --porcelain", move(p[1]));
   t2.join();
   queue<string> porcelain = f[1].get();
   t1.join();
