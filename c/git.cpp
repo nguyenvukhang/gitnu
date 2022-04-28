@@ -1,5 +1,4 @@
 #include "git.h"
-#include "queue.h"
 #include <array>
 #include <functional>
 #include <future>
@@ -9,7 +8,68 @@
 #include <string>
 #include <thread>
 
+#include <algorithm>
+#include <mutex>
+#include <optional>
+
 using namespace std;
+
+class non_empty_queue : public std::exception {
+  std::string what_;
+
+public:
+  explicit non_empty_queue(std::string msg) { what_ = std::move(msg); }
+  const char *what() const noexcept override { return what_.c_str(); }
+};
+
+template <typename T> class ThreadsafeQueue {
+  std::queue<T> queue_;
+  mutable std::mutex mutex_;
+
+  // Moved out of public interface to prevent races between this
+  // and pop().
+  [[nodiscard]] bool empty() const { return queue_.empty(); }
+
+public:
+  ThreadsafeQueue() = default;
+  ThreadsafeQueue(const ThreadsafeQueue<T> &) = delete;
+  ThreadsafeQueue &operator=(const ThreadsafeQueue<T> &) = delete;
+
+  ThreadsafeQueue(ThreadsafeQueue<T> &&other) noexcept(false) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!empty()) {
+      throw non_empty_queue("Moving into a non-empty queue"s);
+    }
+    queue_ = std::move(other.queue_);
+  }
+
+  virtual ~ThreadsafeQueue() noexcept(false) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!empty()) {
+      throw non_empty_queue("Destroying a non-empty queue"s);
+    }
+  }
+
+  [[nodiscard]] unsigned long size() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return queue_.size();
+  }
+
+  std::optional<T> pop() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (queue_.empty()) {
+      return {};
+    }
+    T tmp = queue_.front();
+    queue_.pop();
+    return tmp;
+  }
+
+  void push(const T &item) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    queue_.push(item);
+  }
+};
 
 void remove_newline(string &s) {
   s.erase(remove(s.begin(), s.end(), '\n'), s.end());
@@ -85,37 +145,23 @@ void loop_porcelain(ThreadsafeQueue<string> &staged) {
   cout << "PORCELAIN DONE" << endl;
 }
 
-void loop_print(ThreadsafeQueue<string> &pretty, ThreadsafeQueue<string> &porcelain,
-                bool *pretty_done, bool *porcelain_done) {
+void loop_print(ThreadsafeQueue<string> &pretty,
+                ThreadsafeQueue<string> &porcelain, bool *pretty_done,
+                bool *porcelain_done) {
   std::this_thread::sleep_for(100us);
   cout << "STARTED LOOP" << endl;
   int index = 1;
   optional<string> _pretty = pretty.pop();
   optional<string> _porcelain = porcelain.pop();
-  if (_pretty) {
-    string s = *_pretty;
-    cout << "GOT HERE" << s;
+  while (_pretty) {
+    string j = *_pretty;
+    cout << j;
+    _pretty = pretty.pop();
+    if (!_pretty) {
+      std::this_thread::sleep_for(100us);
+      _pretty = pretty.pop();
+    }
   }
-  // while (_pretty) {
-  //   string prstr = *_pretty;
-  //   if (!_porcelain) {
-  //     std::this_thread::sleep_for(100us);
-  //     _porcelain = porcelain.pop();
-  //   }
-  //   string postr = *_porcelain;
-  //   // do comparison
-  //   const bool has_filename = prstr.find(postr) != string::npos;
-  //   if (has_filename) {
-  //     cout << index << prstr;
-  //   } else {
-  //     cout << prstr;
-  //   }
-  //   _pretty = pretty.pop();
-  //   if (!_pretty) {
-  //     std::this_thread::sleep_for(100us);
-  //     _pretty = pretty.pop();
-  //   }
-  // }
   cout << "EXITED PRINT LOOP" << pretty.size() << ", " << porcelain.size()
        << endl;
 }
