@@ -17,6 +17,25 @@ void remove_newline(string &s) {
   s.erase(remove(s.begin(), s.end(), '\n'), s.end());
 }
 
+string get_git_dir() {
+  array<char, 128> buffer;
+  string result = "";
+  unique_ptr<FILE, decltype(&pclose)> pipe(popen("git rev-parse --git-dir", "r"), pclose);
+  bool written = false;
+  if (!pipe)
+    throw runtime_error("popen() failed!");
+  while (!feof(pipe.get()) && !written) {
+    if (fgets(buffer.data(), 128, pipe.get()) != nullptr) {
+      written = true;
+      string s = buffer.data();
+      remove_newline(s);
+      result += s;
+    }
+  }
+  pclose(pipe.get());
+  return result;
+}
+
 string parse_porcelain_line(string s) {
   if (s == "") {
     return s;
@@ -44,6 +63,7 @@ void get_pretty(const char *cmd, promise<queue<string>> &&p) {
     result.push(buffer.data());
   }
   p.set_value(result);
+  pclose(pipe.get());
 }
 
 void get_porcelain(const char *cmd, promise<queue<string>> &&p) {
@@ -78,6 +98,7 @@ void get_porcelain(const char *cmd, promise<queue<string>> &&p) {
     untracked.pop();
   }
   p.set_value(staged);
+  pclose(pipe.get());
 }
 
 namespace git {
@@ -100,8 +121,8 @@ void get_parallel(const char *cmd) {
   // open write stream to cache file
   ofstream cache_file;
   const char cache_filename[12] = "/gitnu.txt";
-  const string cache_path =
-      shell::line("git rev-parse --git-dir").append(cache_filename);
+  const string git_dir = get_git_dir();
+  const string cache_path = git_dir + cache_filename;
   const string cwd = __fs::filesystem::current_path();
   cout << "-----" << cache_path << endl;
 
@@ -117,6 +138,7 @@ void get_parallel(const char *cmd) {
     } else if (pretty.front().find(porcelain.front()) != string::npos) {
       // gitnu goodness
       cout << index << pretty.front();
+      cache_file << index << " " << git_dir << "/" << porcelain.front() << endl;
       index++;
       porcelain.pop();
     } else {
