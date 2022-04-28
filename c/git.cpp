@@ -1,4 +1,5 @@
 #include "git.h"
+#include "shell.h"
 #include <array>
 #include <future>
 #include <iostream>
@@ -6,6 +7,9 @@
 #include <queue>
 #include <string>
 #include <thread>
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
 
 using namespace std;
 
@@ -85,12 +89,26 @@ void get_parallel(const char *cmd) {
     f[i] = p[i].get_future();
   }
 
+  // parse git status and git status --porcelain simultaneously
   thread t1(&get_pretty, "git -c status.color=always status", move(p[0]));
   thread t2(&get_porcelain, "git status --porcelain", move(p[1]));
   t2.join();
   queue<string> porcelain = f[1].get();
   t1.join();
   queue<string> pretty = f[0].get();
+
+  // open write stream to cache file
+  ofstream cache_file;
+  const char cache_filename[12] = "/gitnu.txt";
+  const string cache_path =
+      shell::line("git rev-parse --git-dir").append(cache_filename);
+  const string cwd = __fs::filesystem::current_path();
+  cout << "-----" << cache_path << endl;
+
+  cache_file.open(cache_path);
+
+  if (!cache_file.is_open())
+    throw runtime_error("failed to open cache file!");
 
   int index = 1;
   while (!pretty.empty()) {
@@ -107,5 +125,6 @@ void get_parallel(const char *cmd) {
     }
     pretty.pop();
   }
+  cache_file.close();
 }
 } // namespace git
