@@ -4,7 +4,7 @@ use log::info;
 use serde_json::{from_str, to_vec};
 use std::fs::{read_to_string, write};
 use std::io::Error;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 pub enum OpType {
@@ -18,14 +18,14 @@ pub struct Gitnu {
     pub cmd: Command,
     pub op: OpType,
     json_file: PathBuf,
+    git_dir: PathBuf,
     files: Vec<String>,
-    cwd: PathBuf,
     git_root: PathBuf,
 }
 
 /// get the path to the git repository/worktree
 /// this will be where the cache is stored
-fn get_cache_dir(git_dir: &String) -> String {
+fn get_cache_dir(git_dir: &String) -> PathBuf {
     let mut git = Command::new("git");
     let cmd = git.arg("-C").arg(git_dir).args([
         "rev-parse",
@@ -33,39 +33,48 @@ fn get_cache_dir(git_dir: &String) -> String {
         "--git-dir",
     ]);
     let res = match shell::get_stdout(cmd) {
-        Ok(v) => v,
-        _ => return "/dev/null".to_string(),
+        Ok(v) => PathBuf::from(v),
+        _ => PathBuf::from("/dev/null"),
     };
     res
 }
 
-fn get_git_root(git_dir: &String) -> String {
+fn get_git_root(git_dir: &String) -> PathBuf {
     let mut git = Command::new("git");
-    let cmd = git.arg("-C").arg(git_dir).args(["rev-parse", "--show-toplevel"]);
-    match shell::get_stdout(cmd) {
-        Ok(v) => v,
-        _ => return "/dev/null".to_string(),
-    }
+    let cmd = git.arg("-C").arg(git_dir).args([
+        "rev-parse",
+        "--path-format=absolute",
+        "--show-toplevel",
+    ]);
+    let mut path = PathBuf::from(".");
+    match cmd.output() {
+        Ok(v) => {
+            let s = String::from_utf8(v.stdout).unwrap();
+            path.push(s);
+        }
+        _ => (),
+    };
+    return path;
 }
 
 impl Gitnu {
     /// takes in a list of args to the left of the command
     /// (excluding the command itself)
-    pub fn new(op: OpType, git_dir: String, cwd: PathBuf) -> Gitnu {
+    pub fn new(op: OpType, git_dir: String) -> Gitnu {
         // get path to git root
         Gitnu {
-            json_file: Path::new(&get_cache_dir(&git_dir)).join("gitnu.json"),
+            json_file: get_cache_dir(&git_dir).join("gitnu.json"),
             cmd: Command::new(""),
             files: Vec::new(),
-            git_root: Path::new(&get_git_root(&git_dir)).to_path_buf(),
+            git_root: get_git_root(&git_dir),
+            git_dir: PathBuf::from(&git_dir),
             op,
-            cwd,
         }
     }
 
     /// load runtime buffer with files in order
     pub fn load_files(&mut self) {
-        let path = PathBuf::from(&self.cwd);
+        let path = PathBuf::from(&self.git_dir);
         actions::load_files(self, &path);
     }
 

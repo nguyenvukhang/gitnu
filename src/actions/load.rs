@@ -35,7 +35,7 @@ fn get_line_state(line: &String) -> LineState {
 /// as in `git status`
 ///
 /// index starts at the front of the linked list
-pub fn load_files(gitnu: &mut Gitnu, cwd: &PathBuf) {
+pub fn load_files(gitnu: &mut Gitnu, git_dir: &PathBuf) {
     let mut staged: LinkedList<String> = LinkedList::new();
     let mut unstaged: LinkedList<String> = LinkedList::new();
     let mut untracked: LinkedList<String> = LinkedList::new();
@@ -54,12 +54,12 @@ pub fn load_files(gitnu: &mut Gitnu, cwd: &PathBuf) {
         }
     };
 
-    info!("loading index at: {:#?}", cwd);
+    info!("loading index at: {:#?}", git_dir);
 
     // spawn the git status process
     let proc = Command::new("git")
         .arg("-C")
-        .arg(cwd)
+        .arg(git_dir)
         .args(["status", "--porcelain"])
         .stdout(Stdio::piped())
         .spawn()

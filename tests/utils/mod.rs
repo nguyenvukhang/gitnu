@@ -20,8 +20,7 @@ pub fn cli(v: Vec<&str>) -> LinkedList<String> {
 
 /// test CLI input against gitnu's output args
 pub fn test(input: Vec<&str>, expected: Vec<&str>) {
-    let cwd = std::env::current_dir().unwrap();
-    let g = gitnu::core(cli(input), cwd);
+    let g = gitnu::core(cli(input));
     let g = get_args(&g.cmd);
     assert_eq!(g, expected);
 }

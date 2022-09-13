@@ -17,10 +17,9 @@ fn main() {
 
     // CLI arguments received
     let args: LinkedList<String> = env::args().collect();
-    let cwd = env::current_dir().expect("unable to get cwd");
 
     // start the magic
-    let gitnu = gitnu::core(args, cwd);
+    let gitnu = gitnu::core(args);
 
     // quit early if no command to run
     if gitnu.cmd.get_program() == "" {

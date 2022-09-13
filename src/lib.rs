@@ -4,7 +4,6 @@ pub mod structs;
 use crate::structs::{Gitnu, OpType};
 use log::info;
 use std::collections::LinkedList;
-use std::path::PathBuf;
 use std::process::Command;
 
 // gitnu will only trigger on these commands
@@ -89,14 +88,16 @@ fn test_split_args_by_cmd() {
 
 /// takes in a list of CLI arguments
 /// lists starts with the name of this binary
-pub fn core(mut rargs: LinkedList<String>, cwd: PathBuf) -> Gitnu {
+pub fn core(mut rargs: LinkedList<String>) -> Gitnu {
     // pop off the name of binary
     rargs.pop_front();
 
     // enumerated CLI arguments to pass to git
     let mut largs: LinkedList<String> = LinkedList::new();
     let (op, git_dir, xargs_cmd) = split_args_by_cmd(&mut largs, &mut rargs);
-    let mut gitnu = Gitnu::new(op, git_dir, cwd);
+
+    // the one and only instantiation of Gitnu
+    let mut gitnu = Gitnu::new(op, git_dir);
 
     // straight bypass to git with all arguments passed
     let bypass = |args: LinkedList<String>| {
