@@ -1,6 +1,6 @@
 # gitnu
 
-gitnu is adds numbers to git status.
+gitnu is script that adds numbers to git status.
 
 ## Install
 

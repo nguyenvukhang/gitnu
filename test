@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+[[ $1 == '-k' ]] && KEEP=1
+
+teardown() {
+  [ -z $KEEP ] && rm -rf tmp
+}
+trap teardown EXIT
+
+mkdir tmp >/dev/null
+
+[ -d tmp ] && cargo test

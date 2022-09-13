@@ -1,0 +1,29 @@
+[package]
+name = "gitnu"
+version = "0.0.1"
+authors = ["Nguyen Vu Khang <brew4k@gmail.com>"]
+description = """
+gitnu indexes your git status so you can use numbers instead of filenames.
+"""
+homepage = "https://github.com/nguyenvukhang/gitnu"
+repository = "https://github.com/nguyenvukhang/gitnu"
+documentation = "https://github.com/nguyenvukhang/gitnu"
+keywords = ["git"]
+categories = ["command-line-utilities", "text-processing", "version-control"]
+license = "MIT"
+edition = "2021"
+
+[[bin]]
+name = "gitnu"
+test = false # don't run tests on main.rs
+
+[lib]
+doctest = false
+# test = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1.0.85"
+log = { version = "0.4.17", features = ["max_level_debug", "release_max_level_warn"] }
+env_logger = "0.9.0"
