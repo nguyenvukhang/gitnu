@@ -1,6 +1,6 @@
 [package]
 name = "gitnu"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Nguyen Vu Khang <brew4k@gmail.com>"]
 description = """
 gitnu indexes your git status so you can use numbers instead of filenames.
@@ -9,7 +9,7 @@ homepage = "https://github.com/nguyenvukhang/gitnu"
 repository = "https://github.com/nguyenvukhang/gitnu"
 documentation = "https://github.com/nguyenvukhang/gitnu"
 keywords = ["git"]
-categories = ["command-line-utilities", "text-processing", "version-control"]
+categories = ["command-line-utilities", "text-processing"]
 license = "MIT"
 edition = "2021"
 
