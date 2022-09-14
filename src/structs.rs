@@ -47,14 +47,12 @@ fn get_git_root(git_dir: &String) -> PathBuf {
         "--show-toplevel",
     ]);
     let mut path = PathBuf::from(".");
-    match cmd.output() {
-        Ok(v) => {
-            let s = String::from_utf8(v.stdout).unwrap();
-            path.push(s);
-        }
-        _ => (),
+    let res = match shell::get_stdout(cmd) {
+        Ok(v) => PathBuf::from(v),
+        _ => PathBuf::from("/dev/null"),
     };
-    return path;
+    path.push(res);
+    path
 }
 
 impl Gitnu {
