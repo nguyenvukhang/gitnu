@@ -25,10 +25,20 @@ impl Files {
         }
     }
     pub fn apply(&mut self, args: &mut Vec<String>) {
-        for i in 0..args.len() {
-            let res = self.get(&args[i]);
+        fn is_flag(flag: &str) -> bool {
+            flag.starts_with("-") && flag.to_ascii_lowercase().eq(flag)
+        }
+        let mut it = args.iter_mut();
+        while let Some(arg) = it.next() {
+            // don't parse things like the 15 in `gitnu log -n 15`
+            // once a flag is seen, skip both the flag and the next arg
+            if is_flag(arg) {
+                it.next();
+                continue;
+            }
+            let res = self.get(arg);
             if res.is_some() {
-                args[i] = res.unwrap();
+                *arg = res.unwrap();
                 self.count += 1;
             }
         }
