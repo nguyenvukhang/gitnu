@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+export RUST_LOG=debug
+GITNU=./target/debug/gitnu
+
+cargo build || exit 1
+if [ -z $1 ]; then
+  $GITNU status
+else
+  $GITNU $@
+fi

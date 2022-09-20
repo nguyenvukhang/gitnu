@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+build() {
+  rm -rf target
+  cargo build
+  cargo build --release
+}
+
+[[ $1 = 'b' ]] && build
+
+du -sh target/*/gitnu
