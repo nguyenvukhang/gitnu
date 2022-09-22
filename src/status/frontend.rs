@@ -1,46 +1,43 @@
 use crate::opts::Opts;
+use std::io::Error;
 
 fn has_color(s: &str) -> bool {
     s.contains("\x1b[31m") || s.contains("\x1b[32m")
 }
 
 fn print_line(line: &String, count: &mut u16, limit: u16) {
-    if has_color(&line) {
-        *count += 1;
-        if *count > limit {
-            return;
-        }
-        if line.starts_with('\t') {
-            println!("{}{}", count, line);
-        } else {
-            println!("{: <4}{}", count, line);
-        }
-    } else {
+    // only work with colored lines
+    if !has_color(&line) {
         println!("{}", line);
+        return;
+    }
+    // line is colored
+    *count += 1;
+    if *count > limit {
+        return;
+    }
+    if line.starts_with('\t') {
+        println!("{}{}", count, line);
+    } else {
+        println!("{: <4}{}", count, line);
     }
 }
 
 // this prints `git status` enumerated
 // has nothing to do with data management
-pub fn run<'a>(opts: Opts) -> Result<(), &'a str> {
-    let mut git = match opts.cmd() {
-        Ok(v) => v,
-        Err(_) => return Err("frontend::run() -> no git command found"),
-    };
+pub fn run(opts: Opts) -> Result<(), Error> {
+    let mut git = opts.cmd()?;
     git.args(["-c", "status.color=always", "status"]);
     git.stdout(std::process::Stdio::piped()); // capture stdout
 
     // spawn the process
-    let mut git = match git.spawn() {
-        Ok(v) => v,
-        Err(_) => return Err("frontend::run() -> no output"),
-    };
+    let mut git = git.spawn()?;
 
     // get stdout
-    let output = match git.stdout.as_mut() {
-        Some(v) => v,
-        None => return Err("frontend::run() -> no output"),
-    };
+    let output = git.stdout.as_mut().ok_or(Error::new(
+        std::io::ErrorKind::NotFound,
+        "Unable to get stdout",
+    ))?;
 
     // start couting
     let mut count = 0;
@@ -57,8 +54,10 @@ pub fn run<'a>(opts: Opts) -> Result<(), &'a str> {
     }
 
     match git.wait() {
-        Ok(_) => (),
-        Err(_) => (),
-    };
-    return Ok(());
+        Ok(_) => Ok(()),
+        Err(_) => Err(Error::new(
+            std::io::ErrorKind::TimedOut,
+            "Unable to wait for git",
+        )),
+    }
 }

@@ -1,28 +1,25 @@
 // gitnu add 2-4
 // gitnu reset 7
 use crate::opts::Opts;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Files {
-    data: Vec<String>,
+    data2: HashMap<u16, String>,
     count: u16,
 }
 
 impl Files {
-    pub fn new(data: Vec<String>) -> Files {
-        log::info!("Files::new <- {:?}", data);
-        Files { data, count: 0 }
+    pub fn new(data2: HashMap<u16, String>) -> Files {
+        Files { data2, count: 0 }
     }
-    fn get(&self, query: &str) -> Option<String> {
-        let index: usize = match query.parse() {
+    fn get(&mut self, query: &str) -> Option<String> {
+        let index: u16 = match query.parse() {
             Ok(0) => return None,
             Ok(v) => v,
             Err(_) => return None,
         };
-        match self.data.get(index - 1) {
-            None => return None,
-            Some(v) => Some(v.to_string()),
-        }
+        self.data2.remove(&index)
     }
     pub fn apply(&mut self, args: &mut Vec<String>) {
         fn is_flag(flag: &str) -> bool {
@@ -36,9 +33,8 @@ impl Files {
                 it.next();
                 continue;
             }
-            let res = self.get(arg);
-            if res.is_some() {
-                *arg = res.unwrap();
+            if let Some(res) = self.get(arg) {
+                *arg = res;
                 self.count += 1;
             }
         }
@@ -52,7 +48,7 @@ impl Files {
 /// mutates the vector passed in, since the result has the same length
 pub fn load(args: &mut Vec<String>, opts: &Opts) {
     // read cache
-    let cache = opts.read_cache().unwrap_or(Vec::new());
+    let cache = opts.read_cache2().unwrap_or(HashMap::new());
 
     // make a wrapper to safely apply to args
     let mut files = Files::new(cache);
