@@ -28,7 +28,7 @@ commands:
 
 ```bash
 $ gitnu add 2
-$ gitnu
+$ gitnu status
 # On branch master
 # Changes to be committed:
 # 1       new file:   README.md
