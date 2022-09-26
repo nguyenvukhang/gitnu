@@ -1,0 +1,15 @@
+On branch main
+
+No commits yet
+
+Changes to be committed:
+1	[32mnew file:   file_2[m
+2	[32mnew file:   file_3[m
+3	[32mnew file:   file_4[m
+4	[32mnew file:   file_5[m
+
+Untracked files:
+5	[31mfile_1[m
+6	[31mfile_6[m
+7	[31mfile_7[m
+

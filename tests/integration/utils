@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# vim:syntax=bash
+
+PATH=../../target/debug:$PATH
+
+assert() {
+  if [[ "$1" != "$2" ]]; then
+    echo "expected: $1"
+    echo "received: $2"
+    exit 1
+  fi
+}
+
+_pushd() { # silent pushd
+  pushd $1 >/dev/null
+}
+
+_popd() { # silent popd
+  popd >/dev/null
+}
+
+_git() { # silent git
+  git $@ >/dev/null
+}
+
+_gitnu() { # silent gitnu
+  gitnu $@ >/dev/null
+}
+
+pass() {
+  printf "\033[0;30m\033[1;42m PASS \033[1;0m $1 "
+  echo "\033[0;37m$2\033[1;0m"
+}
+
+fail() {
+  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 "
+  echo "\033[0;37m$2\033[1;0m"
+}

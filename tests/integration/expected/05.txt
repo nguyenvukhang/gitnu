@@ -1,0 +1,8 @@
+On branch main
+Changes to be committed:
+1	[32mmodified:   file_3[m
+
+Untracked files:
+2	[31mfile_1[m
+3	[31mfile_2[m
+

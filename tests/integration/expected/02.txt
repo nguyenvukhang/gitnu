@@ -1,0 +1,7 @@
+On branch main
+
+No commits yet
+
+Changes to be committed:
+1	[32mnew file:   gold[m
+

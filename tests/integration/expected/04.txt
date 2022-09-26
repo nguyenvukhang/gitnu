@@ -1,0 +1,9 @@
+On branch main
+Changes not staged for commit:
+1	[31mmodified:   gold[m
+
+Untracked files:
+2	[31mfile_1[m
+3	[31mfile_2[m
+
+no changes added to commit

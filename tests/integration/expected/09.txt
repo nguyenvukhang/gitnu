@@ -1,0 +1,11 @@
+On branch main
+Changes to be committed:
+1	[32mnew file:   ../file_3[m
+2	[32mnew file:   emerald[m
+3	[32mnew file:   ruby[m
+
+Untracked files:
+4	[31m../file_1[m
+5	[31m../file_2[m
+6	[31msapphire[m
+

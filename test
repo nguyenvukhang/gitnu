@@ -9,4 +9,5 @@ trap teardown EXIT
 
 mkdir tmp >/dev/null
 
-[ -d tmp ] && cargo test
+[ -d tmp ] && cargo test && cd tests/integration && sh run
+

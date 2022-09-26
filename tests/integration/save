@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+cp received/$1.txt expected
