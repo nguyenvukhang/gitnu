@@ -1,25 +1,26 @@
 #![allow(dead_code)]
 
 use gitnu;
+use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-fn to_string_vec(s: &[&str]) -> Vec<String> {
-    s.iter().map(|v| String::from(*v)).collect()
+pub fn to_osstring_vec(s: &[&str]) -> Vec<OsString> {
+    s.iter().map(|v| v.into()).collect()
 }
 
 /// test CLI input against gitnu's output args
 pub fn test_core(received: &[&str], expected: &[&str]) {
-    let (r, _) = gitnu::core(to_string_vec(received));
-    let e = to_string_vec(expected);
+    let (r, _) = gitnu::core(to_osstring_vec(received));
+    let e = to_osstring_vec(expected);
     assert_eq!(r, e);
 }
 
-pub fn get_stdout(cmd: &mut Command) -> String {
+pub fn get_stdout(cmd: &mut Command) -> OsString {
     let out = cmd.output().expect("unable to get_stdout");
-    let out = String::from_utf8_lossy(&out.stdout);
-    String::from(out)
+    let out = String::from_utf8_lossy(&out.stdout).into_owned();
+    out.into()
 }
 
 pub fn trimf(s: &str) -> &str {
@@ -40,14 +41,12 @@ impl Git {
         cmd.current_dir(&self.cwd);
         cmd
     }
-    pub fn git(&mut self, args: &[&str]) -> String {
+    pub fn git(&mut self, args: &[&str]) -> OsString {
         let c = &mut self.cmd();
         c.args(args);
-        let s = get_stdout(c);
-        print!("{}", s);
-        s
+        get_stdout(c)
     }
-    pub fn run(&mut self, args: &[&str]) -> String {
+    pub fn run(&mut self, args: &[&str]) -> OsString {
         let mut c = Command::new(args[0]);
         c.current_dir(&self.cwd);
         c.args(&args[1..]);
@@ -63,24 +62,24 @@ impl Git {
     }
 
     // git commands
-    pub fn init(&mut self) -> String {
+    pub fn init(&mut self) -> OsString {
         fs::create_dir_all(&self.cwd)
             .expect(&format!("unable to mkdir: {}", &self.cwd));
         self.git(&["init"])
     }
-    pub fn add(&mut self, file: &str) -> String {
+    pub fn add(&mut self, file: &str) -> OsString {
         self.git(&["add", file])
     }
-    pub fn reset(&mut self, file: &str) -> String {
+    pub fn reset(&mut self, file: &str) -> OsString {
         self.git(&["reset", file])
     }
-    pub fn status(&mut self) -> String {
+    pub fn status(&mut self) -> OsString {
         self.git(&["status"])
     }
-    pub fn commit(&mut self) -> String {
+    pub fn commit(&mut self) -> OsString {
         self.git(&["commit", "-m", "commit_message"])
     }
-    pub fn xargs(&mut self, args: &[&str]) -> String {
+    pub fn xargs(&mut self, args: &[&str]) -> OsString {
         self.git(args)
     }
 
@@ -102,7 +101,7 @@ impl Git {
         fs::write(p, &format!("{}{}", "__edit__", contents))
             .expect(&format!("unable to modify file {}", file));
     }
-    pub fn ls(&mut self) -> String {
+    pub fn ls(&mut self) -> OsString {
         self.run(&["ls"])
     }
 }

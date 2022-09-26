@@ -2,28 +2,31 @@
 // gitnu reset 7
 use crate::opts::Opts;
 use std::collections::HashMap;
+use std::ffi::OsString;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 struct Files {
-    data2: HashMap<u16, String>,
+    data: HashMap<u16, PathBuf>,
     count: u16,
 }
 
 impl Files {
-    pub fn new(data2: HashMap<u16, String>) -> Files {
-        Files { data2, count: 0 }
+    pub fn new(data: HashMap<u16, PathBuf>) -> Files {
+        Files { data, count: 0 }
     }
-    fn get(&mut self, query: &str) -> Option<String> {
-        let index: u16 = match query.parse() {
+    fn get(&mut self, query: &OsString) -> Option<PathBuf> {
+        let index: u16 = match query.to_str().unwrap_or("").parse() {
             Ok(0) => return None,
             Ok(v) => v,
             Err(_) => return None,
         };
-        self.data2.remove(&index)
+        self.data.remove(&index)
     }
-    pub fn apply(&mut self, args: &mut Vec<String>) {
-        fn is_flag(flag: &str) -> bool {
-            flag.starts_with("-") && flag.to_ascii_lowercase().eq(flag)
+    pub fn apply(&mut self, args: &mut Vec<OsString>) {
+        fn is_flag(flag: &OsString) -> bool {
+            flag.to_str().unwrap_or("").starts_with("-")
+                && flag.to_ascii_lowercase().eq(flag)
         }
         let mut it = args.iter_mut();
         while let Some(arg) = it.next() {
@@ -34,7 +37,7 @@ impl Files {
                 continue;
             }
             if let Some(res) = self.get(arg) {
-                *arg = res;
+                *arg = res.into_os_string();
                 self.count += 1;
             }
         }
@@ -46,9 +49,9 @@ impl Files {
 
 /// replace numbers with filenames
 /// mutates the vector passed in, since the result has the same length
-pub fn load(args: &mut Vec<String>, opts: &Opts) {
+pub fn load(args: &mut Vec<OsString>, opts: &Opts) {
     // read cache
-    let cache = opts.read_cache2().unwrap_or(HashMap::new());
+    let cache = opts.read_cache().unwrap_or(HashMap::new());
 
     // make a wrapper to safely apply to args
     let mut files = Files::new(cache);

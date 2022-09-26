@@ -1,17 +1,26 @@
 mod utils;
-use utils::Git;
+use std::ffi::{OsStr, OsString};
+use std::path::PathBuf;
+use utils::{to_osstring_vec, Git};
 
-#[cfg(test)]
-fn to_string_vec(s: &[&str]) -> Vec<String> {
-    s.iter().map(|v| String::from(*v)).collect()
+fn basenames(args: Vec<OsString>) -> Vec<OsString> {
+    args.iter()
+        .map(|v| {
+            PathBuf::from(v).file_name().unwrap_or(OsStr::new("")).to_owned()
+        })
+        .collect()
 }
 
 #[cfg(test)]
 pub fn test(dir: &str, received: &[&str], expected: &[&str]) {
-    let mut args: Vec<String> = to_string_vec(&["-C", dir]);
-    args.append(&mut to_string_vec(received));
+    let mut args: Vec<OsString> = to_osstring_vec(&["-C", dir]);
+    args.append(&mut to_osstring_vec(received));
     let (r, _) = gitnu::core(args);
-    let e = to_string_vec(expected);
+    let e = to_osstring_vec(expected);
+    // convert both to PathBuf vectors
+    let r = basenames(r);
+    let e = basenames(e);
+    println!("R = {:?}", r);
     assert_eq!(r, e);
 }
 
