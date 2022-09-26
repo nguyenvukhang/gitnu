@@ -1,32 +1,26 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # vim:syntax=bash
 
 source ./utils
+setup # sets the current directory to this script's location
+trap cleanup EXIT
+HERE=$PWD
 
-# navigate to where this script is located
-CWD=$(dirname "$(readlink -f "$0")")
-pushd $CWD >/dev/null
-HERE=$CWD
-REC_DIR=$HERE/received
-N=0 # current test number
+# parse arguments
 for i in $@; do
   [ $i = '-v' ] && VERBOSE=true
-  [[ "$i" =~ [0-9]+ ]] && ONE_TEST=$i
+  [[ "$i" =~ [0-9]+ ]] && [ -z $ONE_TEST ] && printf -v ONE_TEST "%02d" $i
 done
-rm -rf $REC_DIR && mkdir $REC_DIR
 
-cleanup() {
-  cd $HERE
-  rm -rf tmp
-}
-trap cleanup EXIT
+N=0 # current test id
+let PASSES=0
+let TOTAL=0
 
+# for use in ./tests/*.sh
 # $1 is number of files to mock up
-# this sends the script into the tmp dir
 init() {
-  local tdir=$HERE/tmp/$N
-  mkdir -p $tdir
-  _pushd $tdir
+  local tmp_dir=$HERE/tmp/$N
+  mkdir -p $tmp_dir && _pushd $tmp_dir
   _git init
   let i=1
   while [ $i -le $1 ]; do
@@ -35,13 +29,11 @@ init() {
   done
 }
 
+# for use in ./tests/*.sh
+# evaluates command and sends to $REC_DIR
 log() {
   eval "$@" >$REC_DIR/$N.txt
-  let COUNT++
 }
-
-let PASSES=0
-let TOTAL=0
 
 # return to original directory
 reset_dir() {
@@ -49,30 +41,31 @@ reset_dir() {
   assert $PWD $HERE
 }
 
-# $1 test number
+# $1 : aboslute path to ./tests/*.sh
 test() {
+  [ ! -f $1 ] && echo "No such test file" && return
   let TOTAL++
-  N=${1##*/} && N=${N%%.*}
+  N=$(get_test_id $1)
   source $1
-  local title=$(head -n 1 $1) && title=${title### }
-  local filepath=${1##$HERE\/}
-  local rec=$HERE/received/$N.txt
-  local exp=$HERE/expected/$N.txt
+  local title=$(get_test_title $1) && local file=${1##$HERE/}
+  local rec=$HERE/received/$N.txt && local exp=$HERE/expected/$N.txt
   local ok=1
-  [ ! -f $rec ] && fail "$filepath (received/$N.txt not found)" && ok=0
-  [ ! -f $exp ] && fail "$filepath (expected/$N.txt not found)" && ok=0
-  if [ $ok = 0 ] ;then
+  [ ! -f $rec ] && not_found $file received/$N.txt && ok=0
+  [ ! -f $exp ] && not_found $file expected/$N.txt && ok=0
+  # either received/expected not found
+  if [ $ok = 0 ]; then
     [ -f $rec ] && cat $rec
     reset_dir
     return
   fi
-  local DIFF=$(diff $rec $exp)
+
   # gather stats and report
+  local DIFF=$(diff $rec $exp)
   if [ -z $DIFF ]; then
-    pass $filepath "$title"
+    pass $file "$title"
     let PASSES++
   else
-    fail $filepath "$title"
+    fail $file "$title"
     echo "<: received, >: expected"
     echo "$DIFF"
   fi
@@ -80,23 +73,29 @@ test() {
   reset_dir
 }
 
-cargo build --quiet
+main() {
+  # build
+  cargo build --quiet
 
-assert $(which gitnu) "../../target/debug/gitnu"
+  # ensure correct binary is used
+  if ! command -v gitnu >/dev/null; then
+    echo 'gitnu not found. Aborting.'
+  fi
 
-let COUNT=1
+  # run tests
+  if [ $ONE_TEST ]; then
+    # run one test
+    test $HERE/tests/$ONE_TEST.sh
+  else
+    # run all tests
+    for t in $HERE/tests/*; do
+      test "$t"
+    done
+  fi
 
-# if ONE_TEST is defined, run it, else run all tests
-run_all_tests() {
-  for t in $HERE/tests/*; do
-    test $t
-  done
+  # summarize
+  printf "\n $PASSES/$TOTAL tests passed\n"
+  [ $PASSES = $TOTAL ] && [ $TOTAL -gt 0 ] && exit 0 || exit 1
 }
 
-if [ $ONE_TEST ]; then
-  test $HERE/tests/$ONE_TEST.sh
-else
-  run_all_tests
-fi
-
-echo "\n $PASSES/$TOTAL tests passed"
+main

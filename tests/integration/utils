@@ -1,7 +1,60 @@
-#!/usr/bin/env sh
-# vim:syntax=bash
+#!/usr/bin/env bash
 
-PATH=../../target/debug:$PATH
+GIT_USER=''
+GIT_EMAIL=''
+GIT_DEFAULT_BRANCH=''
+GIT_STATUS_HINTS=''
+
+gcf() {
+  git config --global $@
+}
+
+get_git_config() {
+  GIT_STATUS_HINTS=$(gcf advice.statusHints 2>&1)
+  GIT_USER=$(gcf user.name 2>&1)
+  GIT_EMAIL=$(gcf user.email 2>&1)
+  GIT_DEFAULT_BRANCH=$(gcf init.defaultBranch 2>&1)
+}
+
+set_git_config() {
+  [[ $GIT_USER == '' ]] && gcf user.name 'bot'
+  [[ $GIT_EMAIL == '' ]] && gcf user.email 'bot@gitnu.co'
+  [[ $GIT_DEFAULT_BRANCH == '' ]] && gcf init.defaultBranch 'main'
+  gcf advice.statusHints false
+}
+
+reset_git_config() {
+  ([ $GIT_USER ] && gcf user.name $GIT_USER) || gcf --unset user.name
+  ([ $GIT_EMAIL ] && gcf user.email $GIT_EMAIL) || gcf --unset user.email
+  ([ $GIT_DEFAULT_BRANCH ] && gcf init.defaultBranch $GIT_DEFAULT_BRANCH) ||
+    gcf --unset init.defaultBranch
+  ([ $GIT_STATUS_HINTS ] && gcf advice.statusHints $GIT_STATUS_HINTS) ||
+    gcf --unset advice.statusHints
+}
+
+setup() {
+  # navigate to where this script is located
+  HERE=$(dirname "$(readlink -f "$0")")
+  pushd $HERE >/dev/null
+  GITNU=$HERE/../../target/debug/gitnu
+  REC_DIR=$HERE/received
+  rm -rf $REC_DIR && mkdir $REC_DIR
+  get_git_config
+  set_git_config
+}
+
+cleanup() {
+  reset_git_config
+  rm -rf $HERE/tmp
+}
+
+get_test_id() {
+  local N=${1##*/} && printf ${N%%.*}
+}
+
+get_test_title() {
+  local title="$(head -n 1 $1)" && printf "${title### }"
+}
 
 assert() {
   if [[ "$1" != "$2" ]]; then
@@ -24,15 +77,30 @@ _git() { # silent git
 }
 
 _gitnu() { # silent gitnu
-  gitnu $@ >/dev/null
+  $GITNU $@ >/dev/null
 }
 
+gitnu() { # gitnu
+  $GITNU $@
+}
+
+# $1 : test file
+# $2 : test title
 pass() {
   printf "\033[0;30m\033[1;42m PASS \033[1;0m $1 "
-  echo "\033[0;37m$2\033[1;0m"
+  printf "\033[0;37m$2\033[1;0m\n"
 }
 
+# $1 : test file
+# $2 : test title
 fail() {
   printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 "
-  echo "\033[0;37m$2\033[1;0m"
+  printf "\033[0;37m$2\033[1;0m\n"
+}
+
+# $1 : test file
+# $2 : missing required file
+not_found() {
+  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 "
+  printf "\033[0;33m($2 not found)\033[1;0m\n"
 }

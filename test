@@ -1,13 +1,19 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
+EC=0
 [[ $1 == '-k' ]] && KEEP=1
 
 teardown() {
   [ -z $KEEP ] && rm -rf tmp
+  exit $EC
 }
 trap teardown EXIT
 
 mkdir tmp >/dev/null
 
-[ -d tmp ] && cargo test && cd tests/integration && sh run
+# [ -d tmp ] && cargo test || EC=1
 
+# run integration tests
+pushd tests/integration >/dev/null
+bash run || EC=1
+popd >/dev/null
