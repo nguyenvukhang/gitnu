@@ -1,12 +1,10 @@
 // parses opts from arguments
 // (determines the state of the app from CLI args)
 
-use crate::shell::get_stdout;
-use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum OpType {
@@ -19,33 +17,40 @@ pub enum OpType {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Opts {
     pub xargs_cmd: Option<OsString>,
-    pub git_dir: Option<OsString>,
-    pub git_root: Option<PathBuf>,
     pub op: OpType,
+
+    /// result of git rev-parse --show-toplevel
+    /// root of git workspace
+    pub git_root: Option<PathBuf>,
+
+    /// taken as a CLI argument with:
+    /// gitnu -C <arg_dir>
+    ///
+    /// defaults to current working directory
+    pub arg_dir: PathBuf,
 }
 
 impl Opts {
-    /// get git command loaded with git_dir
+    /// get git command loaded with arg_dir
     fn git_cmd(&self) -> Command {
         let mut git = Command::new("git");
-        if let Some(git_dir) = &self.git_dir {
-            git.arg("-C");
-            git.arg(git_dir);
-        }
+        git.current_dir(&self.arg_dir);
         git
     }
-    // get xargs cmd loaded with cwd
+
+    /// get xargs cmd loaded with cwd
     fn xargs_cmd(&self) -> Result<Command, Error> {
         let cmd = self.xargs_cmd.as_ref().ok_or(Error::new(
             ErrorKind::NotFound,
             "xargs command not found",
         ))?;
         let mut cmd = Command::new(cmd);
-        if let Some(git_dir) = &self.git_dir {
-            cmd.current_dir(git_dir);
-        }
+        cmd.current_dir(&self.arg_dir);
         Ok(cmd)
     }
+
+    /// get either `git` or the xargs cmd,
+    /// depending on the operation type
     pub fn cmd(&self) -> Result<Command, Error> {
         use OpType::*;
         match self.op {
@@ -53,51 +58,28 @@ impl Opts {
             Xargs => self.xargs_cmd(),
         }
     }
-    pub fn run(&self, args: Vec<OsString>) -> Result<ExitStatus, Error> {
-        self.cmd()?.args(args).spawn()?.wait()
+
+    /// uses self.arg_dir to find the nearest parent repository
+    fn open_repo(&self) -> Result<git2::Repository, Error> {
+        Ok(git2::Repository::open_ext(
+            &self.arg_dir,
+            git2::RepositoryOpenFlags::empty(),
+            Vec::<PathBuf>::new(),
+        )
+        .ok()
+        .ok_or(Error::new(ErrorKind::NotFound, "repository not found"))?)
     }
-    fn cache_dir(&self) -> Result<std::path::PathBuf, Error> {
-        let mut git = self.git_cmd();
-        git.args(["rev-parse", "--path-format=absolute", "--git-dir"]);
-        Ok(PathBuf::from(get_stdout(&mut git)?))
+
+    /// get the cache file to read/write file indices to
+    /// filename is gitnu.txt
+    pub fn cache_file(&self) -> Result<PathBuf, Error> {
+        Ok(self.open_repo()?.path().to_path_buf().join("gitnu.txt"))
     }
+
     fn set_git_root(&mut self) {
-        let mut git = self.git_cmd();
-        git.args(["rev-parse", "--show-toplevel"]);
-        if let Ok(dir) = get_stdout(&mut git) {
-            match dir.as_str() {
-                "" => self.git_root = None,
-                _ => self.git_root = Some(PathBuf::from(dir)),
-            }
+        if let Ok(repo) = self.open_repo() {
+            self.git_root = repo.workdir().map(|v| v.to_path_buf());
         }
-    }
-    fn cache_file(&self) -> Result<std::path::PathBuf, Error> {
-        Ok(self.cache_dir()?.join("gitnu.txt"))
-    }
-    pub fn write_cache(&self, content: String) -> Result<(), Error> {
-        return std::fs::write(self.cache_file()?, content);
-    }
-    pub fn read_cache(&self) -> Result<HashMap<u16, PathBuf>, Error> {
-        use std::fs::File;
-        use std::io::{BufRead, BufReader};
-        let cache_file = self.cache_file()?;
-        let file = File::open(cache_file)?;
-        let mut res: HashMap<u16, PathBuf> = HashMap::new();
-        let mut count = 1;
-        let cwd = PathBuf::from(".");
-        let git_root = match &self.git_root {
-            Some(v) => v,
-            None => &cwd,
-        };
-        BufReader::new(file)
-            .lines()
-            .filter_map(|v| v.ok())
-            .map(|v| git_root.join(v))
-            .for_each(|v| {
-                res.insert(count, v);
-                count += 1;
-            });
-        Ok(res)
     }
 }
 
@@ -105,36 +87,39 @@ pub fn get(args: &Vec<OsString>) -> (Opts, Vec<OsString>) {
     let mut opts = Opts {
         op: OpType::Bypass,
         xargs_cmd: None,
-        git_dir: None,
+        arg_dir: PathBuf::from("."),
         git_root: None,
     };
-    let mut set_op = |new_op: OpType| {
+    let mut set_op_once = |new_op: OpType| {
         if opts.op == OpType::Bypass {
             opts.op = new_op;
         }
     };
     let mut res: Vec<OsString> = Vec::new();
     let mut it = args.iter();
+
+    // let mut command = Command::new("__");
+
     while let Some(arg) = it.next() {
         let mut push = || res.push(OsString::from(arg));
         match arg.to_str().unwrap_or("") {
             "add" | "reset" | "diff" | "checkout" => {
-                set_op(OpType::Read);
+                set_op_once(OpType::Read);
                 push()
             }
             "status" => {
-                set_op(OpType::Status);
+                set_op_once(OpType::Status);
                 push()
             }
             "-c" => match it.next() {
                 Some(cmd) => {
-                    set_op(OpType::Xargs);
+                    set_op_once(OpType::Xargs);
                     opts.xargs_cmd = Some(cmd.to_owned());
                 }
                 None => push(),
             },
             "-C" => match it.next() {
-                Some(dir) => opts.git_dir = Some(dir.to_owned()),
+                Some(dir) => opts.arg_dir = PathBuf::from(dir),
                 None => push(),
             },
             _ => push(),
@@ -146,7 +131,7 @@ pub fn get(args: &Vec<OsString>) -> (Opts, Vec<OsString>) {
 
 #[cfg(test)]
 fn expected(
-    git_dir: Option<&str>,
+    arg_dir: Option<&str>,
     xargs_cmd: Option<&str>,
     op: OpType,
 ) -> Opts {
@@ -155,7 +140,7 @@ fn expected(
         Some(v) => Some(OsString::from(v)),
     };
     Opts {
-        git_dir: stringify(git_dir),
+        arg_dir: PathBuf::from(arg_dir.unwrap_or(".")),
         xargs_cmd: stringify(xargs_cmd),
         op,
         git_root: None,
@@ -172,11 +157,11 @@ fn received(args: &[&str]) -> Opts {
 #[test]
 fn test_get_opts() {
     fn assert_eq(rec: &Opts, exp: &Opts) {
-        assert_eq!(rec.git_dir, exp.git_dir);
+        assert_eq!(rec.arg_dir, exp.arg_dir);
         assert_eq!(rec.xargs_cmd, exp.xargs_cmd);
         assert_eq!(rec.op, exp.op);
     }
-    // set git_dir
+    // set arg_dir
     let rec = received(&["-C", "/dev/null"]);
     let exp = expected(Some("/dev/null"), None, OpType::Bypass);
     assert_eq(&rec, &exp);
@@ -186,12 +171,12 @@ fn test_get_opts() {
     let exp = expected(None, Some("nvim"), OpType::Xargs);
     assert_eq(&rec, &exp);
 
-    // set both git_dir and xargs_cmd
+    // set both arg_dir and xargs_cmd
     let rec = received(&["-C", "/etc", "-c", "nvim"]);
     let exp = expected(Some("/etc"), Some("nvim"), OpType::Xargs);
     assert_eq(&rec, &exp);
 
-    // set both xargs_cmd and git_dir
+    // set both xargs_cmd and arg_dir
     let rec = received(&["-c", "nvim", "-C", "/etc"]);
     let exp = expected(Some("/etc"), Some("nvim"), OpType::Xargs);
     assert_eq(&rec, &exp);
@@ -206,7 +191,7 @@ fn test_get_opts() {
     let exp = expected(None, None, OpType::Read);
     assert_eq(&rec, &exp);
 
-    // read mode with git_dir
+    // read mode with arg_dir
     let rec = received(&["-C", "/tmp", "add", "2-4"]);
     let exp = expected(Some("/tmp"), None, OpType::Read);
     assert_eq(&rec, &exp);

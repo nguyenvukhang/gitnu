@@ -1,6 +1,6 @@
 [package]
 name = "gitnu"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Nguyen Vu Khang <brew4k@gmail.com>"]
 description = """
 gitnu indexes your git status so you can use numbers instead of filenames.
@@ -25,5 +25,4 @@ doctest = false
 
 [dependencies]
 serde_json = "1.0.85"
-log = { version = "0.4.17", features = ["max_level_debug", "release_max_level_warn"] }
-env_logger = "0.9.0"
+git2 = "0.15.0"

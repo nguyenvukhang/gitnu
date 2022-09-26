@@ -11,7 +11,8 @@ trap teardown EXIT
 
 mkdir tmp >/dev/null
 
-# [ -d tmp ] && cargo test || EC=1
+# run unit tests
+[ -d tmp ] && cargo test || EC=1
 
 # run integration tests
 pushd tests/integration >/dev/null

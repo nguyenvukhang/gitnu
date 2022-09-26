@@ -22,7 +22,7 @@ init() {
   local tmp_dir=$HERE/tmp/$N
   mkdir -p $tmp_dir && _pushd $tmp_dir
   _git init
-  let i=1
+  let local i=1
   while [ $i -le $1 ]; do
     touch "file_$i"
     let i++
@@ -59,9 +59,9 @@ test() {
     return
   fi
 
-  # gather stats and report
+  # gather stats and diff
   local DIFF=$(diff $rec $exp)
-  if [ -z $DIFF ]; then
+  if [[ -z $DIFF ]]; then
     pass $file "$title"
     let PASSES++
   else
@@ -75,7 +75,7 @@ test() {
 
 main() {
   # build
-  cargo build --quiet
+  cargo build --quiet || exit 1
 
   # ensure correct binary is used
   if ! command -v gitnu >/dev/null; then

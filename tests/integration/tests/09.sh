@@ -8,9 +8,7 @@ _gitnu add src
 _gitnu commit -m "src_dir"
 
 cd src
-touch emerald
-touch sapphire
-touch ruby
+touch emerald sapphire ruby
 _gitnu status
 _gitnu add 3-5
 log gitnu status

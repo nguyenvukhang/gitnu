@@ -43,8 +43,8 @@ pub fn run(opts: Opts) -> Result<(), Error> {
     let mut count = 0;
     let limit = 50;
 
-    use std::io::BufRead;
-    std::io::BufReader::new(output)
+    use std::io::{BufRead, BufReader};
+    BufReader::new(output)
         .lines()
         .filter_map(|line| line.ok())
         .for_each(|line| print_line(&line, &mut count, limit));
@@ -53,11 +53,5 @@ pub fn run(opts: Opts) -> Result<(), Error> {
         println!("... {} hidden items (gitnu)", count - limit);
     }
 
-    match git.wait() {
-        Ok(_) => Ok(()),
-        Err(_) => Err(Error::new(
-            std::io::ErrorKind::TimedOut,
-            "Unable to wait for git",
-        )),
-    }
+    git.wait().map(|v| ())
 }

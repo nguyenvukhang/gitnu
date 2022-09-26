@@ -104,5 +104,6 @@ pub fn run(opts: Opts) -> Result<(), Error> {
     // write files to json
     let content = files.join("\n");
 
+    use crate::actions::CacheActions;
     opts.write_cache(content)
 }
