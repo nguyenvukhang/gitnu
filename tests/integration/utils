@@ -34,8 +34,7 @@ reset_git_config() {
 
 setup() {
   # navigate to where this script is located
-  HERE=$(dirname "$(readlink -f "$0")")
-  pushd $HERE >/dev/null
+  HERE=$PWD
   GITNU=$HERE/../../target/debug/gitnu
   REC_DIR=$HERE/received
   rm -rf $REC_DIR && mkdir $REC_DIR

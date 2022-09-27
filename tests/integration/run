@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# vim:syntax=bash
 
+# navigate to where this script is located
+pushd $(dirname "$(readlink -f "$0")") >/dev/null
 source ./utils
 setup # sets the current directory to this script's location
 trap cleanup EXIT
@@ -56,7 +57,7 @@ test() {
   if [ $ok = 0 ]; then
     [ -f $rec ] && cat $rec
     reset_dir
-    return
+    return 1
   fi
 
   # gather stats and diff
@@ -71,6 +72,7 @@ test() {
   fi
   [ $VERBOSE ] && cat $rec
   reset_dir
+  [[ -z $DIFF ]] && return 0 || return 1
 }
 
 main() {
@@ -89,7 +91,7 @@ main() {
   else
     # run all tests
     for t in $HERE/tests/*; do
-      test "$t"
+      test "$t" || exit 1
     done
   fi
 

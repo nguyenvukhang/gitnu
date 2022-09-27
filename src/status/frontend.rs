@@ -1,11 +1,11 @@
-use crate::opts::Opts;
+use crate::opts::{Opts, LIMIT};
 use std::io::Error;
 
 fn has_color(s: &str) -> bool {
     s.contains("\x1b[31m") || s.contains("\x1b[32m")
 }
 
-fn print_line(line: &String, count: &mut u16, limit: u16) {
+fn print_line(line: &String, count: &mut usize) {
     // only work with colored lines
     if !has_color(&line) {
         println!("{}", line);
@@ -13,7 +13,7 @@ fn print_line(line: &String, count: &mut u16, limit: u16) {
     }
     // line is colored
     *count += 1;
-    if *count > limit {
+    if *count > LIMIT {
         return;
     }
     if line.starts_with('\t') {
@@ -41,17 +41,16 @@ pub fn run(opts: Opts) -> Result<(), Error> {
 
     // start couting
     let mut count = 0;
-    let limit = 50;
 
     use std::io::{BufRead, BufReader};
     BufReader::new(output)
         .lines()
         .filter_map(|line| line.ok())
-        .for_each(|line| print_line(&line, &mut count, limit));
+        .for_each(|line| print_line(&line, &mut count));
 
-    if count > limit {
-        println!("... {} hidden items (gitnu)", count - limit);
+    if count > LIMIT {
+        println!("... {} hidden items (gitnu)", count - LIMIT);
     }
 
-    git.wait().map(|v| ())
+    git.wait().map(|_| ())
 }

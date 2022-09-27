@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 
-EC=0
-[[ $1 == '-k' ]] && KEEP=1
-
-teardown() {
-  [ -z $KEEP ] && rm -rf tmp
-  exit $EC
-}
-trap teardown EXIT
-
-mkdir tmp >/dev/null
+# final result
+# this allows all tests to run even if some fail in-between
+EXITCODE=0
 
 # run unit tests
-[ -d tmp ] && cargo test || EC=1
+cargo test || EXITCODE=1
 
 # run integration tests
-pushd tests/integration >/dev/null
-bash run || EC=1
-popd >/dev/null
+bash tests/integration/run || EXITCODE=1
+
+exit $EXITCODE

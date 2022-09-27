@@ -2,8 +2,7 @@ use gitnu;
 
 fn main() {
     // CLI arguments received
-    let args: Vec<std::ffi::OsString> =
-        std::env::args().map(|v| v.into()).collect();
+    let args = std::env::args().collect();
 
     // parse arguments
     let (args, opts) = gitnu::core(args);

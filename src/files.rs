@@ -1,51 +1,54 @@
+use crate::actions::FileIndex;
 use crate::opts::Opts;
 use std::collections::HashMap;
-use std::ffi::OsString;
 use std::path::PathBuf;
 
-#[derive(Debug)]
 struct Files {
-    data: HashMap<u16, PathBuf>,
-    count: u16,
+    /// stored as PathBuf because this needs to be joined
+    /// with the path to git workspace root
+    data: FileIndex,
+
+    /// highest number that has a file indexed
+    max: usize,
 }
 
 impl Files {
-    pub fn new(data: HashMap<u16, PathBuf>) -> Files {
+    pub fn new(data: FileIndex) -> Files {
         assert_eq!(data.get(&0), None);
-        Files { data, count: 0 }
+        Files { max: data.len() + 1, data }
     }
-    fn get(&mut self, query: &OsString) -> Option<PathBuf> {
-        self.data.remove(&query.to_str()?.parse().unwrap_or(0))
+    fn get(&mut self, query: &String) -> Option<PathBuf> {
+        let index = match query.parse() {
+            Err(_) => return Some(query.into()), // not even an integer
+            Ok(i) if i > self.max => return None, // out of range
+            Ok(v) => v,
+        };
+        self.data.remove(&index)
     }
-    pub fn apply(&mut self, args: &mut Vec<OsString>) {
-        fn is_flag(flag: &OsString) -> bool {
-            flag.to_str().unwrap_or("").starts_with("-")
-                && flag.to_ascii_lowercase().eq(flag)
-        }
-        let mut it = args.iter_mut();
-        while let Some(arg) = it.next() {
-            // don't parse things like the 15 in `gitnu log -n 15`
-            // once a flag is seen, skip both the flag and the next arg
-            if is_flag(arg) {
-                it.next();
-                continue;
+    pub fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf> {
+        let mut skip = false;
+        let mut flag = false;
+        let is_flag =
+            |f: &str| f.starts_with("-") && f.to_ascii_lowercase().eq(f);
+        let apply = |a: &String| -> Option<PathBuf> {
+            flag = is_flag(&a);
+            if skip || flag {
+                skip = flag;
+                return Some(PathBuf::from(a));
             }
-            if let Some(res) = self.get(arg) {
-                *arg = res.into_os_string();
-                self.count += 1;
-            }
-        }
+            self.get(&a)
+        };
+        args.iter().filter_map(apply).collect()
     }
 }
 
 /// replace numbers with filenames
 /// mutates the vector passed in, since the result has the same length
-pub fn load(args: &mut Vec<OsString>, opts: &Opts) {
+pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
     // read cache
     use crate::actions::CacheActions;
     let cache = opts.read_cache().unwrap_or(HashMap::new());
 
     // make a wrapper to safely apply to args
-    let mut files = Files::new(cache);
-    files.apply(args);
+    Files::new(cache).apply(args)
 }
