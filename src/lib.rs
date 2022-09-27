@@ -1,6 +1,7 @@
 mod actions;
 mod files;
 mod opts;
+mod parser;
 mod range;
 mod status;
 use opts::{OpType, Opts};
@@ -20,7 +21,8 @@ pub fn run(args: Vec<PathBuf>, opts: Opts) {
 
 /// Receives CLI arguments, returns parsed arguments to pass to git
 pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
-    let (args, opts) = opts::get(&args);
+    use opts::Parser;
+    let (args, opts) = Opts::parse(&args);
     let args = range::load(args); // parse ranges
     let args = files::load(args, &opts); // insert filenames
     (args, opts)

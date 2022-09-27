@@ -9,7 +9,7 @@ pub fn run(opts: Opts) {
     let opts1 = opts.clone();
     let frontend = thread::spawn(|| frontend::run(opts1));
     let backend = thread::spawn(|| backend::run(opts));
-    let wait = |v: thread::JoinHandle<Result<(), std::io::Error>>, name| {
+    let wait = |v: thread::JoinHandle<Option<()>>, name| {
         if v.join().is_err() {
             eprintln!("{} thread failed", name);
         }

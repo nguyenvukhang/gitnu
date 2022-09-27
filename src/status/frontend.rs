@@ -1,5 +1,4 @@
 use crate::opts::{Opts, LIMIT};
-use std::io::Error;
 
 fn has_color(s: &str) -> bool {
     s.contains("\x1b[31m") || s.contains("\x1b[32m")
@@ -25,19 +24,14 @@ fn print_line(line: &String, count: &mut usize) {
 
 // this prints `git status` enumerated
 // has nothing to do with data management
-pub fn run(opts: Opts) -> Result<(), Error> {
+pub fn run(opts: Opts) -> Option<()> {
     let mut git = opts.cmd()?;
     git.args(["-c", "status.color=always", "status"]);
     git.stdout(std::process::Stdio::piped()); // capture stdout
 
     // spawn the process
-    let mut git = git.spawn()?;
-
-    // get stdout
-    let output = git.stdout.as_mut().ok_or(Error::new(
-        std::io::ErrorKind::NotFound,
-        "Unable to get stdout",
-    ))?;
+    let mut git = git.spawn().ok()?;
+    let output = git.stdout.as_mut()?;
 
     // start couting
     let mut count = 0;
@@ -52,5 +46,5 @@ pub fn run(opts: Opts) -> Result<(), Error> {
         println!("... {} hidden items (gitnu)", count - LIMIT);
     }
 
-    git.wait().map(|_| ())
+    git.wait().map(|_| ()).ok()
 }

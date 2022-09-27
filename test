@@ -8,6 +8,6 @@ EXITCODE=0
 cargo test || EXITCODE=1
 
 # run integration tests
-bash tests/integration/run || EXITCODE=1
+bash tests/integration/run $@ || EXITCODE=1
 
 exit $EXITCODE

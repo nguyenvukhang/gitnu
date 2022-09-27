@@ -8,25 +8,23 @@ trap cleanup EXIT
 HERE=$PWD
 
 # parse arguments
-for i in $@; do
+for i in "$@"; do
   [ $i = '-v' ] && VERBOSE=true
+  [ $i = '-s' ] && SILENT=true
   [[ "$i" =~ [0-9]+ ]] && [ -z $ONE_TEST ] && printf -v ONE_TEST "%02d" $i
 done
 
-N=0 # current test id
+N=0 # current id
 let PASSES=0
 let TOTAL=0
 
 # for use in ./tests/*.sh
 # $1 is number of files to mock up
 init() {
-  local tmp_dir=$HERE/tmp/$N
-  mkdir -p $tmp_dir && _pushd $tmp_dir
   _git init
   let local i=1
   while [ $i -le $1 ]; do
-    touch "file_$i"
-    let i++
+    touch "file_$i" && let i++
   done
 }
 
@@ -36,27 +34,20 @@ log() {
   eval "$@" >$REC_DIR/$N.txt
 }
 
-# return to original directory
-reset_dir() {
-  _popd
-  assert $PWD $HERE
-}
-
 # $1 : aboslute path to ./tests/*.sh
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
-  let TOTAL++
-  N=$(get_test_id $1)
-  source $1
+  source $1 &>/dev/null
   local title=$(get_test_title $1) && local file=${1##$HERE/}
   local rec=$HERE/received/$N.txt && local exp=$HERE/expected/$N.txt
   local ok=1
   [ ! -f $rec ] && not_found $file received/$N.txt && ok=0
   [ ! -f $exp ] && not_found $file expected/$N.txt && ok=0
+
   # either received/expected not found
   if [ $ok = 0 ]; then
+    [ $SILENT ] && return 1
     [ -f $rec ] && cat $rec
-    reset_dir
     return 1
   fi
 
@@ -64,14 +55,14 @@ test() {
   local DIFF=$(diff $rec $exp)
   if [[ -z $DIFF ]]; then
     pass $file "$title"
-    let PASSES++
   else
     fail $file "$title"
-    echo "<: received, >: expected"
-    echo "$DIFF"
+    if [[ $SILENT != 'true' ]]; then
+      echo "<: received, >: expected"
+      echo "$DIFF"
+    fi
   fi
   [ $VERBOSE ] && cat $rec
-  reset_dir
   [[ -z $DIFF ]] && return 0 || return 1
 }
 
@@ -90,8 +81,19 @@ main() {
     test $HERE/tests/$ONE_TEST.sh
   else
     # run all tests
+    pids=()
     for t in $HERE/tests/*; do
-      test "$t" || exit 1
+      let TOTAL++
+      assert $PWD $HERE
+      N=$(get_test_id $t)
+      tmp_dir=$HERE/tmp/$N && mkdir -p $tmp_dir
+      cd $tmp_dir && test "$t" &
+      pids+=("$!")
+    done
+    # wait for all tests to finish
+    for pid in ${pids[@]}; do
+      wait $pid
+      [[ $? == 0 ]] && let PASSES++
     done
   fi
 

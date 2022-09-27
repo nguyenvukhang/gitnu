@@ -1,8 +1,9 @@
 // this reads file indices from `git status --porcelain`
 // has nothing to do with terminal display/stdout
 
-use crate::opts::Opts;
-use std::io::Error;
+use crate::opts::{Opts, LIMIT};
+use std::io::BufReader;
+use std::process::ChildStdout;
 
 #[derive(PartialEq, Debug)]
 enum LineState {
@@ -48,9 +49,7 @@ fn test_get_line_state() {
     assert_eq!(get_line_state("    "), LineState::None);
 }
 
-fn get_files(
-    reader: std::io::BufReader<std::process::ChildStdout>,
-) -> Vec<String> {
+fn get_files(reader: BufReader<ChildStdout>, limit: usize) -> Vec<String> {
     let vec = || -> Vec<String> { Vec::new() };
     let mut staged = vec();
     let mut unstaged = vec();
@@ -75,31 +74,34 @@ fn get_files(
     use std::io::BufRead;
     reader.lines().filter_map(|line| line.ok()).for_each(handle_line);
 
+    let truncate = |v: &mut Vec<String>| {
+        if v.len() > limit {
+            v.truncate(limit);
+        }
+    };
+
     // join all vectors to form one
     // this reflects the order shown with `git status`
     staged.append(&mut unstaged);
+    truncate(&mut staged);
     staged.append(&mut untracked);
+    truncate(&mut staged);
     staged
 }
 
 /// use `git status --pocelain` to get all files in order of display
 /// as in `git status`
-pub fn run(opts: Opts) -> Result<(), Error> {
+pub fn run(opts: Opts) -> Option<()> {
     let mut git = opts.cmd()?;
     git.args(["status", "--porcelain"]);
     git.stdout(std::process::Stdio::piped()); // capture stdout
 
     // spawn the process
-    let git = git.spawn()?;
-
-    // get stdout
-    let output = git.stdout.ok_or(Error::new(
-        std::io::ErrorKind::NotFound,
-        "Unable to get stdout",
-    ))?;
+    let git = git.spawn().ok()?;
+    let output = git.stdout?;
 
     let reader = std::io::BufReader::new(output);
-    let files = get_files(reader);
+    let files = get_files(reader, LIMIT);
 
     // write files to json
     let content = files.join("\n");

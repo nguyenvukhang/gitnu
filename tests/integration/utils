@@ -42,11 +42,6 @@ setup() {
   set_git_config
 }
 
-cleanup() {
-  reset_git_config
-  rm -rf $HERE/tmp
-}
-
 get_test_id() {
   local N=${1##*/} && printf ${N%%.*}
 }
@@ -62,6 +57,13 @@ assert() {
     exit 1
   fi
 }
+
+cleanup() {
+  reset_git_config
+  assert $PWD $HERE
+  rm -rf $HERE/tmp
+}
+
 
 _pushd() { # silent pushd
   pushd $1 >/dev/null
