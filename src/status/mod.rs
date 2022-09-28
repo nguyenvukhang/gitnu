@@ -4,10 +4,11 @@ pub mod backend;
 pub mod frontend;
 use crate::opts::Opts;
 use std::thread;
+use std::path::PathBuf;
 
-pub fn run(opts: Opts) {
+pub fn run(args: Vec<PathBuf>, opts: Opts) {
     let opts1 = opts.clone();
-    let frontend = thread::spawn(|| frontend::run(opts1));
+    let frontend = thread::spawn(|| frontend::run(args, opts1));
     let backend = thread::spawn(|| backend::run(opts));
     let wait = |v: thread::JoinHandle<Option<()>>, name| {
         if v.join().is_err() {

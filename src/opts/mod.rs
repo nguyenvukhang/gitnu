@@ -1,7 +1,13 @@
+mod actions;
+mod commands;
+mod parser;
+
+use std::io::Error;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 pub const LIMIT: usize = 50;
+pub type Cache = Vec<Option<PathBuf>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum OpType {
@@ -12,9 +18,16 @@ pub enum OpType {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum StatusFmt {
+    Normal, // gitnu status
+    Short,  // gitnu status --short || gitnu status --porcelain
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Opts {
     pub xargs_cmd: Option<String>,
     pub op: OpType,
+    pub status_fmt: StatusFmt,
 
     /// result of git rev-parse --show-toplevel
     /// root of git workspace
@@ -33,32 +46,22 @@ pub trait Parser {
     fn parse(args: &Vec<String>) -> (Vec<String>, Opts);
 }
 
-impl Opts {
-    /// get git command loaded with arg_dir
-    fn git_cmd(&self) -> Command {
-        let mut git = Command::new("git");
-        git.current_dir(&self.arg_dir);
-        git
-    }
-
-    /// get xargs cmd loaded with cwd
-    fn xargs_cmd(&self) -> Option<Command> {
-        let cmd = self.xargs_cmd.as_ref()?;
-        let mut cmd = Command::new(cmd);
-        cmd.current_dir(&self.arg_dir);
-        Some(cmd)
-    }
-
+pub trait Commands {
     /// get either `git` or the xargs cmd,
     /// depending on the operation type
-    pub fn cmd(&self) -> Option<Command> {
-        use OpType::*;
-        match self.op {
-            Read | Status | Bypass => Some(self.git_cmd()),
-            Xargs => self.xargs_cmd(),
-        }
-    }
+    fn cmd(&self) -> Option<Command>;
+}
 
+pub trait CacheActions {
+    fn write_cache(&self, content: String) -> Option<()>;
+    fn read_cache(&self) -> Option<Cache>;
+}
+
+pub trait RunAction {
+    fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error>;
+}
+
+impl Opts {
     /// uses self.arg_dir to find the nearest parent repository
     pub fn open_repo(&self) -> Option<git2::Repository> {
         git2::Repository::open_ext(

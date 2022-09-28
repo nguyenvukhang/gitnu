@@ -1,5 +1,12 @@
-use crate::opts::{OpType, Opts, Parser};
+use crate::opts::{OpType, Opts, Parser, StatusFmt};
 use std::path::PathBuf;
+
+fn set_op(new_val: OpType, curr: &mut OpType) {
+    match curr {
+        OpType::Bypass => *curr = new_val,
+        _ => (),
+    }
+}
 
 impl Parser for Opts {
     fn parse(args: &Vec<String>) -> (Vec<String>, Opts) {
@@ -8,11 +15,7 @@ impl Parser for Opts {
             xargs_cmd: None,
             arg_dir: PathBuf::from("."),
             git_root: None,
-        };
-        let mut set_op_once = |new_op: OpType| {
-            if opts.op == OpType::Bypass {
-                opts.op = new_op;
-            }
+            status_fmt: StatusFmt::Normal,
         };
         let mut res: Vec<String> = Vec::new();
         let mut it = args.iter();
@@ -21,16 +24,16 @@ impl Parser for Opts {
         while let Some(arg) = it.next() {
             match arg.as_str() {
                 "add" | "reset" | "diff" | "checkout" => {
-                    set_op_once(OpType::Read);
+                    set_op(OpType::Read, &mut opts.op);
                     push(arg)
                 }
                 "status" => {
-                    set_op_once(OpType::Status);
+                    set_op(OpType::Status, &mut opts.op);
                     push(arg)
                 }
                 "-c" => match it.next() {
                     Some(cmd) => {
-                        set_op_once(OpType::Xargs);
+                        set_op(OpType::Xargs, &mut opts.op);
                         opts.xargs_cmd = Some(cmd.to_owned());
                     }
                     None => push(arg),
@@ -39,6 +42,13 @@ impl Parser for Opts {
                     Some(dir) => opts.arg_dir = PathBuf::from(dir),
                     None => push(arg),
                 },
+                "--short" | "-s" | "--porcelain" => {
+                    match opts.op {
+                        OpType::Status => opts.status_fmt = StatusFmt::Short,
+                        _ => (),
+                    };
+                    push(arg)
+                }
                 _ => push(arg),
             }
         }
@@ -63,6 +73,7 @@ fn expected(
             None => None,
         },
         git_root: None,
+        status_fmt: StatusFmt::Normal,
         op,
     }
 }

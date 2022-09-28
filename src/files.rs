@@ -1,8 +1,6 @@
-use crate::opts::Opts;
+use crate::opts::{Cache, Opts};
 use std::mem;
 use std::path::PathBuf;
-
-pub type Cache = Vec<Option<PathBuf>>;
 
 struct Files {
     /// stored as PathBuf because this needs to be joined
@@ -41,7 +39,7 @@ impl Files {
 /// mutates the vector passed in, since the result has the same length
 pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
     // read cache
-    use crate::actions::CacheActions;
+    use crate::opts::CacheActions;
     let cache = opts.read_cache().unwrap_or(Vec::new());
 
     // make a wrapper to safely apply to args

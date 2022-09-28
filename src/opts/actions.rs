@@ -1,17 +1,8 @@
-use crate::files::Cache;
-use crate::opts::Opts;
+use crate::opts::{Cache, CacheActions, Opts, RunAction};
 use std::io::{BufRead, BufReader};
 use std::io::{Error, ErrorKind::Other};
 use std::path::PathBuf;
 use std::process::ExitStatus;
-
-pub trait CacheActions {
-    fn write_cache(&self, content: String) -> Option<()>;
-    fn read_cache(&self) -> Option<Cache>;
-}
-pub trait RunAction {
-    fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error>;
-}
 
 impl CacheActions for Opts {
     fn write_cache(&self, content: String) -> Option<()> {
@@ -30,6 +21,7 @@ impl CacheActions for Opts {
 impl RunAction for Opts {
     fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error> {
         let err = Error::new(Other, "Unable to run");
+        use crate::opts::Commands;
         self.cmd().ok_or(err)?.args(args).spawn()?.wait()
     }
 }

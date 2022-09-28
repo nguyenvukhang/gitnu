@@ -1,0 +1,4 @@
+1  [32mA[m[31mM[m file_1
+2  [32mA[m  file_2
+3  [31m??[m file_3
+4  [31m??[m file_4

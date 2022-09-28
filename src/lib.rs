@@ -1,9 +1,8 @@
-mod actions;
 mod files;
 mod opts;
-mod parser;
 mod range;
 mod status;
+
 use opts::{OpType, Opts};
 use std::path::PathBuf;
 
@@ -11,9 +10,9 @@ use std::path::PathBuf;
 /// No further actions after this function is ran.
 pub fn run(args: Vec<PathBuf>, opts: Opts) {
     match opts.op {
-        OpType::Status => status::run(opts),
+        OpType::Status => status::run(args, opts),
         _ => {
-            use actions::RunAction;
+            use opts::RunAction;
             opts.run(args).ok();
         }
     }
