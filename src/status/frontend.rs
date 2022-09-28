@@ -1,19 +1,21 @@
 use crate::opts::{Opts, StatusFmt, LIMIT};
 use std::path::PathBuf;
 
-struct Print {
+/// Manages the actual output of `gitnu status`
+/// Enumerates each line containing a filename up until `limit`
+struct Printer {
     count: usize,
     limit: usize,
     fmt: StatusFmt,
 }
 
-impl Print {
+impl Printer {
     pub fn new(limit: usize, opts: Opts) -> Self {
-        Print { count: 0, limit, fmt: opts.status_fmt }
+        Self { count: 0, limit, fmt: opts.status_fmt }
     }
 
     /// prints only if current count is within limits
-    fn safe_print<F>(&self, print: F)
+    fn send<F>(&self, print: F)
     where
         F: FnOnce() -> (),
     {
@@ -29,17 +31,18 @@ impl Print {
             return;
         }
         self.count += 1;
-        self.safe_print(|| println!("{}{}", self.count, line));
+        self.send(|| println!("{}{}", self.count, line));
     }
 
-    /// prints output of `git status --short` or
+    /// Handles output of `git status --short` or
     /// `git status --porcelain`
     fn print_short(&mut self, line: &str) {
         self.count += 1;
-        self.safe_print(|| println!("{: <3}{}", self.count, line));
+        self.send(|| println!("{: <3}{}", self.count, line));
     }
 
-    /// core printing method
+    /// Core printing method.
+    /// Takes in any line from git output and self-updates count
     pub fn print(&mut self, line: &str) {
         match self.fmt {
             StatusFmt::Normal => self.print_default(line),
@@ -47,7 +50,7 @@ impl Print {
         }
     }
 
-    /// tells use how many lines of status was hidden from stdout
+    /// Tells user how many lines of status was hidden from stdout
     pub fn end(&self) {
         if self.count <= self.limit {
             return;
@@ -71,7 +74,7 @@ pub fn run(args: Vec<PathBuf>, opts: Opts) -> Option<()> {
     let output = git.stdout.as_mut()?;
 
     use std::io::{BufRead, BufReader};
-    let mut printer = Print::new(LIMIT, opts);
+    let mut printer = Printer::new(LIMIT, opts);
     BufReader::new(output)
         .lines()
         .filter_map(|line| line.ok())

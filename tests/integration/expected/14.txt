@@ -3,9 +3,9 @@ On branch main
 No commits yet
 
 Changes to be committed:
-1	[32mnew file:   file_1[m
+1	[32mnew file:   file_0001[m
 
 Untracked files:
-2	[31mfile_2[m
-3	[31mfile_3[m
+2	[31mfile_0002[m
+3	[31mfile_0003[m
 

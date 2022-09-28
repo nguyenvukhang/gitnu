@@ -1,4 +1,4 @@
-use crate::opts::{Opts, LIMIT};
+use crate::opts::{Opts, StatusFmt, LIMIT};
 use std::io::BufReader;
 use std::process::ChildStdout;
 
@@ -11,14 +11,11 @@ enum LineState {
     None,
 }
 
-fn truncate(v: &mut Vec<String>, limit: usize) {
-    if v.len() > limit {
-        v.truncate(limit);
-    }
-}
+type LoadedReader = BufReader<ChildStdout>;
 
+/// Get the state of a line of output of `git status --porcelain`
 fn get_line_state(line: &str) -> LineState {
-    // lines that are 3 chars or shorter do not have a filename
+    // lines 3 chars or shorter do not have a filename
     if line.len() <= 3 {
         return LineState::None;
     }
@@ -36,25 +33,28 @@ fn get_line_state(line: &str) -> LineState {
 
 #[test]
 fn test_get_line_state() {
-    assert_eq!(get_line_state("A  gold"), LineState::Staged);
-    assert_eq!(get_line_state("?? silver"), LineState::Untracked);
-    assert_eq!(get_line_state(" M bronze"), LineState::Unstaged);
-    // no filenames
-    assert_eq!(get_line_state(" M"), LineState::None);
-    assert_eq!(get_line_state("D "), LineState::None);
-    assert_eq!(get_line_state("??"), LineState::None);
-    assert_eq!(get_line_state(" M "), LineState::None);
-    assert_eq!(get_line_state("D  "), LineState::None);
-    assert_eq!(get_line_state("?? "), LineState::None);
-    // whitespaces
-    assert_eq!(get_line_state(""), LineState::None);
-    assert_eq!(get_line_state(" "), LineState::None);
-    assert_eq!(get_line_state("  "), LineState::None);
-    assert_eq!(get_line_state("   "), LineState::None);
-    assert_eq!(get_line_state("    "), LineState::None);
+    let tests = [
+        ("A  gold", LineState::Staged),
+        ("?? silver", LineState::Untracked),
+        (" M bronze", LineState::Unstaged),
+        (" M", LineState::None),
+        ("D ", LineState::None),
+        ("??", LineState::None),
+        (" M ", LineState::None),
+        ("D  ", LineState::None),
+        ("?? ", LineState::None),
+        ("", LineState::None),
+        (" ", LineState::None),
+        ("  ", LineState::None),
+        ("   ", LineState::None),
+        ("    ", LineState::None),
+    ];
+    tests.iter().for_each(|(r, e)| assert_eq!(get_line_state(r), *e));
 }
 
-fn get_files(reader: BufReader<ChildStdout>, limit: usize) -> Vec<String> {
+/// Goes through the output of git status and obtains files in the order
+/// which they are displayed.
+fn get_files(reader: LoadedReader, limit: usize) -> Vec<String> {
     let vec = || -> Vec<String> { Vec::new() };
 
     // staged, unstaged, untracked
@@ -83,6 +83,12 @@ fn get_files(reader: BufReader<ChildStdout>, limit: usize) -> Vec<String> {
         }
     }
 
+    fn truncate(v: &mut Vec<String>, limit: usize) {
+        if v.len() > limit {
+            v.truncate(limit);
+        }
+    }
+
     // join all vectors to form one
     // this reflects the order shown with `git status`
     staged.append(&mut unstaged);
@@ -90,6 +96,17 @@ fn get_files(reader: BufReader<ChildStdout>, limit: usize) -> Vec<String> {
     staged.append(&mut untracked);
     truncate(&mut staged, limit);
     staged
+}
+
+/// same as get_files but for short displays
+fn get_files_short(reader: LoadedReader, limit: usize) -> Vec<String> {
+    use std::io::BufRead;
+    reader
+        .lines()
+        .filter_map(|line| line.ok())
+        .take(limit)
+        .map(|v| String::from(&v[3..]))
+        .collect()
 }
 
 /// use `git status --pocelain` to get all files in order of display
@@ -103,8 +120,12 @@ pub fn run(opts: Opts) -> Option<()> {
     // spawn the process
     let output = git.spawn().ok()?.stdout?;
 
-    let files = get_files(BufReader::new(output), LIMIT);
+    let reader = BufReader::new(output);
+    let files = match opts.status_fmt {
+        StatusFmt::Normal => get_files(reader, LIMIT),
+        StatusFmt::Short => get_files_short(reader, LIMIT),
+    };
 
-    use crate::opts::CacheActions;
+    use crate::opts::CacheOps;
     opts.write_cache(files.join("\n"))
 }

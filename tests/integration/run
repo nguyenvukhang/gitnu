@@ -24,7 +24,8 @@ init() {
   _git init
   let local i=1
   while [ $i -le $1 ]; do
-    touch "file_$i" && let i++
+    printf -v padded "%04d" $i
+    touch "file_$padded" && let i++
   done
 }
 

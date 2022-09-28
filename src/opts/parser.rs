@@ -1,22 +1,16 @@
 use crate::opts::{OpType, Opts, Parser, StatusFmt};
 use std::path::PathBuf;
 
-fn set_op(new_val: OpType, curr: &mut OpType) {
-    match curr {
-        OpType::Bypass => *curr = new_val,
+fn set_op(next: OpType, cur: &mut OpType) {
+    match cur {
+        OpType::Bypass => *cur = next,
         _ => (),
     }
 }
 
 impl Parser for Opts {
     fn parse(args: &Vec<String>) -> (Vec<String>, Opts) {
-        let mut opts = Opts {
-            op: OpType::Bypass,
-            xargs_cmd: None,
-            arg_dir: PathBuf::from("."),
-            git_root: None,
-            status_fmt: StatusFmt::Normal,
-        };
+        let mut opts = Opts::new();
         let mut res: Vec<String> = Vec::new();
         let mut it = args.iter();
         let mut push = |a| res.push(String::from(a));
@@ -39,7 +33,7 @@ impl Parser for Opts {
                     None => push(arg),
                 },
                 "-C" => match it.next() {
-                    Some(dir) => opts.arg_dir = PathBuf::from(dir),
+                    Some(dir) => opts.cwd = PathBuf::from(dir),
                     None => push(arg),
                 },
                 "--short" | "-s" | "--porcelain" => {
@@ -57,95 +51,55 @@ impl Parser for Opts {
     }
 }
 
-#[cfg(test)]
-fn expected(
-    arg_dir: Option<&str>,
-    xargs_cmd: Option<&str>,
-    op: OpType,
-) -> Opts {
-    Opts {
-        arg_dir: match arg_dir {
-            Some(v) => PathBuf::from(v),
-            None => PathBuf::from("."),
-        },
-        xargs_cmd: match xargs_cmd {
-            Some(v) => Some(v.to_owned()),
-            None => None,
-        },
-        git_root: None,
-        status_fmt: StatusFmt::Normal,
-        op,
-    }
-}
-
-#[cfg(test)]
-fn received(args: &[&str]) -> Opts {
-    let a: Vec<String> = args.iter().map(|v| String::from(*v)).collect();
-    let (_, opts) = Opts::parse(&a);
-    opts
-}
-
 #[test]
 fn test_get_opts() {
-    fn assert_eq(rec: Opts, exp: Opts) {
-        assert_eq!(rec.arg_dir, exp.arg_dir);
+    fn ex(c: Option<&str>, x: Option<&str>, op: OpType) -> Opts {
+        let mut opts = Opts::new();
+        (opts.xargs_cmd, opts.op) = (x.map(String::from), op);
+        opts.cwd = PathBuf::from(c.unwrap_or("."));
+        opts
+    }
+    fn rc(args: &[&str]) -> Opts {
+        Opts::parse(&args.iter().map(|v| String::from(*v)).collect()).1
+    }
+    fn assert_eq((rec, exp): &(&[&str], Opts)) {
+        let rec = rc(rec);
+        assert_eq!(rec.cwd, exp.cwd);
         assert_eq!(rec.xargs_cmd, exp.xargs_cmd);
         assert_eq!(rec.op, exp.op);
     }
-    // set arg_dir
-    let rec = received(&["-C", "/dev/null"]);
-    let exp = expected(Some("/dev/null"), None, OpType::Bypass);
-    assert_eq(rec, exp);
 
-    // set xargs_cmd
-    let rec = received(&["-c", "nvim"]);
-    let exp = expected(None, Some("nvim"), OpType::Xargs);
-    assert_eq(rec, exp);
-
-    // set both arg_dir and xargs_cmd
-    let rec = received(&["-C", "/etc", "-c", "nvim"]);
-    let exp = expected(Some("/etc"), Some("nvim"), OpType::Xargs);
-    assert_eq(rec, exp);
-
-    // set both xargs_cmd and arg_dir
-    let rec = received(&["-c", "nvim", "-C", "/etc"]);
-    let exp = expected(Some("/etc"), Some("nvim"), OpType::Xargs);
-    assert_eq(rec, exp);
-
-    // status mode
-    let rec = received(&["status", "--short"]);
-    let exp = expected(None, None, OpType::Status);
-    assert_eq(rec, exp);
-
-    // read mode
-    let rec = received(&["add", "2-4"]);
-    let exp = expected(None, None, OpType::Read);
-    assert_eq(rec, exp);
-
-    // read mode with arg_dir
-    let rec = received(&["-C", "/tmp", "add", "2-4"]);
-    let exp = expected(Some("/tmp"), None, OpType::Read);
-    assert_eq(rec, exp);
-
-    // -C flag without value
-    let rec = received(&["-C"]);
-    let exp = expected(None, None, OpType::Bypass);
-    assert_eq(rec, exp);
-
-    // -C flag with unexpected value
-    // (pass on to git)
-    let rec = received(&["-C", "status"]);
-    let exp = expected(Some("status"), None, OpType::Bypass);
-    assert_eq(rec, exp);
-
-    // -c flag without value
-    let rec = received(&["-c"]);
-    let exp = expected(None, None, OpType::Bypass);
-    assert_eq(rec, exp);
-
-    // -c flag with unexpected value
-    // (just run in anyways)
-    let rec = received(&["-c", "status"]);
-    let exp = expected(None, Some("status"), OpType::Xargs);
-    assert_eq(rec, exp);
+    let tests: &[(&[&str], Opts)] = &[
+        // set cwd
+        (&["-C", "/dev/null"], ex(Some("/dev/null"), None, OpType::Bypass)),
+        // set xargs_cmd
+        (&["-c", "nvim"], ex(None, Some("nvim"), OpType::Xargs)),
+        // set both cwd and xargs_cmd
+        (
+            &["-C", "/etc", "-c", "nvim"],
+            ex(Some("/etc"), Some("nvim"), OpType::Xargs),
+        ),
+        // set both xargs_cmd and cwd
+        (
+            &["-c", "nvim", "-C", "/etc"],
+            ex(Some("/etc"), Some("nvim"), OpType::Xargs),
+        ),
+        // status mode
+        (&["status", "--short"], ex(None, None, OpType::Status)),
+        // read mode
+        (&["add", "2-4"], ex(None, None, OpType::Read)),
+        // read mode with cwd
+        (&["-C", "/tmp", "add", "2-4"], ex(Some("/tmp"), None, OpType::Read)),
+        // -C flag without value
+        (&["-C"], ex(None, None, OpType::Bypass)),
+        // -C flag with unexpected value (pass on to git)
+        (&["-C", "status"], ex(Some("status"), None, OpType::Bypass)),
+        // -c flag without value
+        (&["-c"], ex(None, None, OpType::Bypass)),
+        // -c flag with unexpected value (just run it anyways)
+        (&["-c", "status"], ex(None, Some("status"), OpType::Xargs)),
+    ];
+    for i in tests {
+        assert_eq(i);
+    }
 }

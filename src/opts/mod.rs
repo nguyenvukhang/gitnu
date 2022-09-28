@@ -1,4 +1,4 @@
-mod actions;
+mod cache;
 mod commands;
 mod parser;
 
@@ -7,6 +7,8 @@ use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
 pub const LIMIT: usize = 50;
+pub const CACHE_FILE: &str = "gitnu.txt";
+
 pub type Cache = Vec<Option<PathBuf>>;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -34,38 +36,59 @@ pub struct Opts {
     pub git_root: Option<PathBuf>,
 
     /// taken as a CLI argument with:
-    /// gitnu -C <arg_dir>
+    /// gitnu -C <cwd>
     ///
     /// defaults to current working directory
-    pub arg_dir: PathBuf,
+    pub cwd: PathBuf,
 }
 
+/// holds one method: parse()
+/// converts CLI arguments from a String vector to Opts
 pub trait Parser {
     /// The gitnu options parser
     /// parses Opts from command line arguments
     fn parse(args: &Vec<String>) -> (Vec<String>, Opts);
 }
 
+/// holds two methods: cmd() and run()
+/// cmd() gets a command to run
+/// run() runs the command with some args
 pub trait Commands {
-    /// get either `git` or the xargs cmd,
-    /// depending on the operation type
+    /// Returns either `git` or the xargs cmd, loaded with current
+    /// working directory, depending on the operation type
     fn cmd(&self) -> Option<Command>;
-}
 
-pub trait CacheActions {
-    fn write_cache(&self, content: String) -> Option<()>;
-    fn read_cache(&self) -> Option<Cache>;
-}
-
-pub trait RunAction {
+    /// Run and don't look back.
+    /// This function executes no logic. Only runs a command with the
+    /// supplied arguments.
     fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error>;
 }
 
+/// Read/write operations for the cache file
+pub trait CacheOps {
+    /// writes to cache
+    fn write_cache(&self, content: String) -> Option<()>;
+
+    /// reads cache file to the Cache struct
+    fn read_cache(&self) -> Option<Cache>;
+}
+
 impl Opts {
-    /// uses self.arg_dir to find the nearest parent repository
-    pub fn open_repo(&self) -> Option<git2::Repository> {
+    /// Initialize with empty options.
+    pub fn new() -> Self {
+        Self {
+            cwd: PathBuf::from("."),
+            status_fmt: StatusFmt::Normal,
+            op: OpType::Bypass,
+            git_root: None,
+            xargs_cmd: None,
+        }
+    }
+
+    /// uses self.cwd to find the nearest parent repository
+    pub fn repo(&self) -> Option<git2::Repository> {
         git2::Repository::open_ext(
-            &self.arg_dir,
+            &self.cwd,
             git2::RepositoryOpenFlags::empty(),
             Vec::<PathBuf>::new(),
         )
@@ -73,14 +96,13 @@ impl Opts {
     }
 
     /// get the cache file to read/write file indices to
-    /// filename is gitnu.txt
     pub fn cache_file(&self) -> Option<PathBuf> {
-        Some(self.open_repo()?.path().join("gitnu.txt"))
+        Some(self.repo()?.path().join(CACHE_FILE))
     }
 
-    /// locate the root of the git workspace
+    /// Locate the root of the git workspace, and update self
     pub fn set_git_root(&mut self) {
-        if let Some(repo) = self.open_repo() {
+        if let Some(repo) = self.repo() {
             self.git_root = repo.workdir().map(|v| v.into());
         }
     }

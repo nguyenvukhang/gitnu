@@ -1,4 +1,5 @@
-/// parses two integers out of a range string
+/// Parses two integers from a string representing a range.
+/// "2-5" -> (2, 5)
 fn get_range(arg: &str) -> Option<(usize, usize)> {
     let (start, end) = arg.split_once("-")?;
     let int = |s: &str| s.parse().ok();
@@ -6,7 +7,9 @@ fn get_range(arg: &str) -> Option<(usize, usize)> {
     Some(if s < e { (s, e) } else { (e, s) })
 }
 
-/// adds a range to an argument list
+/// Reads one argument and appends to a result list.
+/// Appends a range of numbers one by one if a range is found,
+/// otherwise appends the original argument.
 fn add_range(arg: &str, args: &mut Vec<String>) {
     let mut use_range = |(start, end): (usize, usize)| {
         for i in start..end + 1 {
@@ -20,9 +23,9 @@ fn add_range(arg: &str, args: &mut Vec<String>) {
 }
 
 /// unpack number ranges (returns a new vector)
-/// 2-5   --->   2 3 4 5
+/// `gitnu add 2-5` -> `gitnu add 2 3 4 5`
 pub fn load(args: Vec<String>) -> Vec<String> {
-    let mut res: Vec<String> = Vec::new();
+    let mut res = Vec::new();
     for i in 1..args.len() {
         add_range(&args[i], &mut res);
     }

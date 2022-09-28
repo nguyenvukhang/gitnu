@@ -1,4 +1,5 @@
-1  [32mA[m[31mM[m file_1
-2  [32mA[m  file_2
-3  [31m??[m file_3
-4  [31m??[m file_4
+1  [32mA[m  file_0001
+2  [32mA[m  file_0002
+3  [31m??[m file_0003
+4  [31m??[m file_0004
+5  [31m??[m file_1
