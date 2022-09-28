@@ -1,4 +1,4 @@
-# xargs: cat
+# xargs: cat (from -s)
 
 init 0
 let i=1
@@ -7,5 +7,5 @@ while [ $i -le 20 ]; do
   echo "content__of__${p}" >"file_$p"
   let i++
 done
-_gitnu status
+_gitnu status -s
 log gitnu -c cat 16-25
