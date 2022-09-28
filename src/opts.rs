@@ -60,7 +60,7 @@ impl Opts {
     }
 
     /// uses self.arg_dir to find the nearest parent repository
-    fn open_repo(&self) -> Option<git2::Repository> {
+    pub fn open_repo(&self) -> Option<git2::Repository> {
         git2::Repository::open_ext(
             &self.arg_dir,
             git2::RepositoryOpenFlags::empty(),

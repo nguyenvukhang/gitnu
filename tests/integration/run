@@ -66,6 +66,16 @@ test() {
   [[ -z $DIFF ]] && return 0 || return 1
 }
 
+# $1 : absolute path to test file
+wrap_test() {
+  let TOTAL++
+  assert $PWD $HERE
+  N=$(get_test_id $1)
+  tmp_dir=$HERE/tmp/$N && mkdir -p $tmp_dir
+  cd $tmp_dir && test "$1" &
+  pids+=("$!")
+}
+
 main() {
   # build
   cargo build --quiet || exit 1
@@ -75,27 +85,22 @@ main() {
     echo 'gitnu not found. Aborting.'
   fi
 
+  pids=()
+
   # run tests
   if [ $ONE_TEST ]; then
-    # run one test
-    test $HERE/tests/$ONE_TEST.sh
+    wrap_test $HERE/tests/$ONE_TEST.sh # run one test
   else
-    # run all tests
-    pids=()
-    for t in $HERE/tests/*; do
-      let TOTAL++
-      assert $PWD $HERE
-      N=$(get_test_id $t)
-      tmp_dir=$HERE/tmp/$N && mkdir -p $tmp_dir
-      cd $tmp_dir && test "$t" &
-      pids+=("$!")
-    done
-    # wait for all tests to finish
-    for pid in ${pids[@]}; do
-      wait $pid
-      [[ $? == 0 ]] && let PASSES++
+    for t in $HERE/tests/*; do # run all tests
+      wrap_test $t
     done
   fi
+
+  # wait for all tests to finish
+  for pid in ${pids[@]}; do
+    wait $pid
+    [[ $? == 0 ]] && let PASSES++
+  done
 
   # summarize
   printf "\n $PASSES/$TOTAL tests passed\n"
