@@ -1,7 +1,8 @@
 use crate::opts::Opts;
+use std::mem;
 use std::path::PathBuf;
 
-pub type Cache = Vec<PathBuf>;
+pub type Cache = Vec<Option<PathBuf>>;
 
 struct Files {
     /// stored as PathBuf because this needs to be joined
@@ -16,7 +17,7 @@ impl Files {
     fn get(&mut self, query: &String) -> Option<PathBuf> {
         match query.parse::<usize>() {
             Err(_) => Some(query.into()), // not even an integer
-            Ok(n) => self.cache.get(n - 1).map(|v| v.to_owned()),
+            Ok(n) => mem::take(self.cache.get_mut(n - 1)?),
         }
     }
     pub fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf> {
@@ -45,4 +46,23 @@ pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
 
     // make a wrapper to safely apply to args
     Files::new(cache).apply(args)
+}
+
+#[test]
+/// after getting once, getting the same index should return None
+fn test_get() -> Result<(), ()> {
+    // mock args ["1", "1"]
+    let mut args: Vec<String> = Vec::new();
+    args.push(String::from("1"));
+    args.push(String::from("1"));
+    // mock cache ["/one", "/two"]
+    let mut cache: Cache = Vec::new();
+    cache.push(Some(PathBuf::from("/one")));
+    cache.push(Some(PathBuf::from("/two")));
+    let mut files = Files::new(cache);
+    let output = files.apply(args);
+    assert_eq!(output.len(), 1);
+    assert_eq!(output[0], PathBuf::from("/one"));
+    assert_eq!(files.get(&String::from("1")), None);
+    Ok(())
 }

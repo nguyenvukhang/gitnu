@@ -64,7 +64,6 @@ cleanup() {
   rm -rf $HERE/tmp
 }
 
-
 _pushd() { # silent pushd
   pushd $1 >/dev/null
 }
@@ -88,20 +87,17 @@ gitnu() { # gitnu
 # $1 : test file
 # $2 : test title
 pass() {
-  printf "\033[0;30m\033[1;42m PASS \033[1;0m $1 "
-  printf "\033[0;37m$2\033[1;0m\n"
+  printf "\033[0;30m\033[1;42m PASS \033[1;0m $1 \033[0;37m$2\033[1;0m\n"
 }
 
 # $1 : test file
 # $2 : test title
 fail() {
-  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 "
-  printf "\033[0;37m$2\033[1;0m\n"
+  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 \033[0;37m$2\033[1;0m\n"
 }
 
 # $1 : test file
 # $2 : missing required file
 not_found() {
-  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 "
-  printf "\033[0;33m($2 not found)\033[1;0m\n"
+  printf "\033[0;30m\033[1;41m FAIL \033[1;0m $1 \033[0;33m($2 not found)\033[1;0m\n"
 }

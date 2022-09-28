@@ -21,7 +21,7 @@ impl CacheActions for Opts {
         let file = std::fs::File::open(self.cache_file()?).ok()?;
         let mut cache = Cache::new();
         let git_root = self.git_root.as_ref()?;
-        let add = |v| cache.push(git_root.join(v));
+        let add = |v| cache.push(Some(git_root.join(v)));
         BufReader::new(file).lines().filter_map(|v| v.ok()).for_each(add);
         Some(cache)
     }
