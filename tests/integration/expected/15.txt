@@ -29,31 +29,80 @@ Changes to be committed:
 24	[32mnew file:   file_0048[m
 25	[32mnew file:   file_0049[m
 26	[32mnew file:   file_0050[m
+27	[32mnew file:   file_0051[m
+28	[32mnew file:   file_0052[m
+29	[32mnew file:   file_0053[m
+30	[32mnew file:   file_0054[m
+31	[32mnew file:   file_0055[m
+32	[32mnew file:   file_0056[m
+33	[32mnew file:   file_0057[m
+34	[32mnew file:   file_0058[m
+35	[32mnew file:   file_0059[m
+36	[32mnew file:   file_0060[m
+37	[32mnew file:   file_0061[m
+38	[32mnew file:   file_0062[m
+39	[32mnew file:   file_0063[m
+40	[32mnew file:   file_0064[m
+41	[32mnew file:   file_0065[m
+42	[32mnew file:   file_0066[m
+43	[32mnew file:   file_0067[m
+44	[32mnew file:   file_0068[m
+45	[32mnew file:   file_0069[m
+46	[32mnew file:   file_0070[m
+47	[32mnew file:   file_0071[m
+48	[32mnew file:   file_0072[m
+49	[32mnew file:   file_0073[m
+50	[32mnew file:   file_0074[m
+51	[32mnew file:   file_0075[m
 
 Untracked files:
-27	[31mfile_0001[m
-28	[31mfile_0002[m
-29	[31mfile_0003[m
-30	[31mfile_0004[m
-31	[31mfile_0005[m
-32	[31mfile_0006[m
-33	[31mfile_0007[m
-34	[31mfile_0008[m
-35	[31mfile_0009[m
-36	[31mfile_0010[m
-37	[31mfile_0011[m
-38	[31mfile_0012[m
-39	[31mfile_0013[m
-40	[31mfile_0014[m
-41	[31mfile_0015[m
-42	[31mfile_0016[m
-43	[31mfile_0017[m
-44	[31mfile_0018[m
-45	[31mfile_0019[m
-46	[31mfile_0020[m
-47	[31mfile_0021[m
-48	[31mfile_0022[m
-49	[31mfile_0023[m
-50	[31mfile_0024[m
+52	[31mfile_0001[m
+53	[31mfile_0002[m
+54	[31mfile_0003[m
+55	[31mfile_0004[m
+56	[31mfile_0005[m
+57	[31mfile_0006[m
+58	[31mfile_0007[m
+59	[31mfile_0008[m
+60	[31mfile_0009[m
+61	[31mfile_0010[m
+62	[31mfile_0011[m
+63	[31mfile_0012[m
+64	[31mfile_0013[m
+65	[31mfile_0014[m
+66	[31mfile_0015[m
+67	[31mfile_0016[m
+68	[31mfile_0017[m
+69	[31mfile_0018[m
+70	[31mfile_0019[m
+71	[31mfile_0020[m
+72	[31mfile_0021[m
+73	[31mfile_0022[m
+74	[31mfile_0023[m
+75	[31mfile_0024[m
+76	[31mfile_0076[m
+77	[31mfile_0077[m
+78	[31mfile_0078[m
+79	[31mfile_0079[m
+80	[31mfile_0080[m
+81	[31mfile_0081[m
+82	[31mfile_0082[m
+83	[31mfile_0083[m
+84	[31mfile_0084[m
+85	[31mfile_0085[m
+86	[31mfile_0086[m
+87	[31mfile_0087[m
+88	[31mfile_0088[m
+89	[31mfile_0089[m
+90	[31mfile_0090[m
+91	[31mfile_0091[m
+92	[31mfile_0092[m
+93	[31mfile_0093[m
+94	[31mfile_0094[m
+95	[31mfile_0095[m
+96	[31mfile_0096[m
+97	[31mfile_0097[m
+98	[31mfile_0098[m
+99	[31mfile_0099[m
+100	[31mfile_0100[m
 
-... 50 hidden items (gitnu)
