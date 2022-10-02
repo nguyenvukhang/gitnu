@@ -6,7 +6,7 @@ use std::io::Error;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
-pub const LIMIT: usize = 50;
+pub const LIMIT: usize = 1000;
 pub const CACHE_FILE: &str = "gitnu.txt";
 
 pub type Cache = Vec<Option<PathBuf>>;
