@@ -1,14 +1,23 @@
-mod cache;
-mod commands;
-mod parser;
-
-use std::io::Error;
+use std::io::{Error, ErrorKind::NotFound};
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::Command;
+
+pub fn get_cmd(opts: &Opts) -> Option<Command> {
+    let cmd = match opts.op {
+        OpType::Xargs => opts.xargs_cmd.as_ref()?,
+        _ => "git",
+    };
+    let mut cmd = Command::new(cmd);
+    cmd.current_dir(&opts.cwd);
+    Some(cmd)
+}
+
+pub fn run(cmd: Option<Command>, args: Vec<PathBuf>) -> Result<(), Error> {
+    let mut cmd = cmd.ok_or(Error::new(NotFound, "Command not found"))?;
+    cmd.args(args).spawn()?.wait().map(|_| ())
+}
 
 pub const CACHE_FILE: &str = "gitnu.txt";
-
-pub type Cache = Vec<Option<PathBuf>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum OpType {
@@ -29,49 +38,8 @@ pub struct Opts {
     pub xargs_cmd: Option<String>,
     pub op: OpType,
     pub status_fmt: StatusFmt,
-
-    /// result of git rev-parse --show-toplevel
-    /// root of git workspace
     pub git_root: Option<PathBuf>,
-
-    /// taken as a CLI argument with:
-    /// gitnu -C <cwd>
-    ///
-    /// defaults to current working directory
     pub cwd: PathBuf,
-}
-
-/// holds one method: parse()
-/// converts CLI arguments from a String vector to Opts
-pub trait Parser {
-    /// The gitnu options parser
-    /// parses Opts from command line arguments
-    fn parse(args: &Vec<String>) -> (Vec<String>, Opts);
-}
-
-/// holds two methods: cmd() and run()
-/// cmd() gets a command to run
-/// run() runs the command with some args
-pub trait Commands {
-    /// Returns either `git` or the xargs cmd, loaded with current
-    /// working directory, depending on the operation type
-    fn cmd(&self) -> Option<Command>;
-
-    /// Run and don't look back.
-    /// This function executes no logic. Only runs a command with the
-    /// supplied arguments.
-    fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error>;
-
-    /// Join a path with opts' cwd.
-    /// Returns a String to be writable to a cache file.
-    /// Returns empty string upon conversion failure to keep indices aligned
-    fn join<T: AsRef<std::path::Path>>(&self, tail: T) -> PathBuf;
-}
-
-/// Read/write operations for the cache file
-pub trait CacheOps {
-    /// reads cache file to the Cache struct
-    fn read_cache(&self) -> Option<Cache>;
 }
 
 impl Opts {
@@ -106,5 +74,9 @@ impl Opts {
         if let Some(repo) = self.repo() {
             self.git_root = repo.workdir().map(|v| v.into());
         }
+    }
+
+    pub fn use_cwd<T: AsRef<std::path::Path>>(&self, tail: T) -> PathBuf {
+        self.cwd.join(tail)
     }
 }

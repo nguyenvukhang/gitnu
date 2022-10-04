@@ -1,55 +1,7 @@
-use crate::opts::{OpType, Opts, Parser, StatusFmt};
+#![cfg(test)]
+use crate::opts::{OpType, Opts};
+use crate::parser;
 use std::path::PathBuf;
-
-fn set_op(next: OpType, cur: &mut OpType) {
-    match cur {
-        OpType::Bypass => *cur = next,
-        _ => (),
-    }
-}
-
-impl Parser for Opts {
-    fn parse(args: &Vec<String>) -> (Vec<String>, Opts) {
-        let mut opts = Opts::new();
-        let mut res: Vec<String> = Vec::new();
-        let mut it = args.iter();
-        let mut push = |a| res.push(String::from(a));
-
-        while let Some(arg) = it.next() {
-            match arg.as_str() {
-                "add" | "reset" | "diff" | "checkout" => {
-                    set_op(OpType::Read, &mut opts.op);
-                    push(arg)
-                }
-                "status" => {
-                    set_op(OpType::Status, &mut opts.op);
-                    push(arg)
-                }
-                "-c" => match it.next() {
-                    Some(cmd) => {
-                        set_op(OpType::Xargs, &mut opts.op);
-                        opts.xargs_cmd = Some(cmd.to_owned());
-                    }
-                    None => push(arg),
-                },
-                "-C" => match it.next() {
-                    Some(dir) => opts.cwd = PathBuf::from(dir),
-                    None => push(arg),
-                },
-                "--short" | "-s" | "--porcelain" => {
-                    match opts.op {
-                        OpType::Status => opts.status_fmt = StatusFmt::Short,
-                        _ => (),
-                    };
-                    push(arg)
-                }
-                _ => push(arg),
-            }
-        }
-        opts.set_git_root();
-        (res, opts)
-    }
-}
 
 #[test]
 fn test_get_opts() {
@@ -61,7 +13,8 @@ fn test_get_opts() {
         opts
     }
     fn rc(args: &[&str]) -> Opts {
-        Opts::parse(&args.iter().map(|v| String::from(*v)).collect()).1
+        let args = [&["gitnu"], args].concat();
+        parser::parse(&args.iter().map(|v| String::from(*v)).collect()).1
     }
     fn assert_eq((rec, exp): &(&[&str], Opts)) {
         let rec = rc(rec);

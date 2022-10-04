@@ -15,3 +15,13 @@ edition = "2021"
 
 [dependencies]
 git2 = "0.15.0"
+
+[lib]
+name = "gitnu_lib"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "gitnu"
+path = "src/bin.rs"
+test = false

@@ -1,10 +1,14 @@
-use crate::opts::{Commands, Opts, StatusFmt};
+use crate::opts::{get_cmd, Opts, StatusFmt};
 use std::fs::File;
-use std::io::{BufRead, BufReader, LineWriter, Write};
+use std::io::{BufRead, BufReader, Error, ErrorKind, LineWriter, Write};
 use std::path::PathBuf;
 
-/// Manages the actual output of `gitnu status`
-/// Enumerates each line containing a filename up until `limit`
+fn uncolor(line: &str) -> String {
+    line.replace("\u{1b}[31m", "")
+        .replace("\u{1b}[32m", "")
+        .replace("\u{1b}[m", "")
+}
+
 struct Printer {
     count: usize,
     opts: Opts,
@@ -17,58 +21,50 @@ impl Printer {
         Self { count: 0, opts, seen_untracked: false, cache }
     }
 
-    /// Removes red and green ANSI codes from a string
-    /// Returns a fresh string.
-    fn uncolor(line: &str) -> String {
-        line.replace("\u{1b}[31m", "")
-            .replace("\u{1b}[32m", "")
-            .replace("\u{1b}[m", "")
-    }
-
-    fn write_cache(&mut self, line: &str) {
-        self.cache
-            .write_fmt(format_args!("{}\n", self.opts.join(line).display()))
-            .ok();
+    fn writeln(&mut self, line: Option<&str>) {
+        if let Some(ln) = line {
+            let ln = self.opts.use_cwd(&ln);
+            self.cache.write_fmt(format_args!("{}\n", ln.display())).ok();
+        };
     }
 
     pub fn flush(&mut self) {
         self.cache.flush().ok();
     }
 
-    /// prints output of `git status`
-    fn print_default(&mut self, line: &str) -> Option<()> {
+    fn print_nu<F: Fn(usize, &str) -> ()>(&mut self, v: &str, p: F) -> String {
+        self.count += 1;
+        p(self.count, v);
+        uncolor(v)
+    }
+
+    fn parse_file<'a>(&self, line: &'a String) -> Option<&'a str> {
+        match self.opts.status_fmt {
+            StatusFmt::Normal => {
+                let mut line = line.split('\t').last()?;
+                if !self.seen_untracked {
+                    line = line.split_once(':')?.1.trim_start();
+                }
+                Some(line)
+            }
+            StatusFmt::Short => Some(&line[3..]),
+        }
+    }
+
+    fn print_default(&mut self, line: &str) {
         if !line.starts_with('\t') {
             println!("{}", line);
-            return None;
+            return;
         }
-
-        // print and strip colors
-        self.count += 1;
-        println!("{}{}", self.count, line);
-        let line = Self::uncolor(line);
-
-        // post-print processing
-        let mut line = line.split('\t').last()?;
-        if !self.seen_untracked {
-            line = line.split_once(':')?.1.trim_start();
-        }
-        Some(self.write_cache(line))
+        let line = self.print_nu(line, |c, v| println!("{}{}", c, v));
+        self.writeln(self.parse_file(&line));
     }
 
-    /// Handles output of `git status --short` or
-    /// `git status --porcelain`
-    fn print_short(&mut self, line: &str) -> Option<()> {
-        // print and strip colors
-        self.count += 1;
-        println!("{: <3}{}", self.count, line);
-        let line = Self::uncolor(line);
-
-        // post-print processing
-        Some(self.write_cache(&line[3..]))
+    fn print_short(&mut self, line: &str) {
+        let line = self.print_nu(line, |c, v| println!("{: <3}{}", c, v));
+        self.writeln(self.parse_file(&line));
     }
 
-    /// Core printing method.
-    /// Takes in any line from git output and self-updates count
     pub fn read(&mut self, line: &str) {
         if line.contains("Untracked files:") {
             self.seen_untracked = true;
@@ -80,28 +76,18 @@ impl Printer {
     }
 }
 
-// this prints `git status` enumerated
-// has nothing to do with data management
-pub fn run(args: Vec<PathBuf>, opts: Opts) -> Option<()> {
-    let mut git = opts.cmd()?;
+pub fn run(args: Vec<PathBuf>, opts: Opts) -> Result<(), Error> {
+    let err = || Error::new(ErrorKind::Other, "gitnu run failed");
+    let mut git = get_cmd(&opts).ok_or(err())?;
     git.args(["-c", "color.status=always"]).args(args);
     git.stdout(std::process::Stdio::piped()); // capture stdout
-
-    // spawn the process
-    let mut git = git.spawn().ok()?;
-
-    let mut p = {
-        let cache = File::create(opts.cache_file()?).ok()?;
-        Printer::new(opts, LineWriter::new(cache))
+    let mut git = git.spawn()?;
+    let mut printer = {
+        let f = File::create(opts.cache_file().ok_or(err())?)?;
+        Printer::new(opts, LineWriter::new(f))
     };
-
-    {
-        // read stdout and stream the filenames into cache
-        let br = BufReader::new(git.stdout.as_mut()?);
-        br.lines().filter_map(|v| v.ok()).for_each(|v| p.read(&v));
-    }
-
-    p.flush();
-
-    git.wait().map(|_| ()).ok()
+    let br = BufReader::new(git.stdout.as_mut().ok_or(err())?);
+    br.lines().filter_map(|v| v.ok()).for_each(|v| printer.read(&v));
+    printer.flush();
+    git.wait().map(|_| ())
 }
