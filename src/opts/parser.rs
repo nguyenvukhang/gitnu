@@ -56,7 +56,8 @@ fn test_get_opts() {
     fn ex(c: Option<&str>, x: Option<&str>, op: OpType) -> Opts {
         let mut opts = Opts::new();
         (opts.xargs_cmd, opts.op) = (x.map(String::from), op);
-        opts.cwd = PathBuf::from(c.unwrap_or("."));
+        opts.cwd =
+            c.map(PathBuf::from).unwrap_or(std::env::current_dir().unwrap());
         opts
     }
     fn rc(args: &[&str]) -> Opts {

@@ -6,7 +6,6 @@ use std::io::Error;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
-pub const LIMIT: usize = 1000;
 pub const CACHE_FILE: &str = "gitnu.txt";
 
 pub type Cache = Vec<Option<PathBuf>>;
@@ -19,7 +18,7 @@ pub enum OpType {
     Xargs,  // gitnu -c nvim 2
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum StatusFmt {
     Normal, // gitnu status
     Short,  // gitnu status --short || gitnu status --porcelain
@@ -62,13 +61,15 @@ pub trait Commands {
     /// This function executes no logic. Only runs a command with the
     /// supplied arguments.
     fn run(&self, args: Vec<PathBuf>) -> Result<ExitStatus, Error>;
+
+    /// Join a path with opts' cwd.
+    /// Returns a String to be writable to a cache file.
+    /// Returns empty string upon conversion failure to keep indices aligned
+    fn join<T: AsRef<std::path::Path>>(&self, tail: T) -> PathBuf;
 }
 
 /// Read/write operations for the cache file
 pub trait CacheOps {
-    /// writes to cache
-    fn write_cache(&self, content: String) -> Option<()>;
-
     /// reads cache file to the Cache struct
     fn read_cache(&self) -> Option<Cache>;
 }
@@ -77,7 +78,7 @@ impl Opts {
     /// Initialize with empty options.
     pub fn new() -> Self {
         Self {
-            cwd: PathBuf::from("."),
+            cwd: std::env::current_dir().unwrap_or(PathBuf::from(".")),
             status_fmt: StatusFmt::Normal,
             op: OpType::Bypass,
             git_root: None,

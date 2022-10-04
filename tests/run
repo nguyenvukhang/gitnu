@@ -18,7 +18,7 @@ N=0 # current id
 let PASSES=0
 let TOTAL=0
 
-# for use in ./tests/*.sh
+# for use in ./cases/*.sh
 # $1 is number of files to mock up
 init() {
   _git init
@@ -29,13 +29,13 @@ init() {
   done
 }
 
-# for use in ./tests/*.sh
+# for use in ./cases/*.sh
 # evaluates command and sends to $REC_DIR
 log() {
   eval "$@" >$REC_DIR/$N.txt
 }
 
-# $1 : aboslute path to ./tests/*.sh
+# $1 : aboslute path to ./cases/*.sh
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
   source $1 &>/dev/null
@@ -88,11 +88,11 @@ main() {
 
   pids=()
 
-  # run tests
+  # run test cases
   if [ $ONE_TEST ]; then
-    wrap_test $HERE/tests/$ONE_TEST.sh # run one test
+    wrap_test $HERE/cases/$ONE_TEST.sh # run one test
   else
-    for t in $HERE/tests/*; do # run all tests
+    for t in $HERE/cases/*; do # run all tests
       wrap_test $t
     done
   fi

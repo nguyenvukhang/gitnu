@@ -34,4 +34,8 @@ impl Commands for Opts {
         let err = Error::new(Other, "Unable to run");
         self.cmd().ok_or(err)?.args(args).spawn()?.wait()
     }
+
+    fn join<T: AsRef<std::path::Path>>(&self, tail: T) -> PathBuf {
+        self.cwd.join(tail)
+    }
 }

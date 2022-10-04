@@ -1,4 +1,6 @@
 use crate::opts::{Cache, Opts};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::mem;
 use std::path::PathBuf;
 
@@ -44,12 +46,15 @@ impl FileActions for Cache {
 /// Replace numbers with filenames.
 /// Returns a new PathBuf vector
 pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
-    // read cache
-    use crate::opts::CacheOps;
-    let mut cache = opts.read_cache().unwrap_or(Cache::new());
-
-    // make a wrapper to safely apply to args
-    cache.apply(args)
+    let cache = || -> Option<Cache> {
+        let mut cache = Cache::new();
+        BufReader::new(File::open(opts.cache_file()?).ok()?)
+            .lines()
+            .filter_map(|v| v.ok())
+            .for_each(|v| cache.push(Some(std::path::PathBuf::from(v))));
+        Some(cache)
+    };
+    cache().unwrap_or(Cache::new()).apply(args)
 }
 
 #[test]
