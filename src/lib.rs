@@ -5,7 +5,7 @@ mod status;
 mod tests;
 mod parser;
 
-use opts::{OpType, Opts};
+use opts::{Op, Opts};
 use std::path::PathBuf;
 
 pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
@@ -17,7 +17,7 @@ pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
 
 pub fn run(args: Vec<PathBuf>, opts: Opts) {
     let result = match opts.op {
-        OpType::Status => status::run(args, opts),
+        Op::Status => status::run(args, opts),
         _ => opts::run(opts::get_cmd(&opts), args),
     };
     result.ok();

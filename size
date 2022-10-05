@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 build() {
   rm -rf target
@@ -9,3 +9,29 @@ build() {
 [[ $1 = 'b' ]] && build
 
 du -sh target/*/gitnu
+
+let lines=0
+
+files() {
+  git ls-files | grep rs$ | grep -v test
+}
+
+while read -r i; do
+  [[ $i != '' ]] && let lines++
+done < <(files | xargs cat)
+
+echo "$lines lines of rust code"
+
+count_lines() {
+  let ll=0
+  while read -r i; do
+    [[ $i != '' ]] && let ll++
+  done < <(cat $1)
+  echo $ll
+}
+
+while read -r i; do
+  ll=$(count_lines $i)
+  printf -v padded "% 3d" $ll
+  echo "$padded | $i"
+done < <(files)

@@ -23,13 +23,9 @@ impl Printer {
 
     fn writeln(&mut self, line: Option<&str>) {
         if let Some(ln) = line {
-            let ln = self.opts.use_cwd(&ln);
+            let ln = self.opts.cwd.join(&ln);
             self.cache.write_fmt(format_args!("{}\n", ln.display())).ok();
         };
-    }
-
-    pub fn flush(&mut self) {
-        self.cache.flush().ok();
     }
 
     fn print_nu<F: Fn(usize, &str) -> ()>(&mut self, v: &str, p: F) -> String {
@@ -88,6 +84,6 @@ pub fn run(args: Vec<PathBuf>, opts: Opts) -> Result<(), Error> {
     };
     let br = BufReader::new(git.stdout.as_mut().ok_or(err())?);
     br.lines().filter_map(|v| v.ok()).for_each(|v| printer.read(&v));
-    printer.flush();
+    printer.cache.flush().ok();
     git.wait().map(|_| ())
 }

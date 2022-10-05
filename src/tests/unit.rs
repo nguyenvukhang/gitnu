@@ -45,8 +45,8 @@ fn xargs_operations() {
 /// after getting once, getting the same index should return None
 fn test_get() {
     let mut cache: Cache = Cache::new();
-    cache.add("/a");
-    cache.add("/b");
+    cache.push(Some("/a".into()));
+    cache.push(Some("/b".into()));
     assert_eq!(cache.get(&"1".into()), Some("/a".into()));
     assert_eq!(cache.get(&"1".into()), None);
     assert_eq!(cache.get(&"2".into()), Some("/b".into()));

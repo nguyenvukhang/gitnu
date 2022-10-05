@@ -1,9 +1,9 @@
-use crate::opts::{OpType, Opts, StatusFmt};
+use crate::opts::{Op, Opts, StatusFmt};
 use std::path::PathBuf;
 
-fn set_op(next: OpType, cur: &mut OpType) {
+fn set_op(next: Op, cur: &mut Op) {
     match cur {
-        OpType::Bypass => *cur = next,
+        Op::Bypass => *cur = next,
         _ => (),
     }
 }
@@ -18,17 +18,17 @@ pub fn parse(args: &Vec<String>) -> (Vec<String>, Opts) {
     while let Some(arg) = it.next() {
         match arg.as_str() {
             "add" | "reset" | "diff" | "checkout" => {
-                set_op(OpType::Read, &mut opts.op);
+                set_op(Op::Read, &mut opts.op);
                 push(arg)
             }
             "status" => {
-                set_op(OpType::Status, &mut opts.op);
+                set_op(Op::Status, &mut opts.op);
                 push(arg)
             }
             "-c" => match it.next() {
                 Some(cmd) => {
-                    set_op(OpType::Xargs, &mut opts.op);
-                    opts.xargs_cmd = Some(cmd.to_owned());
+                    set_op(Op::Xargs, &mut opts.op);
+                    opts.xargs_cmd = Some(cmd.into());
                 }
                 None => push(arg),
             },
@@ -38,7 +38,7 @@ pub fn parse(args: &Vec<String>) -> (Vec<String>, Opts) {
             },
             "--short" | "-s" | "--porcelain" => {
                 match opts.op {
-                    OpType::Status => opts.status_fmt = StatusFmt::Short,
+                    Op::Status => opts.status_fmt = StatusFmt::Short,
                     _ => (),
                 };
                 push(arg)

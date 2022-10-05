@@ -1,13 +1,13 @@
 #![cfg(test)]
-use crate::opts::{OpType, Opts};
+use crate::opts::{Op, Opts};
 use crate::parser;
 use std::path::PathBuf;
 
 #[test]
 fn test_get_opts() {
-    fn ex(c: Option<&str>, x: Option<&str>, op: OpType) -> Opts {
+    fn ex(c: Option<&str>, x: Option<&str>, op: Op) -> Opts {
         let mut opts = Opts::new();
-        (opts.xargs_cmd, opts.op) = (x.map(String::from), op);
+        (opts.xargs_cmd, opts.op) = (x.map(PathBuf::from), op);
         opts.cwd =
             c.map(PathBuf::from).unwrap_or(std::env::current_dir().unwrap());
         opts
@@ -25,33 +25,33 @@ fn test_get_opts() {
 
     let tests: &[(&[&str], Opts)] = &[
         // set cwd
-        (&["-C", "/dev/null"], ex(Some("/dev/null"), None, OpType::Bypass)),
+        (&["-C", "/dev/null"], ex(Some("/dev/null"), None, Op::Bypass)),
         // set xargs_cmd
-        (&["-c", "nvim"], ex(None, Some("nvim"), OpType::Xargs)),
+        (&["-c", "nvim"], ex(None, Some("nvim"), Op::Xargs)),
         // set both cwd and xargs_cmd
         (
             &["-C", "/etc", "-c", "nvim"],
-            ex(Some("/etc"), Some("nvim"), OpType::Xargs),
+            ex(Some("/etc"), Some("nvim"), Op::Xargs),
         ),
         // set both xargs_cmd and cwd
         (
             &["-c", "nvim", "-C", "/etc"],
-            ex(Some("/etc"), Some("nvim"), OpType::Xargs),
+            ex(Some("/etc"), Some("nvim"), Op::Xargs),
         ),
         // status mode
-        (&["status", "--short"], ex(None, None, OpType::Status)),
+        (&["status", "--short"], ex(None, None, Op::Status)),
         // read mode
-        (&["add", "2-4"], ex(None, None, OpType::Read)),
+        (&["add", "2-4"], ex(None, None, Op::Read)),
         // read mode with cwd
-        (&["-C", "/tmp", "add", "2-4"], ex(Some("/tmp"), None, OpType::Read)),
+        (&["-C", "/tmp", "add", "2-4"], ex(Some("/tmp"), None, Op::Read)),
         // -C flag without value
-        (&["-C"], ex(None, None, OpType::Bypass)),
+        (&["-C"], ex(None, None, Op::Bypass)),
         // -C flag with unexpected value (pass on to git)
-        (&["-C", "status"], ex(Some("status"), None, OpType::Bypass)),
+        (&["-C", "status"], ex(Some("status"), None, Op::Bypass)),
         // -c flag without value
-        (&["-c"], ex(None, None, OpType::Bypass)),
+        (&["-c"], ex(None, None, Op::Bypass)),
         // -c flag with unexpected value (just run it anyways)
-        (&["-c", "status"], ex(None, Some("status"), OpType::Xargs)),
+        (&["-c", "status"], ex(None, Some("status"), Op::Xargs)),
     ];
     for i in tests {
         assert_eq(i);

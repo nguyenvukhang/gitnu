@@ -1,7 +1,6 @@
 use crate::opts::Opts;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::mem;
 use std::path::PathBuf;
 
 pub type Cache = Vec<Option<PathBuf>>;
@@ -9,19 +8,14 @@ pub type Cache = Vec<Option<PathBuf>>;
 pub trait FileActions {
     fn get(&mut self, query: &String) -> Option<PathBuf>;
     fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf>;
-    fn add(&mut self, entry: &str);
 }
 
 impl FileActions for Cache {
     fn get(&mut self, query: &String) -> Option<PathBuf> {
         match query.parse::<usize>() {
             Err(_) => Some(query.into()), // not even an integer
-            Ok(n) => mem::take(self.get_mut(n - 1)?),
+            Ok(n) => std::mem::take(self.get_mut(n - 1)?),
         }
-    }
-
-    fn add(&mut self, entry: &str) {
-        self.push(Some(PathBuf::from(entry)));
     }
 
     fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf> {
@@ -42,7 +36,8 @@ pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
     let cache = || -> Option<Cache> {
         let mut cache = Cache::new();
         let br = BufReader::new(File::open(opts.cache_file()?).ok()?);
-        br.lines().filter_map(|v| v.ok()).for_each(|v| cache.add(&v));
+        let add = |v: String| cache.push(Some(v.into()));
+        br.lines().filter_map(|v| v.ok()).for_each(add);
         Some(cache)
     };
     cache().unwrap_or(Cache::new()).apply(args)
