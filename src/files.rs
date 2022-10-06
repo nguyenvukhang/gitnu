@@ -5,6 +5,11 @@ use std::path::PathBuf;
 
 pub type Cache = Vec<Option<PathBuf>>;
 
+fn is_flag(a: &str, b: &mut bool) -> bool {
+    *b = a.starts_with('-') && a.to_ascii_lowercase().eq(a);
+    *b
+}
+
 pub trait FileActions {
     fn get(&mut self, query: &String) -> Option<PathBuf>;
     fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf>;
@@ -19,14 +24,10 @@ impl FileActions for Cache {
     }
 
     fn apply(&mut self, args: Vec<String>) -> Vec<PathBuf> {
-        let (mut skip, mut is_flag) = (false, false);
-        let apply = |a: &String| {
-            is_flag = a.starts_with('-') && a.to_ascii_lowercase().eq(a);
-            if skip || is_flag {
-                skip = is_flag;
-                return Some(PathBuf::from(a));
-            }
-            self.get(&a)
+        let skip = &mut false;
+        let apply = |a: &String| match *skip || is_flag(a, skip) {
+            true => Some(a.into()),
+            false => self.get(&a),
         };
         args.iter().filter_map(apply).collect()
     }
