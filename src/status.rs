@@ -37,7 +37,7 @@ impl Printer {
     fn parse_file<'a>(&self, line: &'a String) -> Option<&'a str> {
         match self.opts.status_fmt {
             StatusFmt::Normal => {
-                let mut line = line.split('\t').last()?;
+                let mut line = line.split_once('\t')?.1;
                 if !self.seen_untracked {
                     line = line.split_once(':')?.1.trim_start();
                 }
