@@ -2,3 +2,6 @@
 /target
 /tests/received
 /tests/tmp
+/tests/log
+/tests/failed
+/tests/latest.log

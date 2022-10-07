@@ -38,6 +38,8 @@ setup() {
   GITNU=$HERE/../target/debug/gitnu
   REC_DIR=$HERE/received
   rm -rf $REC_DIR && mkdir $REC_DIR
+  rm -rf failed && mkdir failed
+  mkdir -p log
   get_git_config
   set_git_config
 }
@@ -62,6 +64,7 @@ cleanup() {
   reset_git_config
   assert $PWD $HERE
   rm -rf $HERE/tmp
+  rm -rf $HERE/failed
 }
 
 _pushd() { # silent pushd
@@ -82,6 +85,23 @@ _gitnu() { # silent gitnu
 
 gitnu() { # gitnu
   $GITNU $@
+}
+
+# for use in ./cases/*.sh
+# $1 is number of files to mock up
+init() {
+  _git init
+  let local i=1
+  while [ $i -le $1 ]; do
+    printf -v padded "%04d" $i
+    touch "file_$padded" && let i++
+  done
+}
+
+# for use in ./cases/*.sh
+# evaluates command and sends to $REC_DIR
+log() {
+  eval "$@" >$REC_DIR/$N.txt
 }
 
 # $1 : test file

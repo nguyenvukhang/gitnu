@@ -18,60 +18,36 @@ N=0 # current id
 let PASSES=0
 let TOTAL=0
 
-# for use in ./cases/*.sh
-# $1 is number of files to mock up
-init() {
-  _git init
-  let local i=1
-  while [ $i -le $1 ]; do
-    printf -v padded "%04d" $i
-    touch "file_$padded" && let i++
-  done
-}
-
-# for use in ./cases/*.sh
-# evaluates command and sends to $REC_DIR
-log() {
-  eval "$@" >$REC_DIR/$N.txt
-}
-
 # $1 : aboslute path to ./cases/*.sh
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
   source $1 &>/dev/null
   local title=$(get_test_title $1) && local file=${1##$HERE/}
   local rec=$HERE/received/$N.txt && local exp=$HERE/expected/$N.txt
-  local ok=1
-  [ ! -f $rec ] && not_found $file received/$N.txt && ok=0
-  [ ! -f $exp ] && not_found $file expected/$N.txt && ok=0
+  local rc=0 # return code
+  [ ! -f $rec ] && not_found $file received/$N.txt && rc=1
+  [ ! -f $exp ] && not_found $file expected/$N.txt && rc=1
 
   # either received/expected not found
-  if [ $ok = 0 ]; then
-    [ $SILENT ] && return 1
-    [ -f $rec ] && cat $rec
-    return 1
-  fi
+  [ $rc = 1 ] && return 1
 
   # gather stats and diff
-  local DIFF=$(diff $rec $exp)
-  if [[ -z $DIFF ]]; then
+  local difffile=$HERE/failed/$N.diff
+  diff -y -W 70 $rec $exp >$difffile
+  rc=$?
+  if [[ $rc == 0 ]]; then
     pass $file "$title"
+    rm -f $difffile
   else
     fail $file "$title"
-    if [[ $SILENT != 'true' ]]; then
-      echo "<: received, >: expected"
-      echo "$DIFF"
-    fi
   fi
-  [ $VERBOSE ] && cat $rec
-  [[ -z $DIFF ]] && return 0 || return 1
+  return $rc
 }
 
 # $1 : absolute path to test file
 wrap_test() {
   let TOTAL++
-  assert $PWD $HERE
-  N=$(get_test_id $1)
+  assert $PWD $HERE && N=$(get_test_id $1)
   tmp_dir=$HERE/tmp/$N && mkdir -p $tmp_dir
   cd $tmp_dir && test "$1" &
   pids+=("$!")
@@ -83,7 +59,7 @@ main() {
 
   # ensure correct binary is used
   if ! command -v gitnu >/dev/null; then
-    echo 'gitnu not found. Aborting.'
+    echo 'gitnu not found. Aborting.' && exit 1
   fi
 
   pids=()
@@ -105,7 +81,21 @@ main() {
 
   # summarize
   printf "\n $PASSES/$TOTAL tests passed\n"
-  [ $PASSES = $TOTAL ] && [ $TOTAL -gt 0 ] && exit 0 || exit 1
+  [ $PASSES = $TOTAL ] && [ $TOTAL -gt 0 ]
+}
+
+log_results() {
+  assert $PWD $HERE
+  local file=$HERE/log/$(date +'%Y-%m-%d-%H:%M:%S').txt
+  local ENR="echo '% < expected | received >'"
+  rm -f $file
+  ls failed | xargs -I % sh -c \
+    "$ENR && cat failed/% && printf '\n-----\n\n'" \
+    >$file >latest.log
+  printf "\n ${HERE/$HOME/~}/latest.log\n\n"
 }
 
 main
+ec=$?
+[[ $ec = 1 ]] && log_results
+exit $ec
