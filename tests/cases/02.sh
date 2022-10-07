@@ -1,6 +1,6 @@
 # staged file (filename)
 
 init 0
-touch gold
-gitnu add gold # use filename
+touch file:gold
+gitnu add file:gold # use filename
 log gitnu status

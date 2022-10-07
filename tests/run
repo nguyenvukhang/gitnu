@@ -67,6 +67,10 @@ main() {
   # run test cases
   if [ $ONE_TEST ]; then
     wrap_test $HERE/cases/$ONE_TEST.sh # run one test
+    wait $pid
+    echo '────────────────────────'
+    cat $HERE/received/$ONE_TEST.txt
+    echo '────────────────────────'
   else
     for t in $HERE/cases/*; do # run all tests
       wrap_test $t
@@ -74,7 +78,7 @@ main() {
   fi
 
   # wait for all tests to finish
-  for pid in ${pids[@]}; do
+  [ -z $ONE_TEST ] && for pid in ${pids[@]}; do
     wait $pid
     [[ $? == 0 ]] && let PASSES++
   done
@@ -87,7 +91,7 @@ main() {
 log_results() {
   assert $PWD $HERE
   local file=$HERE/log/$(date +'%Y-%m-%d-%H:%M:%S').txt
-  local ENR="echo '% < expected | received >'"
+  local ENR="echo '% < received | expected >'"
   rm -f $file
   ls failed | xargs -I % sh -c \
     "$ENR && cat failed/% && printf '\n-----\n\n'" \

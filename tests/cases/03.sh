@@ -1,6 +1,9 @@
 # staged file (number)
 
-init 4
+init 2
+touch file:gold
 _gitnu status
-_gitnu add 2 # use number
+_gitnu add 1-2 # use number
+_gitnu status
+_gitnu reset 1 # use number again, on file:gold
 log gitnu status
