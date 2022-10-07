@@ -1,12 +1,12 @@
-fn get_range(arg: &str) -> Option<(usize, usize)> {
-    let (start, end) = arg.split_once("-")?;
-    let int = |s: &str| s.parse().ok();
-    let (s, e) = (int(start)?, int(end)?);
-    Some(if s < e { (s, e) } else { (e, s) })
+fn get_range(arg: &str) -> Option<[usize; 2]> {
+    let (a, b) = arg.split_once("-")?;
+    let mut res = [a.parse().ok()?, b.parse().ok()?];
+    res.sort();
+    Some(res)
 }
 
 fn add_range(arg: &str, args: &mut Vec<String>) {
-    let mut push_range = |(start, end): (usize, usize)| {
+    let mut push_range = |[start, end]: [usize; 2]| {
         for i in start..end + 1 {
             args.push(i.to_string());
         }
