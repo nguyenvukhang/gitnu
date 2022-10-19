@@ -22,10 +22,8 @@ impl Printer {
     }
 
     fn writeln(&mut self, line: Option<&str>) {
-        if let Some(ln) = line {
-            let ln = self.opts.cwd.join(&ln);
-            self.cache.write_fmt(format_args!("{}\n", ln.display())).ok();
-        };
+        let line = line.map(|v| self.opts.cwd.join(v)).unwrap_or("".into());
+        write!(self.cache, "{}\n", line.display()).ok();
     }
 
     fn print_nu<F: Fn(usize, &str) -> ()>(&mut self, v: &str, p: F) -> String {
@@ -34,7 +32,7 @@ impl Printer {
         uncolor(v)
     }
 
-    fn parse_file<'a>(&self, line: &'a String) -> Option<&'a str> {
+    fn parse_file<'a>(&self, line: &'a str) -> Option<&'a str> {
         match self.opts.status_fmt {
             StatusFmt::Normal => {
                 let mut line = line.split_once('\t')?.1;

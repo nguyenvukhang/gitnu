@@ -6,4 +6,4 @@ _gitnu status
 _gitnu add 1-2 # use number
 _gitnu status
 _gitnu reset 1 # use number again, on file:gold
-log gitnu status
+save gitnu status

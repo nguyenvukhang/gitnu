@@ -1,6 +1,5 @@
 #![cfg(test)]
 use crate::core;
-use crate::files::{Cache, FileActions};
 use std::path::PathBuf;
 
 /// test CLI input against gitnu's output args
@@ -39,17 +38,4 @@ fn xargs_operations() {
         &["gitnu", "-c", "cat", "df57bd", "6565cf", "fb2axd"],
         &["df57bd", "6565cf", "fb2axd"],
     );
-}
-
-#[test]
-/// after getting once, getting the same index should return None
-fn test_get() {
-    let mut cache: Cache = Cache::new();
-    cache.push(Some("/a".into()));
-    cache.push(Some("/b".into()));
-    assert_eq!(cache.get(&"1".into()), Some("/a".into()));
-    assert_eq!(cache.get(&"1".into()), None);
-    assert_eq!(cache.get(&"2".into()), Some("/b".into()));
-    assert_eq!(cache.get(&"2".into()), None);
-    assert_eq!(cache.get(&"3".into()), None);
 }

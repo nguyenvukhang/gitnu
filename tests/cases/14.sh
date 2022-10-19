@@ -8,4 +8,4 @@ _gitnu add 1000000
 _gitnu add 1000000000
 _gitnu add 1000000000000
 _gitnu add 1000000000000000
-log gitnu status
+save gitnu status

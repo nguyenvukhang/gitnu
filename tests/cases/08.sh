@@ -5,4 +5,4 @@ _gitnu status
 _gitnu add 2-6
 _gitnu status
 _gitnu reset 1-2 5
-log gitnu status
+save gitnu status

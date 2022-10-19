@@ -26,4 +26,4 @@ git add fileA
 _gitnu status
 gitnu add 3
 
-log gitnu status
+save gitnu status

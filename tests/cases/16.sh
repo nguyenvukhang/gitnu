@@ -30,4 +30,4 @@ ln -sf . E
 ln -sf . H
 git add A B C D _D E
 
-log gitnu status
+save gitnu status

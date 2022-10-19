@@ -7,4 +7,4 @@ while [ $i -le 8 ]; do
   let i++
 done
 _gitnu status
-log gitnu -c cat 2-5
+save gitnu -c cat 2-5

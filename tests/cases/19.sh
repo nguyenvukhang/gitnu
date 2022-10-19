@@ -8,4 +8,4 @@ while [ $i -le 20 ]; do
   let i++
 done
 _gitnu status -s
-log gitnu -c cat 16-25
+save gitnu -c cat 16-25

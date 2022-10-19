@@ -9,8 +9,6 @@ HERE=$PWD
 
 # parse arguments
 for i in "$@"; do
-  [ $i = '-v' ] && VERBOSE=true
-  [ $i = '-s' ] && SILENT=true
   [[ "$i" =~ [0-9]+ ]] && [ -z $ONE_TEST ] && printf -v ONE_TEST "%02d" $i
 done
 

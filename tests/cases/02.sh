@@ -3,4 +3,4 @@
 init 0
 touch file:gold
 gitnu add file:gold # use filename
-log gitnu status
+save gitnu status

@@ -100,7 +100,7 @@ init() {
 
 # for use in ./cases/*.sh
 # evaluates command and sends to $REC_DIR
-log() {
+save() {
   eval "$@" >$REC_DIR/$N.txt
 }
 

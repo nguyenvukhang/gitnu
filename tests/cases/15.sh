@@ -9,4 +9,4 @@ while [ $i -le 100 ]; do
 done
 _gitnu status
 _gitnu add 25-75
-log gitnu status
+save gitnu status

@@ -11,4 +11,4 @@ cd src
 touch emerald sapphire ruby
 _gitnu status
 _gitnu add 3-5
-log gitnu status
+save gitnu status

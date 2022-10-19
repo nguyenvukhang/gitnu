@@ -4,4 +4,4 @@ init 4
 _gitnu status --porcelain
 _gitnu add 1-2
 echo "_"=> file_1
-log gitnu status --porcelain
+save gitnu status --porcelain

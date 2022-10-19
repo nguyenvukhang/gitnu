@@ -1,16 +1,13 @@
 mod files;
 mod opts;
-mod range;
-mod status;
-mod tests;
 mod parser;
+mod status;
 
 use opts::{Op, Opts};
 use std::path::PathBuf;
 
 pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
     let (args, opts) = parser::parse(&args);
-    let args = range::load(args);
     let args = files::load(args, &opts);
     (args, opts)
 }
@@ -22,3 +19,6 @@ pub fn run(args: Vec<PathBuf>, opts: Opts) {
     };
     result.ok();
 }
+
+#[cfg(test)]
+mod tests;

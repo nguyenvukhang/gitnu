@@ -3,4 +3,4 @@
 init 3
 _gitnu status
 _gitnu add 2-5
-log gitnu status
+save gitnu status

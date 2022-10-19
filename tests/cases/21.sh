@@ -13,4 +13,4 @@ touch emerald sapphire ruby
 _gitnu status # ran from /src
 popd
 _gitnu add 3-5 # ran from /
-log gitnu status
+save gitnu status
