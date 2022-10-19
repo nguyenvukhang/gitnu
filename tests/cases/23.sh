@@ -8,9 +8,9 @@ while [ $i -le 10 ]; do
   let i++
 done
 
-# save gitnu log -n 5 \
-#   --pretty=format:%s \
-#   file_0006 file_0007 file_0008
+save gitnu log -n 5 --pretty="%s" 6-8
 
-save gitnu log -n 5 \
-  --pretty=format:%s 6-8
+# --------------------------------------------------------------------
+# commit:8
+# commit:7
+# commit:6

@@ -1,15 +1,6 @@
-use crate::opts::Opts;
-use std::fs::File;
+use crate::Opts;
 use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
-
-pub type Cache = Vec<Option<PathBuf>>;
-
-fn is_short_flag(s: &str, skip: &mut bool) -> bool {
-    let mut c = s.chars();
-    *skip = c.next() == Some('-') && c.next() != Some('-');
-    *skip
-}
+use std::{cmp::max, fs::File, path::PathBuf};
 
 fn get_range(arg: &str) -> Option<[usize; 2]> {
     arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
@@ -21,21 +12,24 @@ fn get_range(arg: &str) -> Option<[usize; 2]> {
 }
 
 pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
-    let mut res: Vec<PathBuf> = Vec::new();
-    let cache = || -> Option<Cache> {
+    let mut r: Vec<PathBuf> = Vec::new();
+    let c = || -> Option<Vec<String>> {
         let f = BufReader::new(File::open(opts.cache_file()?).ok()?).lines();
-        Some(f.filter_map(|v| v.ok()).map(PathBuf::from).map(Some).collect())
+        Some(f.filter_map(|v| v.ok()).collect())
     };
-    let mut cache = cache().unwrap_or(Cache::new());
-    let skip = &mut false;
-    args.iter().for_each(|a| match *skip || is_short_flag(a, skip) {
-        true => res.push(PathBuf::from(a)),
-        false => match get_range(a) {
-            None => res.push(PathBuf::from(a)),
-            Some([s, e]) => (s..e + 1)
-                .filter_map(|n| std::mem::take(cache.get_mut(n - 1)?))
-                .for_each(|v| res.push(v)),
-        },
+    let (c, mut skip) = (c().unwrap_or(Vec::new()), false);
+    args.iter().for_each(|a| {
+        let isf = a.starts_with('-') && !a.starts_with("--"); // is short flag
+        let [s, e] = get_range(a).unwrap_or([0, 0]);
+        if skip || isf || [s, e] == [0, 0] {
+            r.push(PathBuf::from(a));
+        } else {
+            (s..e + 1)
+                .map(|n| (n > 0, n.to_string(), c.get(max(n, 1) - 1)))
+                .map(|(z, s, g)| if z { g.unwrap_or(&s) } else { &s }.into())
+                .for_each(|v| r.push(v));
+        }
+        skip = isf;
     });
-    return res;
+    return r;
 }

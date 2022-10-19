@@ -19,25 +19,35 @@ let TOTAL=0
 # $1 : aboslute path to ./cases/*.sh
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
+  local recfile=$HERE/tmp/$N.rec
+  local expfile=$HERE/tmp/$N.exp
+  local difffile=$HERE/failed/$N.diff
+  save() {
+    eval "$@" >$recfile
+  }
   source $1 &>/dev/null
-  local title=$(get_test_title $1) && local file=${1##$HERE/}
-  local rec=$HERE/received/$N.txt && local exp=$HERE/expected/$N.txt
+  local EX_START=0
+  # generate expected file from comments in test file
+  while read -r line; do
+    [ $EX_START = 1 ] && echo "${line:2}" >>$expfile
+    [[ $line = *"------------------------------"* ]] && EX_START=1
+  done <$1
+  local title=$(get_test_title $1) && local testfile=${1##$HERE/}
   local rc=0 # return code
-  [ ! -f $rec ] && not_found $file received/$N.txt && rc=1
-  [ ! -f $exp ] && not_found $file expected/$N.txt && rc=1
+  [ ! -f $recfile ] && not_found $testfile $N.rec && rc=1
+  [ ! -f $expfile ] && not_found $testfile $N.exp && rc=1
 
   # either received/expected not found
   [ $rc = 1 ] && return 1
 
   # gather stats and diff
-  local difffile=$HERE/failed/$N.diff
-  diff -y -W 70 $rec $exp >$difffile
+  diff -y -W 70 $recfile $expfile >$difffile
   rc=$?
   if [[ $rc == 0 ]]; then
-    pass $file "$title"
+    pass $testfile "$title"
     rm -f $difffile
   else
-    fail $file "$title"
+    fail $testfile "$title"
   fi
   return $rc
 }
@@ -66,9 +76,9 @@ main() {
   if [ $ONE_TEST ]; then
     wrap_test $HERE/cases/$ONE_TEST.sh # run one test
     wait $pid
-    echo '────────────────────────'
-    cat $HERE/received/$ONE_TEST.txt
-    echo '────────────────────────'
+    echo '[ final output ] ───────────────'
+    cat $HERE/tmp/$ONE_TEST.rec
+    echo '────────────────────────────────'
   else
     for t in $HERE/cases/*; do # run all tests
       wrap_test $t

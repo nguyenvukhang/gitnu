@@ -1,11 +1,10 @@
-# staged file (number)
+# zero support #2
 
-init 2
-touch file:gold
+init 5
+touch 0
 gitnu status
-gitnu add 1-2 # use number
-gitnu status
-gitnu reset 1 # use number again, on file:gold
+gitnu add 0-2
+
 save gitnu status
 
 # --------------------------------------------------------------------
@@ -14,9 +13,12 @@ save gitnu status
 # No commits yet
 #
 # Changes to be committed:
-# 1	[32mnew file:   file_0001[m
+# 1	[32mnew file:   0[m
+# 2	[32mnew file:   file_0001[m
 #
 # Untracked files:
-# 2	[31mfile:gold[m
 # 3	[31mfile_0002[m
+# 4	[31mfile_0003[m
+# 5	[31mfile_0004[m
+# 6	[31mfile_0005[m
 #

@@ -22,8 +22,8 @@ fn status_operations() {
     test(&["gitnu", "-C", "foo/bar", "status"], &["status"]);
     test(&["gitnu", "status", "--porcelain"], &["status", "--porcelain"]);
     test(&["gitnu", "status", "--short"], &["status", "--short"]);
-    test(&["gitnu", "-C"], &["-C"]);
-    test(&["gitnu", "-c"], &["-c"]);
+    test(&["gitnu", "-C"], &[]);
+    test(&["gitnu", "-c"], &[]);
     test(&["gitnu", "log", "-n", "2"], &["log", "-n", "2"]);
 }
 

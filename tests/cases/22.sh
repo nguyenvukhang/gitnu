@@ -23,7 +23,22 @@ touch fileA fileB fileC
 git add fileA
 
 # use gitnu index
-_gitnu status
+gitnu status
 gitnu add 3
 
 save gitnu status
+
+# --------------------------------------------------------------------
+# On branch RIGHT
+# You have unmerged paths.
+# 
+# Changes to be committed:
+# 1	[32mnew file:   fileA[m
+# 2	[32mnew file:   fileB[m
+# 
+# Unmerged paths:
+# 3	[31mboth added:      conflict_file[m
+# 
+# Untracked files:
+# 4	[31mfileC[m
+# 

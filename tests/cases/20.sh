@@ -1,8 +1,110 @@
 # complex short status
 
 init 100
-_gitnu status -s
-_gitnu add 25-75 # effectively adds files 25-50 inclusive
-_gitnu status -s
-_gitnu reset 10-20 # resets files 34-44 inclusive
+gitnu status -s
+gitnu add 25-75 # effectively adds files 25-50 inclusive
+gitnu status -s
+gitnu reset 10-20 # resets files 34-44 inclusive
 save gitnu status -s
+
+# --------------------------------------------------------------------
+# 1  [32mA[m  file_0025
+# 2  [32mA[m  file_0026
+# 3  [32mA[m  file_0027
+# 4  [32mA[m  file_0028
+# 5  [32mA[m  file_0029
+# 6  [32mA[m  file_0030
+# 7  [32mA[m  file_0031
+# 8  [32mA[m  file_0032
+# 9  [32mA[m  file_0033
+# 10 [32mA[m  file_0045
+# 11 [32mA[m  file_0046
+# 12 [32mA[m  file_0047
+# 13 [32mA[m  file_0048
+# 14 [32mA[m  file_0049
+# 15 [32mA[m  file_0050
+# 16 [32mA[m  file_0051
+# 17 [32mA[m  file_0052
+# 18 [32mA[m  file_0053
+# 19 [32mA[m  file_0054
+# 20 [32mA[m  file_0055
+# 21 [32mA[m  file_0056
+# 22 [32mA[m  file_0057
+# 23 [32mA[m  file_0058
+# 24 [32mA[m  file_0059
+# 25 [32mA[m  file_0060
+# 26 [32mA[m  file_0061
+# 27 [32mA[m  file_0062
+# 28 [32mA[m  file_0063
+# 29 [32mA[m  file_0064
+# 30 [32mA[m  file_0065
+# 31 [32mA[m  file_0066
+# 32 [32mA[m  file_0067
+# 33 [32mA[m  file_0068
+# 34 [32mA[m  file_0069
+# 35 [32mA[m  file_0070
+# 36 [32mA[m  file_0071
+# 37 [32mA[m  file_0072
+# 38 [32mA[m  file_0073
+# 39 [32mA[m  file_0074
+# 40 [32mA[m  file_0075
+# 41 [31m??[m file_0001
+# 42 [31m??[m file_0002
+# 43 [31m??[m file_0003
+# 44 [31m??[m file_0004
+# 45 [31m??[m file_0005
+# 46 [31m??[m file_0006
+# 47 [31m??[m file_0007
+# 48 [31m??[m file_0008
+# 49 [31m??[m file_0009
+# 50 [31m??[m file_0010
+# 51 [31m??[m file_0011
+# 52 [31m??[m file_0012
+# 53 [31m??[m file_0013
+# 54 [31m??[m file_0014
+# 55 [31m??[m file_0015
+# 56 [31m??[m file_0016
+# 57 [31m??[m file_0017
+# 58 [31m??[m file_0018
+# 59 [31m??[m file_0019
+# 60 [31m??[m file_0020
+# 61 [31m??[m file_0021
+# 62 [31m??[m file_0022
+# 63 [31m??[m file_0023
+# 64 [31m??[m file_0024
+# 65 [31m??[m file_0034
+# 66 [31m??[m file_0035
+# 67 [31m??[m file_0036
+# 68 [31m??[m file_0037
+# 69 [31m??[m file_0038
+# 70 [31m??[m file_0039
+# 71 [31m??[m file_0040
+# 72 [31m??[m file_0041
+# 73 [31m??[m file_0042
+# 74 [31m??[m file_0043
+# 75 [31m??[m file_0044
+# 76 [31m??[m file_0076
+# 77 [31m??[m file_0077
+# 78 [31m??[m file_0078
+# 79 [31m??[m file_0079
+# 80 [31m??[m file_0080
+# 81 [31m??[m file_0081
+# 82 [31m??[m file_0082
+# 83 [31m??[m file_0083
+# 84 [31m??[m file_0084
+# 85 [31m??[m file_0085
+# 86 [31m??[m file_0086
+# 87 [31m??[m file_0087
+# 88 [31m??[m file_0088
+# 89 [31m??[m file_0089
+# 90 [31m??[m file_0090
+# 91 [31m??[m file_0091
+# 92 [31m??[m file_0092
+# 93 [31m??[m file_0093
+# 94 [31m??[m file_0094
+# 95 [31m??[m file_0095
+# 96 [31m??[m file_0096
+# 97 [31m??[m file_0097
+# 98 [31m??[m file_0098
+# 99 [31m??[m file_0099
+# 100[31m??[m file_0100

@@ -1,13 +1,11 @@
-# big numbers
+# zero support #1
 
-init 3
+init 5
 gitnu status
-gitnu add 1
-gitnu add 1000
-gitnu add 1000000
-gitnu add 1000000000
-gitnu add 1000000000000
-gitnu add 1000000000000000
+gitnu add 0
+gitnu add 0-1
+gitnu add 0-0
+
 save gitnu status
 
 # --------------------------------------------------------------------
@@ -15,10 +13,11 @@ save gitnu status
 # 
 # No commits yet
 # 
-# Changes to be committed:
-# 1	[32mnew file:   file_0001[m
-# 
 # Untracked files:
+# 1	[31mfile_0001[m
 # 2	[31mfile_0002[m
 # 3	[31mfile_0003[m
+# 4	[31mfile_0004[m
+# 5	[31mfile_0005[m
 # 
+# nothing added to commit but untracked files present
