@@ -1,77 +1,109 @@
-use std::io::{BufRead, BufReader, LineWriter, Write};
-use std::{env::current_dir as cwd, path::PathBuf, process::Command as C};
-use std::{fs::File, process::Stdio};
+use std::collections::HashSet;
+use std::io::{BufRead, BufReader, LineWriter, Read, Write};
+use std::{env::current_dir, fs::File, process::Stdio};
+use std::{path::PathBuf, process::Command};
+mod git_cmd;
 
 #[derive(Debug, PartialEq)]
 pub enum Op {
-    Status(bool),    // gitnu status (true: normal, false: short)
-    Number(PathBuf), // gitnu -c nvim 2 / gitnu add 2-4
+    Status(bool),    // bool: { true: normal, false: short }
+    Number(PathBuf), // PathBuf contains command
 }
 
 pub struct Opts {
     pub op: Op,
     pub cwd: PathBuf,
+    pub gcs: bool, // git-command set? ('add'/'status'/...)
 }
 
 impl Opts {
-    pub fn cache(&self, create: u8) -> Option<File> {
-        let (g, t, f) = ("git", ["rev-parse", "--git-dir"], "gitnu.txt");
-        let t = C::new(g).args(t).current_dir(&self.cwd).output().ok()?.stdout;
-        let f = PathBuf::from(String::from_utf8_lossy(&t).trim_end()).join(f);
-        if create.eq(&1) { File::create(f) } else { File::open(f) }.ok()
+    pub fn cache(&self, create: bool) -> Option<File> {
+        let p = PathBuf::from(
+            String::from_utf8_lossy(
+                &Command::new("git")
+                    .args(["rev-parse", "--git-dir"])
+                    .current_dir(&self.cwd)
+                    .output()
+                    .ok()?
+                    .stdout,
+            )
+            .trim(),
+        )
+        .join("gitnu.txt");
+        if create { File::create(p) } else { File::open(p) }.ok()
+    }
+
+    pub fn set_op(&mut self, op: Op) {
+        match (&self.gcs, &self.op, &op) {
+            (false, _, _) => (self.op, self.gcs) = (op, true),
+            (_, Op::Status(true), Op::Status(false)) => self.op = op,
+            _ => (),
+        }
     }
 }
 
 pub fn parse(args: Vec<String>) -> (Vec<String>, Opts) {
-    let (mut res, mut iter, p) = (Vec::new(), args.iter(), |a: &str| a.into());
-    let mut o = Opts { cwd: cwd().unwrap_or(p(".")), op: Op::Number(p("git")) };
-    iter.next();
+    // load git commands
+    let mut git_cmd = HashSet::with_capacity(git_cmd::GIT_CMD.len());
+    git_cmd.extend(git_cmd::GIT_CMD.iter().map(|v| v.to_string()));
+    let mut iter = args.iter().skip(1);
+    let mut res = Vec::new();
+    let mut opts = Opts {
+        cwd: current_dir().unwrap_or(".".into()),
+        op: Op::Number("git".into()),
+        gcs: false,
+    };
     while let Some(arg) = iter.next() {
+        if !opts.gcs && git_cmd.contains(arg) {
+            match arg.as_str() {
+                "status" => opts.set_op(Op::Status(true)),
+                _ => opts.set_op(Op::Number("git".into())),
+            }
+        }
         match arg.as_str() {
-            "status" => o.op = Op::Status(true),
-            "--short" | "-s" | "--porcelain" => match o.op {
-                Op::Status(_) => o.op = Op::Status(false),
-                _ => (),
-            },
-            "-c" | "-C" => {
-                if let Some(v) = iter.next() {
-                    match arg.as_str() {
-                        "-c" => o.op = Op::Number(PathBuf::from(v)),
-                        _ => o.cwd = PathBuf::from(v),
+            "status" => opts.set_op(Op::Status(true)),
+            "--short" | "-s" | "--porcelain" => opts.set_op(Op::Status(false)),
+            "-x" | "-C" => match opts.gcs {
+                false => {
+                    if let Some(v) = iter.next() {
+                        match arg.as_str() {
+                            "-x" => opts.set_op(Op::Number(v.into())),
+                            _ => opts.cwd = v.into(),
+                        }
+                        continue;
                     }
                 }
-                continue;
-            }
+                true => (),
+            },
             _ => (),
         }
         res.push(arg.to_string());
     }
-    (res, o)
+    (res, opts)
 }
 
-fn get_range(arg: &str) -> Option<[usize; 2]> {
-    arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
-        let (a, b) = arg.split_once("-")?;
-        let a = a.parse().ok()?;
-        let b = b.parse().unwrap_or(a);
-        Some(if a < b { [a, b] } else { [b, a] })
-    })
-}
-
-pub fn load(args: Vec<String>, o: &Opts) -> Vec<PathBuf> {
-    let (c, mut sk) = (|v| BufReader::new(v).lines().filter_map(|v| v.ok()), 0);
-    let c: Vec<String> = o.cache(0).map(|v| c(v).collect()).unwrap_or_default();
+pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
+    fn get_range(arg: &str) -> Option<[usize; 2]> {
+        arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
+            let (a, b) = arg.split_once("-")?;
+            let a = a.parse().ok()?;
+            let b = b.parse().unwrap_or(a);
+            Some(if a < b { [a, b] } else { [b, a] })
+        })
+    }
+    let mut skip = false;
+    let c: Vec<String> =
+        opts.cache(false).map(|v| lines(v).collect()).unwrap_or_default();
     args.iter().fold(Vec::new(), |mut r, a| {
         let isf = a.starts_with('-') && !a.starts_with("--"); // is short flag
-        let [s, e] = get_range(a).unwrap_or([0, 0]);
-        match sk == 1 || isf || [s, e] == [0, 0] {
-            true => r.push(PathBuf::from(a)),
-            false => (s..e + 1)
+        match (!skip && !isf, get_range(a)) {
+            (true, Some([s, e])) => (s..e + 1)
                 .map(|n| (n.checked_sub(1).map(|v| c.get(v)), n.to_string()))
                 .for_each(|(o, s)| r.push(o.flatten().unwrap_or(&s).into())),
+            _ => r.push(PathBuf::from(a)),
         }
-        sk = if isf { 1 } else { 0 };
-        return r;
+        skip = isf;
+        r
     })
 }
 
@@ -79,35 +111,46 @@ fn uncolor(f: &str) -> String {
     f.replace("\x1b[31m", "").replace("\x1b[32m", "").replace("\x1b[m", "")
 }
 
-pub fn status(args: &Vec<PathBuf>, o: Opts) -> Option<()> {
-    let (c, mut su) = (&mut 1, false);
-    let (mut g, cs) = (C::new("git"), ["-c", "color.status=always"]);
-    g.current_dir(&o.cwd).args(cs).args(args).stdout(Stdio::piped());
-    let (mut w, mut g) = (LineWriter::new(o.cache(1)?), g.spawn().ok()?);
-    let b = BufReader::new(g.stdout.as_mut()?).lines().filter_map(|v| v.ok());
-    b.filter_map(|l| {
-        su |= l.contains("Untracked files:");
-        match (&o.op, l.starts_with('\t')) {
-            (Op::Status(true), false) => println!("{}", l),
-            (Op::Status(true), true) => {
-                println!("{}{}", *c, l);
-                *c += 1;
-                let f = uncolor(&l);
+fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
+    return BufReader::new(src).lines().filter_map(|v| v.ok());
+}
+
+pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
+    let count = &mut 1;
+    let mut su = false;
+    let mut git = Command::new("git");
+    git.args(["-c", "color.status=always"])
+        .current_dir(&o.cwd)
+        .args(args)
+        .stdout(Stdio::piped());
+    let mut writer = o.cache(true).map(LineWriter::new);
+    let mut git = git.spawn().ok()?;
+    let b = lines(git.stdout.as_mut()?);
+    b.filter_map(|line| {
+        su |= line.contains("Untracked files:");
+        match (is_normal, line.starts_with('\t')) {
+            (true, false) => println!("{}", line),
+            (true, true) => {
+                println!("{}{}", *count, line);
+                *count += 1;
+                let f = uncolor(&line);
                 let mut f = f.split_once('\t')?.1;
                 f = if su { f } else { f.split_once(':')?.1.trim_start() };
                 return Some(o.cwd.join(f));
             }
             _ => {
-                println!("{: <3}{}", *c, l);
-                *c += 1;
-                return Some(o.cwd.join(&uncolor(&l)[3..]));
+                println!("{: <3}{}", *count, line);
+                *count += 1;
+                return Some(o.cwd.join(&uncolor(&line)[3..]));
             }
         };
         return None;
     })
-    .for_each(|v| writeln!(w, "{}", v.display()).unwrap_or(()));
-    g.wait().ok();
-    w.flush().ok()
+    .for_each(|v| {
+        writer.as_mut().map(|lw| writeln!(lw, "{}", v.display()));
+    });
+    git.wait().ok();
+    writer.map(|mut v| v.flush().ok()).flatten()
 }
 
 pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
@@ -116,10 +159,10 @@ pub fn core(args: Vec<String>) -> (Vec<PathBuf>, Opts) {
 }
 
 pub fn run(a: Vec<PathBuf>, opts: Opts) -> Option<()> {
-    let sp = |c| C::new(c).args(&a).spawn().ok()?.wait().map(|_| ()).ok();
+    let sp = |c| Command::new(c).args(&a).spawn().ok()?.wait().map(|_| ()).ok();
     match opts.op {
-        Op::Status(_) => status(&a, opts),
-        Op::Number(c) => sp(c),
+        Op::Status(normal) => status(&a, opts, normal),
+        Op::Number(cwd) => sp(cwd),
     }
 }
 

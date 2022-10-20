@@ -8,7 +8,7 @@ while [ $i -le 20 ]; do
   let i++
 done
 gitnu status
-save gitnu -c cat 16-25
+save gitnu -x cat 16-25
 
 # --------------------------------------------------------------------
 # content__of__016

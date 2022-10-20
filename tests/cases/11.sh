@@ -7,7 +7,7 @@ while [ $i -le 8 ]; do
   let i++
 done
 gitnu status
-save gitnu -c cat 2-5
+save gitnu -x cat 2-5
 
 # --------------------------------------------------------------------
 # __content2__
