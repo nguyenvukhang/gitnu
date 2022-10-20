@@ -32,6 +32,6 @@ count_lines() {
 
 while read -r i; do
   ll=$(count_lines $i)
-  printf -v padded "% 3d" $ll
+  printf -v padded "% 4d" $ll
   echo "$padded | $i"
 done < <(files)
