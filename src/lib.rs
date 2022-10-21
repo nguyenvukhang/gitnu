@@ -43,7 +43,7 @@ impl Opts {
 
 pub fn parse(args: Vec<String>) -> (Vec<String>, Opts) {
     let git_cmd = git_cmd::set();
-    let mut iter = args.iter().skip(1);
+    let mut iter = args.iter().skip(1).peekable();
     let mut res = Vec::new();
     let mut opts = Opts {
         cwd: current_dir().unwrap_or(".".into()),
@@ -57,26 +57,26 @@ pub fn parse(args: Vec<String>) -> (Vec<String>, Opts) {
                 _ => opts.set_op(Op::Number("git".into())),
             }
         }
-        match arg.as_str() {
-            "status" => opts.set_op(Op::Status(true)),
-            "--short" | "-s" | "--porcelain" => opts.set_op(Op::Status(false)),
-            "-x" | "-C" => match opts.gcs {
-                false => {
-                    if let Some(v) = iter.next() {
-                        match arg.as_str() {
-                            "-x" => opts.set_op(Op::Number(v.into())),
-                            _ => opts.cwd = v.into(),
-                        }
-                        continue;
-                    }
-                }
-                true => (),
-            },
+        match (iter.peek(), arg.as_str()) {
+            (_, "status") => opts.set_op(Op::Status(true)),
+            (_, "--short" | "-s" | "--porcelain") => {
+                opts.set_op(Op::Status(false))
+            }
+            (Some(cwd), "-C") => opts.cwd = cwd.into(),
+            (Some(cmd), "-x") => {
+                opts.set_op(Op::Number(cmd.into()));
+                iter.next();
+                continue;
+            }
             _ => (),
         }
         res.push(arg.to_string());
     }
     (res, opts)
+}
+
+fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
+    return BufReader::new(src).lines().filter_map(|v| v.ok());
 }
 
 pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
@@ -88,13 +88,14 @@ pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
             Some(if a < b { [a, b] } else { [b, a] })
         })
     }
-    let mut skip = false;
+    let (mut skip, mut bypass) = (false, false);
     let c: Vec<String> =
         opts.cache(false).map(|v| lines(v).collect()).unwrap_or_default();
     args.iter().fold(Vec::new(), |mut r, a| {
+        bypass |= a.eq("--");
         let isf = a.starts_with('-') && !a.starts_with("--"); // is short flag
-        match (!skip && !isf, get_range(a)) {
-            (true, Some([s, e])) => (s..e + 1)
+        match (bypass, !skip && !isf, get_range(a)) {
+            (false, true, Some([s, e])) => (s..e + 1)
                 .map(|n| (n.checked_sub(1).map(|v| c.get(v)), n.to_string()))
                 .for_each(|(o, s)| r.push(o.flatten().unwrap_or(&s).into())),
             _ => r.push(PathBuf::from(a)),
@@ -104,20 +105,13 @@ pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
     })
 }
 
-fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
-    return BufReader::new(src).lines().filter_map(|v| v.ok());
-}
-
 pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
     const C: [&str; 3] = ["\x1b[31m", "\x1b[32m", "\x1b[m"];
     let rmc = |v: &str| v.replace(C[0], "").replace(C[1], "").replace(C[2], "");
     let count = &mut 1;
     let mut su = false;
     let mut git = Command::new("git");
-    git.args(["-c", "color.status=always"])
-        .current_dir(&o.cwd)
-        .args(args)
-        .stdout(Stdio::piped());
+    git.args(["-c", "color.status=always"]).args(args).stdout(Stdio::piped());
     let mut writer = o.cache(true).map(LineWriter::new);
     let mut git = git.spawn().ok()?;
     let b = lines(git.stdout.as_mut()?);

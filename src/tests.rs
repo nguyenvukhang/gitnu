@@ -33,7 +33,7 @@ fn unit_tests() {
     // swallow -C and its value and use it as current dir
     check(Test {
         received: &["-C", "/dev/null"],
-        expected: &[],
+        expected: &["-C", "/dev/null"],
         cwd: "/dev/null",
         op: Op::Number("git".into()),
     });
@@ -49,7 +49,7 @@ fn unit_tests() {
     // set both cwd and xargs_cmd
     check(Test {
         received: &["-C", "/etc", "-x", "nvim"],
-        expected: &[],
+        expected: &["-C", "/etc"],
         cwd: "/etc",
         op: Op::Number("nvim".into()),
     });
@@ -65,7 +65,7 @@ fn unit_tests() {
     // cwd + xargs_cmd + weird args
     check(Test {
         received: &["-C", "/etc", "-x", "nvim", "status", "--porcelain"],
-        expected: &["status", "--porcelain"],
+        expected: &["-C", "/etc", "status", "--porcelain"],
         cwd: "/etc",
         op: Op::Number("nvim".into()),
     });
@@ -113,7 +113,7 @@ fn unit_tests() {
     // read mode with cwd
     check(Test {
         received: &["-C", "/tmp", "ls-files", "2-4"],
-        expected: &["ls-files", "2", "3", "4"],
+        expected: &["-C", "/tmp", "ls-files", "2", "3", "4"],
         cwd: "/tmp",
         op: Op::Number("git".into()),
     });
