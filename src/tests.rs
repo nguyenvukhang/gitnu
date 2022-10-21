@@ -53,6 +53,8 @@ fn unit_tests() {
         cwd: "/etc",
         op: Op::Number("nvim".into()),
     });
+
+    // set cwd after xargs_cmd
     check(Test {
         received: &["-x", "nvim", "-C", "/etc"],
         expected: &["-C", "/etc"],

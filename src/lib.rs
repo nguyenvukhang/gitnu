@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::io::{BufRead, BufReader, LineWriter, Read, Write};
 use std::{env::current_dir, fs::File, process::Stdio};
 use std::{path::PathBuf, process::Command};
@@ -43,9 +42,7 @@ impl Opts {
 }
 
 pub fn parse(args: Vec<String>) -> (Vec<String>, Opts) {
-    // load git commands
-    let mut git_cmd = HashSet::with_capacity(git_cmd::GIT_CMD.len());
-    git_cmd.extend(git_cmd::GIT_CMD.iter().map(|v| v.to_string()));
+    let git_cmd = git_cmd::set();
     let mut iter = args.iter().skip(1);
     let mut res = Vec::new();
     let mut opts = Opts {
@@ -107,15 +104,13 @@ pub fn load(args: Vec<String>, opts: &Opts) -> Vec<PathBuf> {
     })
 }
 
-fn uncolor(f: &str) -> String {
-    f.replace("\x1b[31m", "").replace("\x1b[32m", "").replace("\x1b[m", "")
-}
-
 fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     return BufReader::new(src).lines().filter_map(|v| v.ok());
 }
 
 pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
+    const C: [&str; 3] = ["\x1b[31m", "\x1b[32m", "\x1b[m"];
+    let rmc = |v: &str| v.replace(C[0], "").replace(C[1], "").replace(C[2], "");
     let count = &mut 1;
     let mut su = false;
     let mut git = Command::new("git");
@@ -133,15 +128,14 @@ pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
             (true, true) => {
                 println!("{}{}", *count, line);
                 *count += 1;
-                let f = uncolor(&line);
-                let mut f = f.split_once('\t')?.1;
-                f = if su { f } else { f.split_once(':')?.1.trim_start() };
+                let f = rmc(&line.trim_start_matches('\t'));
+                let f = if su { &f } else { f.split_once(':')?.1.trim_start() };
                 return Some(o.cwd.join(f));
             }
             _ => {
                 println!("{: <3}{}", *count, line);
                 *count += 1;
-                return Some(o.cwd.join(&uncolor(&line)[3..]));
+                return Some(o.cwd.join(&rmc(&line)[3..]));
             }
         };
         return None;

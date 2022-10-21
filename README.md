@@ -66,8 +66,8 @@ $ gitnu add 2 5-7 # same as `gitnu add 2 5 6 7`
 You can even mix file names with numbers.
 
 One thing unique to gitnu that git doesn't do is you can map files to
-commands:
+commands, similar to `xargs`:
 
 ```bash
-gitnu -c rm 1 2 # same as `rm <file 1> <file 2>`
+gitnu -x rm 1 2 # same as `rm <file 1> <file 2>`
 ```
