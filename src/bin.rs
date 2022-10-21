@@ -1,5 +1,4 @@
 fn main() {
-    let args = std::env::args().collect();
-    let (args, opts) = gitnu_lib::core(args);
+    let (args, opts) = gitnu_lib::core(std::env::args());
     gitnu_lib::run(args, opts);
 }

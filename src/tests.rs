@@ -15,10 +15,10 @@ fn unit_tests() {
     fn check(t: Test) {
         // get received args/opts
         let rc = [&["gitnu"], t.received].concat();
-        let rc = parse(rc.iter().map(|v| v.to_string()).collect());
+        let rc = parse(rc.iter().map(|v| v.to_string()));
         let rc = (load(rc.0, &rc.1), rc.1);
         // get expected opts/args
-        let ex = Opts { op: t.op, cwd: t.cwd.into(), gcs: true };
+        let ex = Opts { op: t.op, cwd: t.cwd.into() };
         let ex_args: Vec<PathBuf> =
             t.expected.iter().map(PathBuf::from).collect();
         let ex = (ex_args, ex);
