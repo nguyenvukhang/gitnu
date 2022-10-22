@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-GITNU=$PWD/target/debug/gitnu
+if [ -f gitnu ]; then
+  cargo build --release
+  GITNU=$PWD/target/release/gitnu
+else
+  GITNU=$PWD/gitnu
+fi
 echo "$GITNU"
 pushd >/dev/null /tmp
 echo "$GITNU"

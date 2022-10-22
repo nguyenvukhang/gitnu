@@ -6,6 +6,8 @@ source ./utils
 setup # sets the current directory to this script's location
 trap cleanup EXIT
 HERE=$PWD
+TMP_DIR=/tmp/gitnu
+rm -rf $TMP_DIR && mkdir -p $TMP_DIR/failed
 
 # parse arguments
 for i in "$@"; do
@@ -19,9 +21,9 @@ let TOTAL=0
 # $1 : aboslute path to ./cases/*.sh
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
-  local recfile=$HERE/tmp/$N.rec
-  local expfile=$HERE/tmp/$N.exp
-  local difffile=$HERE/failed/$N.diff
+  local recfile=$TMP_DIR/$N.rec
+  local expfile=$TMP_DIR/$N.exp
+  local difffile=$TMP_DIR/failed/$N.diff
   save() {
     eval "$@" >$recfile
   }
@@ -56,8 +58,8 @@ test() {
 wrap_test() {
   let TOTAL++
   assert $PWD $HERE && N=$(get_test_id $1)
-  tmp_dir=$HERE/tmp/$N && mkdir -p $tmp_dir
-  cd $tmp_dir && test "$1" &
+  mkdir -p $TMP_DIR/$N
+  cd $TMP_DIR/$N && test "$1" &
   pids+=("$!")
 }
 
@@ -77,7 +79,7 @@ main() {
     wrap_test $HERE/cases/$ONE_TEST.sh # run one test
     wait $pid
     echo '[ final output ] ───────────────'
-    cat $HERE/tmp/$ONE_TEST.rec
+    cat $TMP_DIR/$ONE_TEST.rec
     echo '────────────────────────────────'
   else
     for t in $HERE/cases/*; do # run all tests
