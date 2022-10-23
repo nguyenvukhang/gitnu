@@ -73,32 +73,7 @@ fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     BufReader::new(src).lines().filter_map(|v| v.ok())
 }
 
-pub fn load(args: impl Iterator<Item = String>, opts: &Opts) -> Vec<PathBuf> {
-    fn get_range(arg: &str) -> Option<[usize; 2]> {
-        arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
-            let (a, b) = arg.split_once("-")?;
-            let a: usize = a.parse().ok()?;
-            Some(b.parse().map(|b| [a.min(b), a.max(b)]).unwrap_or([a, a]))
-        })
-    }
-    let (mut skip, mut bypass) = (false, false);
-    let c: Vec<String> =
-        opts.cache(false).map(|v| lines(v).collect()).unwrap_or_default();
-    args.fold(Vec::new(), |mut r, a| {
-        bypass |= a.eq("--");
-        let isf = a.starts_with('-') && !a.starts_with("--"); // is short flag
-        match (bypass, !skip && !isf, get_range(&a)) {
-            (false, true, Some([s, e])) => (s..e + 1)
-                .map(|n| (n.checked_sub(1).map(|v| c.get(v)), n.to_string()))
-                .for_each(|(o, s)| r.push(o.flatten().unwrap_or(&s).into())),
-            _ => r.push(PathBuf::from(a)),
-        }
-        skip = isf;
-        r
-    })
-}
-
-pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
+pub fn status(args: &Vec<String>, o: Opts, is_normal: bool) -> Option<()> {
     const C: [&str; 3] = ["\x1b[31m", "\x1b[32m", "\x1b[m"];
     let rmc = |v: &str| v.replace(C[0], "").replace(C[1], "").replace(C[2], "");
     let mut count = 1;
@@ -134,19 +109,51 @@ pub fn status(args: &Vec<PathBuf>, o: Opts, is_normal: bool) -> Option<()> {
     writer.map(|mut lw| lw.flush().ok()).flatten()
 }
 
-pub fn core(args: impl Iterator<Item = String>) -> (Vec<PathBuf>, Opts) {
+pub fn load(
+    args: impl Iterator<Item = String>,
+    cache: Vec<String>,
+) -> Vec<String> {
+    fn get_range(arg: &str) -> Option<[usize; 2]> {
+        arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
+            let (a, b) = arg.split_once("-")?;
+            let a: usize = a.parse().ok()?;
+            Some(b.parse().map(|b| [a.min(b), a.max(b)]).unwrap_or([a, a]))
+        })
+    }
+    let (mut skip, mut bypass) = (false, false);
+    args.fold(Vec::new(), |mut r, a| {
+        bypass |= a.eq("--");
+        let isf = a.starts_with('-') && !a.starts_with("--"); // is short flag
+        match (bypass, !skip && !isf, get_range(&a)) {
+            (false, true, Some([s, e])) => (s..e + 1).for_each(|n| {
+                r.push(cache.get(n).unwrap_or(&n.to_string()).into())
+            }),
+            _ => r.push(a.to_string()),
+        }
+        skip = isf;
+        r
+    })
+}
+
+pub fn read_cache(opts: &Opts) -> Vec<String> {
+    let mut c: Vec<String> = vec![String::from("0")];
+    opts.cache(false).map(|f| c.extend(lines(f).map(String::from)));
+    c
+}
+
+pub fn core(args: impl Iterator<Item = String>) -> (Vec<String>, Opts) {
     let (args, opts) = parse(args);
     match opts.op {
-        Op::Status(_) => (args.map(PathBuf::from).collect(), opts),
-        _ => (load(args, &opts), opts),
+        Op::Status(_) => (args.collect(), opts),
+        _ => (load(args, read_cache(&opts)), opts),
     }
 }
 
-pub fn run(a: Vec<PathBuf>, opts: Opts) -> Option<()> {
-    let sp = |c| Command::new(c).args(&a).spawn().ok()?.wait().map(|_| ()).ok();
+pub fn run(args: Vec<String>, opts: Opts) -> Option<()> {
+    let sp = |c| Command::new(c).args(&args).spawn().ok();
     match opts.op {
-        Op::Status(normal) => status(&a, opts, normal),
-        Op::Number(cmd) => sp(cmd),
+        Op::Status(normal) => status(&args, opts, normal),
+        Op::Number(cmd) => sp(cmd)?.wait().map(|_| ()).ok(),
         Op::Unset => None,
     }
 }

@@ -1,6 +1,6 @@
 #![cfg(test)]
 use crate::{load, parse, Op, Opts};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[test]
 fn unit_tests() {
@@ -10,17 +10,20 @@ fn unit_tests() {
         expected: &'a [&'a str],
         cwd: &'a str,
         op: Op,
+        cache: Vec<&'a str>,
     }
 
     fn check(t: Test) {
         // get received args/opts
+        let ts = |v: &&str| String::from(*v);
         let rc = [&["gitnu"], t.received].concat();
         let rc = parse(rc.iter().map(|v| v.to_string()));
-        let rc = (load(rc.0, &rc.1), rc.1);
+        let mut cache = vec!["0"];
+        cache.extend(t.cache);
+        let rc = (load(rc.0, cache.iter().map(ts).collect()), rc.1);
         // get expected opts/args
         let ex = Opts { op: t.op, cwd: t.cwd.into() };
-        let ex_args: Vec<PathBuf> =
-            t.expected.iter().map(PathBuf::from).collect();
+        let ex_args: Vec<String> = t.expected.iter().map(ts).collect();
         let ex = (ex_args, ex);
         // at this point, both rc and ex are (args, opts) tuples
         assert_eq!(rc.0, ex.0);
@@ -36,6 +39,7 @@ fn unit_tests() {
         expected: &["-C", "/dev/null"],
         cwd: "/dev/null",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // use the value of -x as the command
@@ -44,6 +48,7 @@ fn unit_tests() {
         expected: &[],
         cwd: "",
         op: Op::Number("nvim".into()),
+        cache: vec![],
     });
 
     // set both cwd and xargs_cmd
@@ -52,6 +57,7 @@ fn unit_tests() {
         expected: &["-C", "/etc"],
         cwd: "/etc",
         op: Op::Number("nvim".into()),
+        cache: vec![],
     });
 
     // set cwd after xargs_cmd
@@ -60,6 +66,7 @@ fn unit_tests() {
         expected: &["-C", "/etc"],
         cwd: "",
         op: Op::Number("nvim".into()),
+        cache: vec![],
     });
 
     // cwd + xargs_cmd + weird args
@@ -68,6 +75,7 @@ fn unit_tests() {
         expected: &["-C", "/etc", "status", "--porcelain"],
         cwd: "/etc",
         op: Op::Number("nvim".into()),
+        cache: vec![],
     });
 
     // status mode: (normal)
@@ -76,6 +84,7 @@ fn unit_tests() {
         expected: &["status"],
         cwd: "",
         op: Op::Status(true),
+        cache: vec![],
     });
 
     // status mode: --short
@@ -84,6 +93,7 @@ fn unit_tests() {
         expected: &["status", "--short"],
         cwd: "",
         op: Op::Status(false),
+        cache: vec![],
     });
 
     // status mode: -s
@@ -92,6 +102,7 @@ fn unit_tests() {
         expected: &["status", "-s"],
         cwd: "",
         op: Op::Status(false),
+        cache: vec![],
     });
 
     // status mode: --porcelain
@@ -100,6 +111,7 @@ fn unit_tests() {
         expected: &["status", "--porcelain"],
         cwd: "",
         op: Op::Status(false),
+        cache: vec![],
     });
 
     // read mode + range
@@ -108,6 +120,7 @@ fn unit_tests() {
         expected: &["ls-files", "2", "3", "4"],
         cwd: "",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // read mode with cwd
@@ -116,6 +129,7 @@ fn unit_tests() {
         expected: &["-C", "/tmp", "ls-files", "2", "3", "4"],
         cwd: "/tmp",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // -C flag without value
@@ -124,6 +138,7 @@ fn unit_tests() {
         expected: &["-C"],
         cwd: "",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // -x flag without value
@@ -132,6 +147,7 @@ fn unit_tests() {
         expected: &["-x"],
         cwd: "",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // bypass anything after a short flag
@@ -140,6 +156,7 @@ fn unit_tests() {
         expected: &["log", "-n", "4", "--oneline", "2", "3", "4"],
         cwd: "",
         op: Op::Number("git".into()),
+        cache: vec![],
     });
 
     // xargs + range
@@ -148,5 +165,15 @@ fn unit_tests() {
         expected: &["2", "3", "4"],
         cwd: "",
         op: Op::Number("nvim".into()),
+        cache: vec![],
+    });
+
+    // repeated numbers
+    check(Test {
+        received: &["ls-files", "1", "1", "2"],
+        expected: &["ls-files", "gold", "gold", "silver"],
+        cwd: "",
+        op: Op::Number("git".into()),
+        cache: vec!["gold", "silver"],
     });
 }
