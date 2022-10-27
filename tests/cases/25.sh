@@ -1,24 +1,17 @@
-# zero support #2
+# detached head
 
-init 5
-touch 0
-gitnu status
-gitnu add 0-2
+git init
+touch file_1
+git add file_1 && git commit -m 'add: file_1'
 
-save gitnu status
+touch file_2
+git add file_2 && git commit -m 'add: file_2'
+
+git checkout HEAD~1
+
+set_sha git rev-parse --short HEAD
+save $GITNU status
 
 # --------------------------------------------------------------------
-# On branch main
-#
-# No commits yet
-#
-# Changes to be committed:
-# 1	[32mnew file:   0[m
-# 2	[32mnew file:   file_0001[m
-#
-# Untracked files:
-# 3	[31mfile_0002[m
-# 4	[31mfile_0003[m
-# 5	[31mfile_0004[m
-# 6	[31mfile_0005[m
-#
+# [31mHEAD detached at [m[:SHA:]
+# nothing to commit, working tree clean

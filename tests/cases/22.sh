@@ -1,44 +1,24 @@
-# merge conflict
+# zero support #2
 
-init 3
-git add --all
-git commit -m "base commit"
+init 5
+touch 0
+$GITNU status
+$GITNU add 0-2
 
-# left branch
-git branch -m LEFT
-echo "left" >conflict_file
-git add --all && git commit -m "left-commit"
-
-# right branch
-git checkout -b RIGHT
-git reset --hard HEAD~1
-echo "right" >conflict_file
-git add --all && git commit -m "right-commit"
-
-# merge
-git merge LEFT
-
-# make some files
-touch fileA fileB fileC
-git add fileA
-
-# use gitnu index
-gitnu status
-gitnu add 3
-
-save gitnu status
+save $GITNU status
 
 # --------------------------------------------------------------------
-# On branch RIGHT
-# You have unmerged paths.
-# 
+# On branch main
+#
+# No commits yet
+#
 # Changes to be committed:
-# 1	[32mnew file:   fileA[m
-# 2	[32mnew file:   fileB[m
-# 
-# Unmerged paths:
-# 3	[31mboth added:      conflict_file[m
-# 
+# 1	[32mnew file:   0[m
+# 2	[32mnew file:   file_0001[m
+#
 # Untracked files:
-# 4	[31mfileC[m
-# 
+# 3	[31mfile_0002[m
+# 4	[31mfile_0003[m
+# 5	[31mfile_0004[m
+# 6	[31mfile_0005[m
+#

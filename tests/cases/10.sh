@@ -1,18 +1,23 @@
-# xargs: cat
+# range overlap (add 1-4 2-6)
 
-init 0
-let i=1
-while [ $i -le 20 ]; do
-  printf -v p "%03d" $i
-  echo "content__of__${p}" >"file_$p"
-  let i++
-done
-gitnu status
-save gitnu -x cat 16-25
+init 7
+$GITNU status
+$GITNU add 1-4 2-6
+save $GITNU status
 
 # --------------------------------------------------------------------
-# content__of__016
-# content__of__017
-# content__of__018
-# content__of__019
-# content__of__020
+# On branch main
+# 
+# No commits yet
+# 
+# Changes to be committed:
+# 1	[32mnew file:   file_0001[m
+# 2	[32mnew file:   file_0002[m
+# 3	[32mnew file:   file_0003[m
+# 4	[32mnew file:   file_0004[m
+# 5	[32mnew file:   file_0005[m
+# 6	[32mnew file:   file_0006[m
+# 
+# Untracked files:
+# 7	[31mfile_0007[m
+# 

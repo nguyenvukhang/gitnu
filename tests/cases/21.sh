@@ -1,29 +1,23 @@
-# change cwd mid-way
+# zero support #1
 
-init 3
-# create and commit ./src
-mkdir src
-touch src/.gitkeep
-gitnu add src
-gitnu commit -m "src_dir"
+init 5
+$GITNU status
+$GITNU add 0
+$GITNU add 0-1
+$GITNU add 0-0
 
-# main test
-pushd src >/dev/null
-touch emerald sapphire ruby
-gitnu status # ran from /src
-popd
-gitnu add 3-5 # ran from /
-save gitnu status
+save $GITNU status
 
 # --------------------------------------------------------------------
 # On branch main
-# Changes to be committed:
-# 1	[32mnew file:   file_0003[m
-# 2	[32mnew file:   src/emerald[m
-# 3	[32mnew file:   src/ruby[m
+# 
+# No commits yet
 # 
 # Untracked files:
-# 4	[31mfile_0001[m
-# 5	[31mfile_0002[m
-# 6	[31msrc/sapphire[m
+# 1	[31mfile_0001[m
+# 2	[31mfile_0002[m
+# 3	[31mfile_0003[m
+# 4	[31mfile_0004[m
+# 5	[31mfile_0005[m
 # 
+# nothing added to commit but untracked files present

@@ -1,9 +1,9 @@
 # use range (add 2-5)
 
 init 7
-gitnu status
-gitnu add 2-5
-save gitnu status
+$GITNU status
+$GITNU add 2-5
+save $GITNU status
 
 # --------------------------------------------------------------------
 # On branch main

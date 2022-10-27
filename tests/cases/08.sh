@@ -1,11 +1,11 @@
 # use range (add 2-6, reset 1-2 5)
 
 init 7
-gitnu status
-gitnu add 2-6
-gitnu status
-gitnu reset 1-2 5
-save gitnu status
+$GITNU status
+$GITNU add 2-6
+$GITNU status
+$GITNU reset 1-2 5
+save $GITNU status
 
 # --------------------------------------------------------------------
 # On branch main

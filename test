@@ -5,7 +5,8 @@
 EXITCODE=0
 
 # run unit tests
-RUST_BACKTRACE=1 cargo test || EXITCODE=1
+cargo test || EXITCODE=1
+# RUST_BACKTRACE=1 cargo test || EXITCODE=1
 
 # run integration tests
 bash tests/run $@ || EXITCODE=1

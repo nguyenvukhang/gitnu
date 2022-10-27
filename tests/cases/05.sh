@@ -2,13 +2,13 @@
 
 init 3
 echo "_" >file_3
-gitnu status
-gitnu add 3 # use number on file_3
-gitnu commit -m "first"
+$GITNU status
+$GITNU add 3 # use number on file_3
+$GITNU commit -m "first"
 echo "_" >>file_3
-gitnu status
-gitnu add 1 # use number on file_3 again
-save gitnu status
+$GITNU status
+$GITNU add 1 # use number on file_3 again
+save $GITNU status
 
 # --------------------------------------------------------------------
 # On branch main

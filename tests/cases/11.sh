@@ -1,16 +1,21 @@
-# xargs: cat range (2-5)
+# number out of range
 
-init 0
-let i=1
-while [ $i -le 8 ]; do
-  echo "__content${i}__" >file_$i
-  let i++
-done
-gitnu status
-save gitnu -x cat 2-5
+init 3
+$GITNU status
+$GITNU add 2-5
+save $GITNU status
+
+# nothing should happen, because this is the same as running git
+# add with some files invalid
 
 # --------------------------------------------------------------------
-# __content2__
-# __content3__
-# __content4__
-# __content5__
+# On branch main
+#
+# No commits yet
+#
+# Untracked files:
+# 1	[31mfile_0001[m
+# 2	[31mfile_0002[m
+# 3	[31mfile_0003[m
+#
+# nothing added to commit but untracked files present

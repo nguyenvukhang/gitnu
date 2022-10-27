@@ -2,8 +2,8 @@
 
 init 0
 touch file:gold
-gitnu add file:gold # use filename
-save gitnu status
+$GITNU add file:gold # use filename
+save $GITNU status
 
 # --------------------------------------------------------------------
 # On branch main

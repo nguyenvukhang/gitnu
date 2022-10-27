@@ -1,18 +1,44 @@
-# xargs: cat (from -s)
+# merge conflict
 
-init 0
-let i=1
-while [ $i -le 20 ]; do
-  printf -v p "%03d" $i
-  echo "content__of__${p}" >"file_$p"
-  let i++
-done
-gitnu status -s
-save gitnu -x cat 16-25
+init 3
+git add --all
+git commit -m "base commit"
+
+# left branch
+git branch -m LEFT
+echo "left" >conflict_file
+git add --all && git commit -m "left-commit"
+
+# right branch
+git checkout -b RIGHT
+git reset --hard HEAD~1
+echo "right" >conflict_file
+git add --all && git commit -m "right-commit"
+
+# merge
+git merge LEFT
+
+# make some files
+touch fileA fileB fileC
+git add fileA
+
+# use gitnu index
+$GITNU status
+$GITNU add 3
+
+save $GITNU status
 
 # --------------------------------------------------------------------
-# content__of__016
-# content__of__017
-# content__of__018
-# content__of__019
-# content__of__020
+# On branch RIGHT
+# You have unmerged paths.
+# 
+# Changes to be committed:
+# 1	[32mnew file:   fileA[m
+# 2	[32mnew file:   fileB[m
+# 
+# Unmerged paths:
+# 3	[31mboth added:      conflict_file[m
+# 
+# Untracked files:
+# 4	[31mfileC[m
+# 

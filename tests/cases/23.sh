@@ -1,16 +1,8 @@
-# skip flags
+# don't create cache if git failed to run
 
-init 10
-save gitnu status
-let i=1
-while [ $i -le 10 ]; do
-  gitnu add $i && git commit -m "commit:$i"
-  let i++
-done
-
-save gitnu log -n 5 --pretty="%s" 6-8
+touch one_file # no git repo initialized
+$GITNU status   # should not create a stray gitnu.txt
+save ls
 
 # --------------------------------------------------------------------
-# commit:8
-# commit:7
-# commit:6
+# one_file

@@ -1,23 +1,26 @@
-# zero support #1
+# git handles -C correctly
 
-init 5
-gitnu status
-gitnu add 0
-gitnu add 0-1
-gitnu add 0-0
+mkdir one two three
+cd one
 
-save gitnu status
+git init
+touch one_file
+$GITNU status
+
+cd ../two
+git init
+touch two_file
+$GITNU status
+
+cd ../three
+$GITNU -C ../one add 1
+save $GITNU -C ../one status
 
 # --------------------------------------------------------------------
 # On branch main
 # 
 # No commits yet
 # 
-# Untracked files:
-# 1	[31mfile_0001[m
-# 2	[31mfile_0002[m
-# 3	[31mfile_0003[m
-# 4	[31mfile_0004[m
-# 5	[31mfile_0005[m
+# Changes to be committed:
+# 1	[32mnew file:   one_file[m
 # 
-# nothing added to commit but untracked files present
