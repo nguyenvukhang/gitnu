@@ -100,4 +100,17 @@ mod tests {
             ),
         );
     }
+
+    #[test]
+    fn parse_ignore_nums_after_short_flags() {
+        setup();
+        assert_eq!(
+            parse(&["log", "-n", "10", "1-3"], "/home"),
+            test::opts(
+                ("git", &["log", "-n", "10", "1", "2", "3"]),
+                ("/home", Op::Number),
+                &[]
+            ),
+        );
+    }
 }
