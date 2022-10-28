@@ -63,6 +63,7 @@ cleanup() {
   assert $PWD $HERE
   rm -rf $HERE/tmp
   rm -rf $HERE/failed
+  rm -rf /tmp/gitnu
 }
 
 gitnu() { # gitnu
