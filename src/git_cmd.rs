@@ -1,11 +1,3 @@
-use std::collections::HashSet;
-
-pub fn set() -> HashSet<String> {
-    let mut git_cmd = HashSet::with_capacity(GIT_CMD.len());
-    git_cmd.extend(GIT_CMD.iter().map(|v| v.to_string()));
-    git_cmd
-}
-
 // found from running `git help --all`
 pub const GIT_CMD: [&str; 164] = [
     "add",

@@ -1,4 +1,5 @@
 use crate::{git_cmd, Op, Opts};
+use std::collections::HashSet;
 use std::iter::Peekable;
 use std::{path::PathBuf, process::Command};
 
@@ -16,7 +17,7 @@ fn pre_cmd(
     args: &mut Peekable<impl Iterator<Item = String>>,
     opts: &mut Opts,
 ) -> Vec<String> {
-    let git_cmd = git_cmd::set();
+    let git_cmd = HashSet::from(git_cmd::GIT_CMD);
     let mut cache: Vec<String> = Vec::new();
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
