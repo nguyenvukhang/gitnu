@@ -43,11 +43,10 @@ impl Opts {
     }
 
     pub fn cache(&self) -> Option<File> {
-        let fp = self.cache_path()?;
-        match &self.op {
-            Op::Status(_) => File::create(fp).ok(),
-            _ => File::open(fp).ok(),
-        }
+        self.cache_path().and_then(|v| match &self.op {
+            Op::Status(_) => File::create(v).ok(),
+            _ => File::open(v).ok(),
+        })
     }
 
     pub fn read_cache(&self) -> Vec<String> {

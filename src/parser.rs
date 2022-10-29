@@ -24,8 +24,8 @@ fn pre_cmd(
         // set git sub-cmd
         if git_cmd.contains(arg) {
             if arg.eq("status") {
-                opts.cmd.args(["-c", "color.status=always"]);
                 opts.set_once(Op::Status(true));
+                opts.cmd.args(["-c", "color.status=always"]);
             } else {
                 opts.set_once(Op::Number);
                 cache = opts.read_cache();

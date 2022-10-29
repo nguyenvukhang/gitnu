@@ -10,25 +10,24 @@ fn uncolor(v: &str) -> String {
 }
 
 fn normal(
-    su: &mut bool,
+    seen_untracked: &mut bool,
     c: &mut usize,
     opts: &Opts,
     line: String,
 ) -> Option<PathBuf> {
-    *su |= line.contains("Untracked files:");
-    match line.starts_with('\t') {
-        false => {
-            println!("{}", line);
-            None
-        }
-        true => {
-            println!("{}{}", c, line);
-            *c += 1;
-            let f = uncolor(&line.trim_start_matches('\t'));
-            let f = if *su { &f } else { f.split_once(':')?.1.trim_start() };
-            Some(opts.cwd.join(f))
-        }
+    *seen_untracked |= line.contains("Untracked files:");
+    if !line.starts_with('\t') {
+        println!("{}", line);
+        return None;
     }
+    println!("{}{}", c, line);
+    *c += 1;
+    let f = uncolor(&line.trim_start_matches('\t'));
+    let f = match *seen_untracked {
+        true => &f,
+        false => f.split_once(':')?.1.trim_start(),
+    };
+    Some(opts.cwd.join(f))
 }
 
 fn short(count: &mut usize, opts: &Opts, line: String) -> PathBuf {
@@ -40,16 +39,16 @@ fn short(count: &mut usize, opts: &Opts, line: String) -> PathBuf {
 pub fn status(mut opts: Opts, is_normal: bool) -> Option<()> {
     let mut git = opts.cmd.stdout(Stdio::piped()).spawn().ok()?;
     let b = lines(git.stdout.as_mut()?);
-    let mut count = 1;
-    let mut su = false;
     let mut writer = opts.cache().map(LineWriter::new);
     let write = |line: PathBuf| {
         writer.as_mut().map(|lw| writeln!(lw, "{}", line.display()));
     };
+    let count = &mut 1;
     if is_normal {
-        b.filter_map(|v| normal(&mut su, &mut count, &opts, v)).for_each(write);
+        let su = &mut false;
+        b.filter_map(|v| normal(su, count, &opts, v)).for_each(write);
     } else {
-        b.map(|v| short(&mut count, &opts, v)).for_each(write);
+        b.map(|v| short(count, &opts, v)).for_each(write);
     };
     git.wait().ok();
     writer.map(|mut lw| lw.flush().ok()).flatten()
