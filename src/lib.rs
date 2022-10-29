@@ -22,6 +22,9 @@ pub struct Opts {
 }
 
 impl Opts {
+    /// use the path obtained from `git rev-parse --git-dir` to store the cache.
+    /// this is usually the .git folder of regular repositories, and somewhere
+    /// deeper for worktrees.
     fn cache_path(&self) -> Option<PathBuf> {
         let git = Command::new("git")
             .args(&self.pargs)
@@ -36,10 +39,14 @@ impl Opts {
             v => PathBuf::from(v),
         };
 
+        // don't read cache if the git command failed
+        if !git.status.success() {
+            return None;
+        }
+
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
-        let dir = self.cwd.join(git.status.success().then_some(relative_path)?);
-        Some(dir.join("gitnu.txt"))
+        Some(self.cwd.join(relative_path).join("gitnu.txt"))
     }
 
     pub fn cache(&self, create: bool) -> Option<File> {
