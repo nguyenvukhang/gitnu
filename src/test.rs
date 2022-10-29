@@ -1,5 +1,6 @@
 use crate::{spawn, Op, Opts};
 use std::fmt;
+use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -14,11 +15,10 @@ pub fn sh(args: &[&str], dir: &str) -> Option<()> {
 }
 
 pub fn mkdir(dir: &str) -> Option<()> {
-    let mut cmd = Command::new("mkdir");
-    cmd.arg("-p");
-    cmd.arg(dir);
-    cmd.current_dir("/");
-    spawn(cmd)
+    match PathBuf::from(dir).is_absolute() {
+        true => fs::create_dir_all(dir).ok(),
+        false => None,
+    }
 }
 
 #[allow(dead_code)]

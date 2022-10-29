@@ -5,10 +5,7 @@ mod tests {
     use std::path::PathBuf;
 
     pub fn parse(args: &[&str], path: &str) -> Opts {
-        parser::parse(
-            test::iter([&["gitnu"], args].concat()),
-            PathBuf::from(path),
-        )
+        parser::parse(test::iter([&["gitnu"], args].concat()), path.into())
     }
 
     #[test]
@@ -23,6 +20,8 @@ mod tests {
         );
     }
 
+    /// when gitnu is ran with a -C flag pointing to a different repo,
+    /// read that repo's cache file instead
     #[test]
     fn cache_path_diff_dir() {
         let cwd = "/tmp/gitnu/opts_diff_cwd";
