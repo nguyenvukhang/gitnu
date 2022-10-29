@@ -1,10 +1,10 @@
 # porcelain format
 
 init 4
-$GITNU status --porcelain
-$GITNU add 1-2
+__gitnu__ status --porcelain
+__gitnu__ add 1-2
 echo "_"=> file_1
-save $GITNU status --porcelain
+save __gitnu__ status --porcelain
 
 # --------------------------------------------------------------------
 # 1  A  file_0001

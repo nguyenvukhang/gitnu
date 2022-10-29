@@ -4,16 +4,16 @@ init 3
 # create and commit ./src
 mkdir src
 touch src/.gitkeep
-$GITNU add src
-$GITNU commit -m "src_dir"
+__gitnu__ add src
+__gitnu__ commit -m "src_dir"
 
 # main test
 pushd src >/dev/null
 touch emerald sapphire ruby
-$GITNU status # ran from /src
+__gitnu__ status # ran from /src
 popd
-$GITNU add 3-5 # ran from /
-save $GITNU status
+__gitnu__ add 3-5 # ran from /
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

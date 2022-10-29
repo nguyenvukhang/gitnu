@@ -17,8 +17,8 @@ done
 # [x] H: wt_typechange
 # [?] I: wt_renamed
 
-git add B C _D E G H _I
-git commit -m "pre"
+__gitnu__ add B C _D E G H _I
+__gitnu__ commit -m "pre"
 
 echo "_" >B
 echo "_" >G
@@ -28,9 +28,9 @@ mv _I I
 
 ln -sf . E
 ln -sf . H
-git add A B C D _D E
+__gitnu__ add A B C D _D E
 
-save $GITNU status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

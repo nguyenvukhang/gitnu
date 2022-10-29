@@ -1,14 +1,14 @@
 # big numbers
 
 init 3
-$GITNU status
-$GITNU add 1
-$GITNU add 1000
-$GITNU add 1000000
-$GITNU add 1000000000
-$GITNU add 1000000000000
-$GITNU add 1000000000000000
-save $GITNU status
+__gitnu__ status
+__gitnu__ add 1
+__gitnu__ add 1000
+__gitnu__ add 1000000
+__gitnu__ add 1000000000
+__gitnu__ add 1000000000000
+__gitnu__ add 1000000000000000
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

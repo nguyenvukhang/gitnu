@@ -1,14 +1,14 @@
 # skip flags
 
 init 10
-$GITNU status
+__gitnu__ status
 let i=1
 while [ $i -le 10 ]; do
-  $GITNU add $i && git commit -m "commit:$i"
+  __gitnu__ add $i && __gitnu__ commit -m "commit:$i"
   let i++
 done
 
-save $GITNU log -n 5 --pretty="%s" 6-8
+save __gitnu__ log -n 5 --pretty="%s" 6-8
 
 # --------------------------------------------------------------------
 # commit:8

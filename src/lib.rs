@@ -4,6 +4,8 @@ mod git_cmd;
 mod parser;
 mod status;
 
+pub use parser::parse;
+
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
 #[derive(Debug, PartialEq)]
@@ -21,6 +23,18 @@ pub struct Opts {
     pargs: Vec<String>,
 }
 
+fn path_from_stdout(out: std::process::Output) -> Option<PathBuf> {
+    // don't take value if return code is a failure
+    if !out.status.success() {
+        return None;
+    }
+    // only take non-empty outputs
+    match String::from_utf8_lossy(&out.stdout).trim() {
+        v if v.is_empty() => None,
+        v => Some(PathBuf::from(v)),
+    }
+}
+
 impl Opts {
     /// use the path obtained from `git rev-parse --git-dir` to store the cache.
     /// this is usually the .git folder of regular repositories, and somewhere
@@ -29,21 +43,9 @@ impl Opts {
         let git = Command::new("git")
             .args(&self.pargs)
             .args(["rev-parse", "--git-dir"])
-            .current_dir(&self.cwd)
             .output()
             .ok()?;
-
-        // only take non-empty outputs
-        let relative_path = match String::from_utf8_lossy(&git.stdout).trim() {
-            v if v.is_empty() => return None,
-            v => PathBuf::from(v),
-        };
-
-        // don't read cache if the git command failed
-        if !git.status.success() {
-            return None;
-        }
-
+        let relative_path = path_from_stdout(git)?;
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
         Some(self.cwd.join(relative_path).join("gitnu.txt"))
@@ -73,10 +75,6 @@ impl Opts {
 
 fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     BufReader::new(src).lines().filter_map(|v| v.ok())
-}
-
-pub fn core(args: impl Iterator<Item = String>, cwd: PathBuf) -> Opts {
-    parser::parse(args, cwd)
 }
 
 pub fn spawn(mut c: Command) -> Option<()> {

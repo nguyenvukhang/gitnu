@@ -3,18 +3,18 @@
 mkdir one two three
 cd one
 
-git init
+__gitnu__ init
 touch one_file
-$GITNU status
+__gitnu__ status
 
 cd ../two
-git init
+__gitnu__ init
 touch two_file
-$GITNU status
+__gitnu__ status
 
 cd ../three
-$GITNU -C ../one add 1
-save $GITNU -C ../one status
+__gitnu__ -C ../one add 1
+save __gitnu__ -C ../one status
 
 # --------------------------------------------------------------------
 # On branch main

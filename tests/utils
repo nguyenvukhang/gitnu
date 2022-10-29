@@ -5,41 +5,12 @@ GIT_EMAIL=''
 GIT_DEFAULT_BRANCH=''
 GIT_STATUS_HINTS=''
 
-gcf() {
-  git config --global $@
-}
-
-get_git_config() {
-  GIT_STATUS_HINTS=$(gcf advice.statusHints 2>&1)
-  GIT_USER=$(gcf user.name 2>&1)
-  GIT_EMAIL=$(gcf user.email 2>&1)
-  GIT_DEFAULT_BRANCH=$(gcf init.defaultBranch 2>&1)
-}
-
-set_git_config() {
-  [[ $GIT_USER == '' ]] && gcf user.name 'bot'
-  [[ $GIT_EMAIL == '' ]] && gcf user.email 'bot@gitnu.co'
-  [[ $GIT_DEFAULT_BRANCH == '' ]] && gcf init.defaultBranch 'main'
-  gcf advice.statusHints false
-}
-
-reset_git_config() {
-  ([ $GIT_USER ] && gcf user.name $GIT_USER) || gcf --unset user.name
-  ([ $GIT_EMAIL ] && gcf user.email $GIT_EMAIL) || gcf --unset user.email
-  ([ $GIT_DEFAULT_BRANCH ] && gcf init.defaultBranch $GIT_DEFAULT_BRANCH) ||
-    gcf --unset init.defaultBranch
-  ([ $GIT_STATUS_HINTS ] && gcf advice.statusHints $GIT_STATUS_HINTS) ||
-    gcf --unset advice.statusHints
-}
-
 setup() {
   # navigate to where this script is located
   HERE=$PWD
   GITNU=$HERE/../target/debug/gitnu
   rm -rf failed && mkdir failed
   mkdir -p log
-  get_git_config
-  set_git_config
 }
 
 get_test_id() {
@@ -59,21 +30,25 @@ assert() {
 }
 
 cleanup() {
-  reset_git_config
   assert $PWD $HERE
   rm -rf $HERE/tmp
   rm -rf $HERE/failed
   rm -rf /tmp/gitnu
 }
 
-gitnu() { # gitnu
-  $GITNU $@
+__gitnu__() { # gitnu, with test-standard configs to fix test outputs
+  $GITNU \
+    -c user.name='bot' \
+    -c user.email='bot@gitnu.co' \
+    -c init.defaultBranch='main' \
+    -c advice.statusHints='false' \
+    "$@"
 }
 
 # for use in ./cases/*.sh
 # $1 is number of files to mock up
 init() {
-  git init
+  __gitnu__ init
   let local i=1
   while [ $i -le $1 ]; do
     printf -v padded "%04d" $i

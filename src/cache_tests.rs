@@ -13,7 +13,8 @@ mod tests {
         let cwd = "/tmp/gitnu/opts_normal";
         let opts = parse(&["ls-files"], cwd);
         test::mkdir(&cwd);
-        test::sh(&["git", "init"], &cwd);
+        test::sh_git(&["init"], &cwd);
+        std::env::set_current_dir(&cwd).ok();
         assert_eq!(
             opts.cache_path(),
             Some(PathBuf::from(cwd).join(".git/gitnu.txt"))
@@ -29,8 +30,8 @@ mod tests {
         let opts = parse(&["-C", repo, "ls-files"], cwd);
         test::mkdir(&cwd);
         test::mkdir(&repo);
-        test::sh(&["git", "init"], &repo);
-        test::sh(&["git", "init"], &cwd);
+        test::sh_git(&["init"], &cwd);
+        test::sh_git(&["init"], &repo);
         assert_eq!(
             opts.cache_path(),
             Some(PathBuf::from(repo).join(".git/gitnu.txt"))

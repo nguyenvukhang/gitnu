@@ -7,9 +7,9 @@ while [ $i -le 100 ]; do
   touch "file_$padded"
   let i++
 done
-$GITNU status
-$GITNU add 25-75
-save $GITNU status
+__gitnu__ status
+__gitnu__ add 25-75
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

@@ -1,11 +1,11 @@
 # complex short status
 
 init 100
-$GITNU status -s
-$GITNU add 25-75 # effectively adds files 25-50 inclusive
-$GITNU status -s
-$GITNU reset 10-20 # resets files 34-44 inclusive
-save $GITNU status -s
+__gitnu__ status -s
+__gitnu__ add 25-75 # effectively adds files 25-50 inclusive
+__gitnu__ status -s
+__gitnu__ reset 10-20 # resets files 34-44 inclusive
+save __gitnu__ status -s
 
 # --------------------------------------------------------------------
 # 1  [32mA[m  file_0025

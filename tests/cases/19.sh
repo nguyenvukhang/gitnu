@@ -1,32 +1,32 @@
 # merge conflict
 
 init 3
-git add --all
-git commit -m "base commit"
+__gitnu__ add --all
+__gitnu__ commit -m "base commit"
 
 # left branch
-git branch -m LEFT
+__gitnu__ branch -m LEFT
 echo "left" >conflict_file
-git add --all && git commit -m "left-commit"
+__gitnu__ add --all && __gitnu__ commit -m "left-commit"
 
 # right branch
-git checkout -b RIGHT
-git reset --hard HEAD~1
+__gitnu__ checkout -b RIGHT
+__gitnu__ reset --hard HEAD~1
 echo "right" >conflict_file
-git add --all && git commit -m "right-commit"
+__gitnu__ add --all && __gitnu__ commit -m "right-commit"
 
 # merge
-git merge LEFT
+__gitnu__ merge LEFT
 
 # make some files
 touch fileA fileB fileC
-git add fileA
+__gitnu__ add fileA
 
 # use gitnu index
-$GITNU status
-$GITNU add 3
+__gitnu__ status
+__gitnu__ add 3
 
-save $GITNU status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch RIGHT

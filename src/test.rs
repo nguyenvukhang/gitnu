@@ -4,13 +4,14 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-pub fn sh(args: &[&str], dir: &str) -> Option<()> {
+pub fn sh_git(args: &[&str], dir: &str) -> Option<()> {
     if !PathBuf::from(dir).is_dir() || args.len() == 0 {
         return None;
     }
-    let mut cmd = Command::new(args[0]);
+    let mut cmd = Command::new("git");
     cmd.current_dir(dir).stdout(Stdio::piped());
-    cmd.args(&args[1..]);
+    cmd.args(["-c", "init.defaultBranch='main'"]);
+    cmd.args(args);
     spawn(cmd)
 }
 

@@ -1,10 +1,10 @@
 # short format
 
 init 4
-$GITNU status -s
-$GITNU add 1-2
+__gitnu__ status -s
+__gitnu__ add 1-2
 echo "_"=> file_1
-save $GITNU status -s
+save __gitnu__ status -s
 
 # --------------------------------------------------------------------
 # 1  [32mA[m  file_0001

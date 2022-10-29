@@ -14,8 +14,6 @@ license = "MIT"
 edition = "2021"
 
 [lib]
-name = "gitnu_lib"
-path = "src/lib.rs"
 doctest = false
 
 [[bin]]

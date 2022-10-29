@@ -1,9 +1,9 @@
 # number out of range
 
 init 3
-$GITNU status
-$GITNU add 2-5
-save $GITNU status
+__gitnu__ status
+__gitnu__ add 2-5
+save __gitnu__ status
 
 # nothing should happen, because this is the same as running git
 # add with some files invalid

@@ -2,11 +2,11 @@
 
 init 2
 touch file:gold
-gitnu status
-gitnu add 1-2 # use number
-gitnu status
-gitnu reset 1 # use number again, on file:gold
-save gitnu status
+__gitnu__ status
+__gitnu__ add 1-2 # use number
+__gitnu__ status
+__gitnu__ reset 1 # use number again, on file:gold
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

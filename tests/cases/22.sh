@@ -2,10 +2,10 @@
 
 init 5
 touch 0
-$GITNU status
-$GITNU add 0-2
+__gitnu__ status
+__gitnu__ add 0-2
 
-save $GITNU status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

@@ -1,7 +1,7 @@
 # untracked files
 
 init 3
-save gitnu status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

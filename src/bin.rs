@@ -1,9 +1,6 @@
-use std::{env, path::PathBuf};
+use std::env::{args, current_dir};
 
 fn main() {
-    let opts = gitnu_lib::core(
-        env::args(),
-        env::current_dir().unwrap_or(PathBuf::from(".")),
-    );
-    gitnu_lib::run(opts);
+    let opts = gitnu::parse(args(), current_dir().unwrap_or_default());
+    gitnu::run(opts);
 }

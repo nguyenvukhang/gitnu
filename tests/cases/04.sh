@@ -2,10 +2,10 @@
 
 init 2
 echo "_" >gold
-$GITNU add gold # use filename
-$GITNU commit -m "first"
+__gitnu__ add gold # use filename
+__gitnu__ commit -m "first"
 echo "_" >>gold
-save $GITNU status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main

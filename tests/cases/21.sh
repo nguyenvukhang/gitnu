@@ -1,12 +1,12 @@
 # zero support #1
 
 init 5
-$GITNU status
-$GITNU add 0
-$GITNU add 0-1
-$GITNU add 0-0
+__gitnu__ status
+__gitnu__ add 0
+__gitnu__ add 0-1
+__gitnu__ add 0-0
 
-save $GITNU status
+save __gitnu__ status
 
 # --------------------------------------------------------------------
 # On branch main
