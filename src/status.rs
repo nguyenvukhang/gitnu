@@ -39,7 +39,7 @@ fn short(count: &mut usize, opts: &Opts, line: String) -> PathBuf {
 pub fn status(mut opts: Opts, is_normal: bool) -> Option<()> {
     let mut git = opts.cmd.stdout(Stdio::piped()).spawn().ok()?;
     let b = lines(git.stdout.as_mut()?);
-    let mut writer = opts.cache().map(LineWriter::new);
+    let mut writer = opts.cache(true).map(LineWriter::new);
     let write = |line: PathBuf| {
         writer.as_mut().map(|lw| writeln!(lw, "{}", line.display()));
     };

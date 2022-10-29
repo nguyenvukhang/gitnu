@@ -42,16 +42,16 @@ impl Opts {
         Some(dir.join("gitnu.txt"))
     }
 
-    pub fn cache(&self) -> Option<File> {
-        self.cache_path().and_then(|v| match &self.op {
-            Op::Status(_) => File::create(v).ok(),
-            _ => File::open(v).ok(),
+    pub fn cache(&self, create: bool) -> Option<File> {
+        self.cache_path().and_then(|v| match create {
+            true => File::create(v).ok(),
+            false => File::open(v).ok(),
         })
     }
 
     pub fn read_cache(&self) -> Vec<String> {
         let mut c = vec![String::from("0")];
-        self.cache().map(|f| c.extend(lines(f)));
+        self.cache(false).map(|f| c.extend(lines(f)));
         c
     }
 
