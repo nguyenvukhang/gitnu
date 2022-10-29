@@ -1,14 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-# final result
-# this allows all tests to run even if some fail in-between
-EXITCODE=0
+cargo build || exit 1
 
 # run unit tests
-cargo test || EXITCODE=1
-# RUST_BACKTRACE=1 cargo test || EXITCODE=1
+cargo test || exit 1
 
 # run integration tests
-bash tests/run $@ || EXITCODE=1
-
-exit $EXITCODE
+bash tests/run $@

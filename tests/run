@@ -1,75 +1,156 @@
 #!/usr/bin/env bash
 
+# file structure
+#
+# /path-to-this-repo
+# ├── Cargo.toml
+# └── tests/
+#    ├── cases/
+#    │  └── 01.sh
+#    └── log/
+#       └── 01.full
+#
+# /tmp/gitnu/
+# ├── 01.rec
+# ├── 01.exp
+# └── 01.diff
+
 # navigate to where this script is located
-pushd $(dirname "$(readlink -f "$0")") >/dev/null
+HERE=$(dirname "$(readlink -f "$0")")
+pushd $HERE >/dev/null
 source ./utils
 
-setup # sets the current directory to this script's location
-trap cleanup EXIT
-HERE=$PWD
+setup
+trap teardown EXIT
 TMP_DIR=/tmp/gitnu
-rm -rf $TMP_DIR && mkdir -p $TMP_DIR/failed
+fresh_dir $TMP_DIR
 
-# parse arguments
+# use first argument as the one test to run
+# this test will be inspected more deeply too
+[[ $1 =~ [0-9]+ ]] && printf -v ONE_TEST "%02d" $1
+
 for i in "$@"; do
-  [[ "$i" =~ [0-9]+ ]] && [ -z $ONE_TEST ] && printf -v ONE_TEST "%02d" $i
+  case $i in
+  "--serial")
+    SERIAL=true
+    ;;
+  *) ;;
+  esac
 done
 
 N=0 # current id
-let PASSES=0
-let TOTAL=0
+let PASS_COUNT=0
+let TOTAL_COUNT=0
 
 # $1 : aboslute path to ./cases/*.sh
+# "received" refers to the actual output of the current binary
+# "expected" refers to the correct output expected from a working binary
+# these are abbreviated as "rec" and "exp"
 test() {
   [ ! -f $1 ] && echo "No such test file" && return
-  local recfile=$TMP_DIR/$N.rec
-  local expfile=$TMP_DIR/$N.exp
-  local difffile=$TMP_DIR/failed/$N.diff
+
+  local TEST_FILE=$1
+  local REC_FILE=$TMP_DIR/$N.rec
+  local EXP_FILE=$TMP_DIR/$N.exp
+  local DIFF_FILE=$TMP_DIR/$N.diff
+  touch $REC_FILE $EXP_FILE
+
+  # to be used in the test file
+  # diverts that line's output to $REC_FILE
+  #
+  # example:
+  # save git status
   save() {
-    eval "$@" >$recfile
+    eval "$@" >$REC_FILE
   }
+
+  # to be used in the test file
+  # sets $SHA to the output of that line
+  #
+  # example:
+  # set_sha git rev-parse --short HEAD
   set_sha() {
     SHA=$(eval "$@")
   }
-  mkdir -p $HERE/log
-  GITNU=$GITNU source $1 &>$HERE/log/$N.full
-  local EX_START=0
-  # generate expected file from comments in test file
-  while read -r line; do
-    line=${line:2}
-    line="${line/\[:SHA:\]/$SHA}"
-    if [ $EX_START = 1 ]; then
-      echo "$line" >>$expfile
-    fi
-    [[ $line = *"------------------------------"* ]] && EX_START=1
-  done <$1
-  local title=$(get_test_title $1) && local testfile=${1##$HERE/}
-  local rc=0 # return code
-  [ ! -f $recfile ] && not_found $testfile $N.rec && rc=1
-  [ ! -f $expfile ] && not_found $testfile $N.exp && rc=1
 
-  # either received/expected not found
-  [ $rc = 1 ] && return 1
+  # run the test case and save the full stdout/stderr output
+  source $1 &>$HERE/log/$N.full
+
+  # for the next section below
+  local EX_START=false
+  local EX_MARKER="------------------------------"
+
+  # generate expected file from comments at the bottom of test file,
+  # below the first line containing $EX_MARKER
+  while read -r line; do
+    # only start reading after the $EX_MARKER is seen in the test file
+    [[ $line = *$EX_MARKER* ]] && EX_START=true && continue
+
+    # remove the '# ' prefix of the line
+    line=${line:2}
+
+    # replace all instances of '[:SHA:]' with the value saved in $SHA.
+    # note that this value is set in-test using the set_sha function above.
+    line="${line/\[:SHA:\]/$SHA}"
+
+    # write the modified line into the file containing expected value
+    if [ $EX_START = true ]; then
+      echo "$line" >>$EXP_FILE
+    fi
+  done <$TEST_FILE
+
+  # gather display values
+  local title=$(get_test_title $TEST_FILE)
+  local testfile=${TEST_FILE##$HERE/}
 
   # gather stats and diff
-  diff -y -W 70 $recfile $expfile >$difffile
-  rc=$?
-  if [[ $rc == 0 ]]; then
-    pass $testfile "$title"
-    rm -f $difffile
+  diff -y -W 70 $REC_FILE $EXP_FILE >$DIFF_FILE
+
+  # get the exit code of that diff command
+  # 0 -> received value is identical to expected (test pass)
+  # 1 -> fail
+  local RC=$?
+
+  # handle the display of results
+  if [[ $RC == 0 ]]; then
+    display_pass $testfile "$title"
   else
-    fail $testfile "$title"
+    display_fail $testfile "$title"
   fi
-  return $rc
+
+  return $RC
 }
 
 # $1 : absolute path to test file
-wrap_test() {
-  let TOTAL++
-  assert $PWD $HERE && N=$(get_test_id $1)
+parallel_test() {
+  let TOTAL_COUNT++
+  local TEST_FILE=$1
+  assert $PWD $HERE
+  N=$(get_test_id $TEST_FILE)
+
+  # create test-unique directory
   mkdir -p $TMP_DIR/$N
+
+  # run the test there (this does not change the main thread's cwd)
   cd $TMP_DIR/$N && test "$1" &
+
+  # save the pid to kill it later
   pids+=("$!")
+}
+
+# $1 : absolute path to test file
+serial_test() {
+  let TOTAL_COUNT++
+  local TEST_FILE=$1
+  assert $PWD $HERE
+  N=$(get_test_id $TEST_FILE)
+
+  # create test-unique directory
+  mkdir -p $TMP_DIR/$N
+
+  # run the test there (this does not change the main thread's cwd)
+  pushd $TMP_DIR/$N >/dev/null && test "$1"
+  popd >/dev/null
 }
 
 main() {
@@ -81,32 +162,40 @@ main() {
     echo 'gitnu not found. Aborting.' && exit 1
   fi
 
-  pids=()
-
   # run test cases
   if [ $ONE_TEST ]; then
-    wrap_test $HERE/cases/$ONE_TEST.sh # run one test
-    wait $pid
+    serial_test $HERE/cases/$ONE_TEST.sh # run one test
     echo '[ final output ] ───────────────'
     cat $TMP_DIR/$ONE_TEST.rec
     echo '[ all output ] ─────────────────'
     cat $HERE/log/$ONE_TEST.full
     echo '────────────────────────────────'
+    return
+  fi
+
+  # run tests one by one in series
+  if [ $SERIAL ]; then
+    for t in $HERE/cases/*; do
+      serial_test $t
+    done
   else
-    for t in $HERE/cases/*; do # run all tests
-      wrap_test $t
+    # run tests in parallel
+    pids=() && for t in $HERE/cases/*; do
+      parallel_test $t
+    done
+    # wait for all tests to finish
+    for p in ${pids[@]}; do
+      wait $p
+      [[ $? == 0 ]] && let PASS_COUNT++
     done
   fi
 
-  # wait for all tests to finish
-  [ -z $ONE_TEST ] && for pid in ${pids[@]}; do
-    wait $pid
-    [[ $? == 0 ]] && let PASSES++
-  done
-
   # summarize
-  printf "\n $PASSES/$TOTAL tests passed\n"
-  [ $PASSES = $TOTAL ] && [ $TOTAL -gt 0 ]
+  printf "\n $PASS_COUNT/$TOTAL_COUNT tests passed\n"
+
+  # return an ok exit status if total test count is > 0
+  # and pass count == total count
+  [ $PASS_COUNT = $TOTAL_COUNT ] && [ $TOTAL_COUNT -gt 0 ]
 }
 
 main

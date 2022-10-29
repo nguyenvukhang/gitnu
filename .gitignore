@@ -2,6 +2,6 @@
 /target
 /tests/tmp
 /tests/log
-/tests/failed
+/tests/diffs
 /tests/latest.log
 /gitnu
