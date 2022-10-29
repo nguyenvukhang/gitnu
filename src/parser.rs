@@ -28,7 +28,7 @@ fn pre_cmd(
                 opts.cmd.args(["-c", "color.status=always"]);
             } else {
                 opts.set_once(Op::Number);
-                cache = opts.read_cache();
+                cache = opts.read_cache().unwrap_or(cache);
             }
             opts.cmd.arg(arg);
             break;

@@ -56,10 +56,10 @@ impl Opts {
         })
     }
 
-    pub fn read_cache(&self) -> Vec<String> {
-        let mut c = vec![String::from("0")];
-        self.cache(false).map(|f| c.extend(lines(f)));
-        c
+    pub fn read_cache(&self) -> Option<Vec<String>> {
+        let lines = lines(self.cache(false)?);
+        let zero = ["0".to_string()].into_iter();
+        Some(zero.chain(lines).collect())
     }
 
     pub fn set_once(&mut self, op: Op) {
