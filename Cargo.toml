@@ -11,12 +11,18 @@ documentation = "https://github.com/nguyenvukhang/gitnu"
 keywords = ["git"]
 categories = ["command-line-utilities"]
 license = "MIT"
-edition = "2021"
+autotests = false
+edition = "2018"
 
 [lib]
+path = "core/lib.rs"
 doctest = false
 
 [[bin]]
+bench = false
+path = "core/main.rs"
 name = "gitnu"
-path = "src/bin.rs"
-test = false
+
+[[test]]
+name = "integration"
+path = "tests/main.rs"

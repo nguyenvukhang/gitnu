@@ -3,7 +3,6 @@ use std::{fs::File, path::PathBuf, process::Command};
 mod git_cmd;
 mod parser;
 mod status;
-
 pub use parser::parse;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
@@ -16,6 +15,7 @@ pub enum Op {
     Version,
 }
 
+#[derive(Debug)]
 pub struct Opts {
     op: Op,
     cwd: PathBuf,
@@ -60,8 +60,7 @@ impl Opts {
 
     pub fn read_cache(&self) -> Option<Vec<String>> {
         let lines = lines(self.cache(false)?);
-        let zero = ["0".to_string()].into_iter();
-        Some(zero.chain(lines).collect())
+        Some(["0"].iter().map(|v| v.to_string()).chain(lines).collect())
     }
 
     pub fn set_once(&mut self, op: Op) {

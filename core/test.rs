@@ -1,9 +1,11 @@
 use crate::{spawn, Op, Opts};
-use std::fmt;
-use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
+/// Executes git with args provided at the dir specified,
+/// with special configs loaded. Necessary requirements:
+///   1. args is non-empty
+///   2. the directory specified exists
 pub fn sh_git(args: &[&str], dir: &str) -> Option<()> {
     if !PathBuf::from(dir).is_dir() || args.len() == 0 {
         return None;
@@ -15,13 +17,7 @@ pub fn sh_git(args: &[&str], dir: &str) -> Option<()> {
     spawn(cmd)
 }
 
-pub fn mkdir(dir: &str) -> Option<()> {
-    match PathBuf::from(dir).is_absolute() {
-        true => fs::create_dir_all(dir).ok(),
-        false => None,
-    }
-}
-
+/// quick reference on how to quickly print stdout
 #[allow(dead_code)]
 pub fn debug_stdout(cmd: &mut Command) {
     match cmd.output() {
@@ -30,6 +26,7 @@ pub fn debug_stdout(cmd: &mut Command) {
     }
 }
 
+/// enable comparison for opts using `==`
 impl PartialEq for Opts {
     fn eq(&self, other: &Self) -> bool {
         let op = self.op == other.op;
@@ -53,23 +50,26 @@ impl PartialEq for Opts {
     }
 }
 
-impl fmt::Debug for Opts {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Opts")
-            .field("COMMAND", &self.cmd)
-            .field("COMMAND_CWD", &self.cmd.get_current_dir())
-            .field("CURRENT_DIR", &self.cwd)
-            .field("OPERATION", &self.op)
-            .field("PRE_ARGS", &self.pargs)
-            .finish()
-    }
-}
+// /// enable printing for opts
+// impl std::fmt::Debug for Opts {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("Opts")
+//             .field("COMMAND", &self.cmd)
+//             .field("COMMAND_CWD", &self.cmd.get_current_dir())
+//             .field("CURRENT_DIR", &self.cwd)
+//             .field("OPERATION", &self.op)
+//             .field("PRE_ARGS", &self.pargs)
+//             .finish()
+//     }
+// }
 
+/// converts Vec<&str> into a String iterator
 pub fn iter(strs: Vec<&str>) -> impl Iterator<Item = String> {
     let vec: Vec<String> = strs.iter().map(|v| String::from(*v)).collect();
     vec.into_iter()
 }
 
+/// converts an array reference into a String Vec
 pub fn vec(strs: &[&str]) -> Vec<String> {
     strs.iter().map(|v| String::from(*v)).collect()
 }

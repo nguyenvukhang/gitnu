@@ -25,22 +25,21 @@ trap teardown EXIT
 TMP_DIR=/tmp/gitnu
 fresh_dir $TMP_DIR
 
-# use first argument as the one test to run
-# this test will be inspected more deeply too
-[[ $1 =~ [0-9]+ ]] && printf -v ONE_TEST "%02d" $1
+parse_args() {
+  # use first argument as the one test to run
+  # this test will be inspected more deeply too
+  [[ $1 =~ [0-9]+ ]] && printf -v ONE_TEST "%02d" $1
 
-for i in "$@"; do
-  case $i in
-  "--serial")
-    SERIAL=true
-    ;;
-  *) ;;
-  esac
-done
-
-N=0 # current id
-let PASS_COUNT=0
-let TOTAL_COUNT=0
+  for i in "$@"; do
+    case $i in
+    "--serial")
+      # run tests in series instead of the default parallel
+      SERIAL=true
+      ;;
+    *) ;;
+    esac
+  done
+}
 
 # $1 : aboslute path to ./cases/*.sh
 # "received" refers to the actual output of the current binary
@@ -154,8 +153,9 @@ serial_test() {
 }
 
 main() {
-  # build
-  cargo build --quiet || exit 1
+  N=0 # current id
+  let PASS_COUNT=0
+  let TOTAL_COUNT=0
 
   # ensure correct binary is used
   if ! command -v __gitnu__ >/dev/null; then
@@ -198,4 +198,5 @@ main() {
   [ $PASS_COUNT = $TOTAL_COUNT ] && [ $TOTAL_COUNT -gt 0 ]
 }
 
+parse_args $@
 main

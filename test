@@ -1,9 +1,46 @@
 #!/usr/bin/env sh
 
-cargo build || exit 1
+integration() {
+  cargo test integration -- --nocapture
+}
 
-# run unit tests
-cargo test || exit 1
+build() {
+  cargo build || exit 1
+}
 
-# run integration tests
-bash tests/run $@
+# run all tests by cargo
+cargo_test() {
+  cargo test || exit 1
+}
+
+# run shell-based integration tests
+shell_test() {
+  bash tests/run $@ || exit 1
+}
+
+main() {
+  build
+  cargo_test
+  shell_test
+}
+
+parse_first_arg() {
+  case $1 in
+  "i")
+    build
+    integration
+    ;;
+  *)
+    echo "unknown test combi"
+    ;;
+  esac
+}
+
+# core control
+if [ -z $1 ]; then
+  main
+else
+  parse_first_arg $1
+fi
+
+rm -rf /tmp/gitnu*
