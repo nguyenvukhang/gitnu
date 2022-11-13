@@ -1,19 +1,6 @@
-#[test]
-fn many_files() {
-    let mut test = gitnu_test!();
-    test.shell(
-        "",
-        &(1..1000)
-            .map(|v| format!(" {:0width$}", v, width = 5))
-            .fold(String::from("touch"), |a, v| a + &v),
-    );
-    test.gitnu("", "init")
-        .gitnu("", "status")
-        .gitnu("", "add 69-420")
-        .gitnu("", "status")
-        .expect_stderr("")
-        .expect_stdout(
-            "
+/// output of running
+/// gitnu add 69-420 on 999 untracked files ranging 00001-00999 inclusive
+pub const LONG_EXPECT: &str = "
 ---
 On branch main
 
@@ -1022,6 +1009,4 @@ Untracked files:
 998	[31m00998[m
 999	[31m00999[m
 
-",
-        );
-}
+";

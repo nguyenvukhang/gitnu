@@ -1,5 +1,3 @@
-use crate::command::CommandBuilder;
-use crate::result::*;
 use crate::utils::*;
 use std::env;
 use std::fs;
@@ -7,34 +5,24 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::process::Command;
 
+pub const TEST_DIR: &str = "gitnu-tests";
+
 #[derive(PartialEq)]
 pub struct Test {
-    called_once: bool,
-    name: String, // always call with module_path!()
+    name: String,
+    bin_path: PathBuf,
     test_dir: PathBuf,
-    bin: PathBuf,
     received: ShellOutputs,
     expected: ShellOutputs,
+    asserted_once: bool,
+
+    // to store run-specific git SHAs,
+    // for tests which contain SHA outputs
     sha: String,
 }
 
 pub fn test(name: &str) -> Test {
     Test::new(name)
-}
-
-fn test_dir() -> String {
-    env::var("GITNU_TEST_DIR").unwrap_or("/tmp/gitnu_rust".into())
-}
-
-/// get path to gitnu's debug binary build
-fn bin_path() -> Result<PathBuf> {
-    let prj_dir = env::var("CARGO_MANIFEST_DIR")
-        .serr("Unable to use env to locate gitnu's Cargo project dir.")?;
-    let bin = PathBuf::from(prj_dir).join("target/debug/gitnu");
-    if !bin.is_file() {
-        return err("gitnu debug binary not found.");
-    }
-    Ok(bin)
 }
 
 /// used for setting expected value of tests
@@ -45,30 +33,28 @@ fn set_expected(target: &mut String, val: &str, sha: &str) {
         (*target).clear();
         return;
     }
-    let v = val.split_once("---\n").map(|(a, b)| (a, String::from(b)));
-    let v = v.unwrap_or(("", val.to_string())).1;
+    let v = val.split_once("---\n").map(|a| a.1).unwrap_or(val);
     *target = v.replace("[:SHA:]", sha);
 }
 
-/// test file layout:
-/// /TMP_DIR (defaults to /tmp/gitnu)
-///   - [name]/
-///     - all test files/temporary repos/...
-///
-/// throw all errors right here if init fails, hence the unwraps
 impl Test {
     fn new(name: &str) -> Test {
         let name = String::from(name);
-        let test_dir = PathBuf::from(test_dir()).join(&name);
-        if !test_dir.is_absolute() {
-            panic!("Use an absolute path for tests");
+        let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
+        if test_dir.exists() {
+            fs::remove_dir_all(&test_dir).ok();
         }
+        let bin_path = env::current_exe()
+            .unwrap()
+            .parent()
+            .expect("executable's directory")
+            .to_path_buf()
+            .join(format!("../gitnu{}", env::consts::EXE_SUFFIX));
         fs::create_dir_all(&test_dir).unwrap();
-        env::set_current_dir(&test_dir).unwrap();
         Test {
+            bin_path,
             sha: String::new(),
-            called_once: false,
-            bin: bin_path().unwrap(),
+            asserted_once: false,
             received: ShellOutputs::default(),
             expected: ShellOutputs::default(),
             name,
@@ -76,104 +62,94 @@ impl Test {
         }
     }
 
-    /// simulates a `gitnu` binary run at a specific relative path
-    /// from the test directory. Also saves stdout to `self.recevied`
+    /// get path to gitnu's debug binary build
+    fn bin(&self) -> Command {
+        Command::new(&self.bin_path)
+    }
+
+    /// Runs a `gitnu` command at a relative path from the test
+    /// directory and populates `self.received` with output
     pub fn gitnu(&mut self, rel_path: &str, args: &str) -> &mut Self {
-        // test-specific configs to replicate exact expected outputs
         let git_configs = [
             "user.name=bot",
             "user.email=bot@gitnu.co",
             "init.defaultBranch=main",
             "advice.statusHints=false",
         ];
-        let mut cmd = Command::new(&self.bin);
+        let mut cmd = self.bin();
         for config in git_configs {
             cmd.arg("-c").arg(config);
         }
-        self.received = cmd
-            .set_args(args.split(' '))
-            .set_dir(&self.test_dir, rel_path)
-            .unwrap()
-            .output()
-            .unwrap()
-            .outputs();
+        cmd.args(args.split(' '));
+        cmd.current_dir(&self.test_dir.join(rel_path));
+        self.received = cmd.outputs();
         self
     }
 
-    /// runs a shell command
+    /// Runs a shell command and populates `self.received` with output
     pub fn shell(&mut self, rel_path: &str, shell_cmd: &str) -> &mut Self {
-        let cwd = match self.test_dir.safe_join(rel_path) {
-            Ok(v) => v,
-            Err(_) => return self,
-        };
         let args: Vec<&str> = shell_cmd.split(' ').collect();
-        self.received = Command::new(&args[0])
-            .args(&args[1..])
-            .current_dir(cwd)
-            .output()
-            .unwrap()
-            .outputs();
-        self
-    }
-
-    pub fn set_sha(&mut self) -> &mut Self {
-        self.gitnu("", "rev-parse --short HEAD");
-        std::mem::swap(&mut self.sha, &mut self.received.stdout);
-        self.sha = String::from(self.sha.trim());
-        self
-    }
-
-    /// append text to a file
-    pub fn append_to_file(&mut self, file_path: &str, text: &str) -> &mut Self {
-        let file_path = self.test_dir.safe_join(file_path).unwrap();
-        let mut f = File::options().append(true).open(&file_path).unwrap();
-        use std::io::prelude::Write;
-        f.write_all(text.as_bytes()).unwrap();
-        self
-    }
-
-    /// append text to a file
-    pub fn write_to_file(&mut self, file_path: &str, text: &str) -> &mut Self {
-        let file_path = self.test_dir.safe_join(file_path).unwrap();
-        let mut f = File::options().write(true).open(&file_path).unwrap();
-        use std::io::prelude::Write;
-        f.write_all(text.as_bytes()).unwrap();
-        self
-    }
-
-    /// removes a file/directory recursively
-    pub fn remove(&mut self, file_path: &str) -> &mut Self {
-        let f = self.test_dir.safe_join(file_path).unwrap();
-        if f.is_file() {
-            fs::remove_file(f).ok();
-        } else if f.is_dir() {
-            fs::remove_dir_all(f).ok();
+        if args.len() == 0 {
+            return self;
         }
+        let mut cmd = Command::new(&args[0]);
+        cmd.args(&args[1..]).current_dir(self.test_dir.join(rel_path));
+        self.received = cmd.outputs();
+        self
+    }
+
+    /// Gets the short SHA of the current commit during the test
+    pub fn set_sha(&mut self) -> &mut Self {
+        self.sha = Command::new("git")
+            .args(["rev-parse", "--short", "HEAD"])
+            .current_dir(&self.test_dir)
+            .outputs()
+            .stdout
+            .trim()
+            .to_string();
+        self
+    }
+
+    /// Write text to a file
+    pub fn write_to_file(&mut self, rel_path: &str, text: &str) -> &mut Self {
+        let file = self.test_dir.join(rel_path);
+        let mut file = File::options().write(true).open(file).unwrap();
+        use std::io::prelude::Write;
+        file.write_all(text.as_bytes()).ok();
+        self
+    }
+
+    /// removes a file
+    pub fn remove(&mut self, rel_path: &str) -> &mut Self {
+        let file = self.test_dir.join(rel_path);
+        fs::remove_file(file).ok();
         self
     }
 
     /// renames a file
     pub fn rename(&mut self, curr: &str, next: &str) -> &mut Self {
-        let file_path = self.test_dir.safe_join(curr).unwrap();
-        if file_path.is_file() {
-            fs::rename(file_path, self.test_dir.join(next))
+        let file = self.test_dir.join(curr);
+        if file.is_file() {
+            fs::rename(file, self.test_dir.join(next))
                 .expect("Unable to rename file");
         }
         self
     }
 
+    /// Set expected stdout value.
     pub fn expect_stdout(&mut self, val: &str) -> &mut Self {
         set_expected(&mut self.expected.stdout, val, &self.sha);
         self
     }
 
+    /// Set expected stderr value.
     pub fn expect_stderr(&mut self, val: &str) -> &mut Self {
         set_expected(&mut self.expected.stderr, val, &self.sha);
         self
     }
 
     pub fn assert(&mut self) -> &mut Self {
-        self.called_once = true;
+        self.asserted_once = true;
         assert_eq_pretty!(&self.expected.stdout, &self.received.stdout);
         assert_eq_pretty!(&self.expected.stderr, &self.received.stderr);
         self
@@ -181,10 +157,9 @@ impl Test {
 }
 
 impl Drop for Test {
-    /// asserts that self.received and self.expected are equal,
-    /// and then executes teardown
+    /// asserts if hasn't, and then executes teardown
     fn drop(&mut self) {
-        if !self.called_once {
+        if !self.asserted_once {
             self.assert();
         }
         fs::remove_dir_all(&self.test_dir).ok();

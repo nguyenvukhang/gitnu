@@ -161,6 +161,42 @@ Untracked files:
 }
 
 #[test]
+fn short_status() {
+    let mut test = gitnu_test!();
+    test.gitnu("", "init")
+        .shell("", "touch A B C")
+        .gitnu("", "status -s")
+        .gitnu("", "add 1-2")
+        .gitnu("", "status -s")
+        .expect_stdout(
+            "
+---
+1  [32mA[m  A
+2  [32mA[m  B
+3  [31m??[m C
+",
+        );
+}
+
+#[test]
+fn porcelain_status() {
+    let mut test = gitnu_test!();
+    test.gitnu("", "init")
+        .shell("", "touch A B C")
+        .gitnu("", "status --porcelain")
+        .gitnu("", "add 1-2")
+        .gitnu("", "status --porcelain")
+        .expect_stdout(
+            "
+---
+1  A  A
+2  A  B
+3  ?? C
+",
+        );
+}
+
+#[test]
 fn not_from_git_root() {
     let mut test = gitnu_test!();
     test.gitnu("", "init")
@@ -220,6 +256,100 @@ Untracked files:
 }
 
 #[test]
+fn merge_conflict() {
+    let mut test = gitnu_test!();
+    test.gitnu("", "init")
+        .shell("", "touch base")
+        .gitnu("", "add --all")
+        .gitnu("", "commit -m base_commit")
+        // left branch
+        .gitnu("", "branch -m LEFT")
+        .shell("", "touch conflict_file")
+        .write_to_file("conflict_file", "left")
+        .gitnu("", "add --all")
+        .gitnu("", "commit -m left_commit")
+        // right branch
+        .gitnu("", "checkout -b RIGHT")
+        .gitnu("", "reset --hard HEAD~1")
+        .shell("", "touch conflict_file")
+        .write_to_file("conflict_file", "right")
+        .gitnu("", "add --all")
+        .gitnu("", "commit -m right_commit")
+        // merge
+        .gitnu("", "merge LEFT")
+        .shell("", "touch fileA fileB fileC")
+        .gitnu("", "add fileA")
+        .gitnu("", "status")
+        .gitnu("", "add 3")
+        .gitnu("", "status")
+        .expect_stdout(
+            "
+---
+On branch RIGHT
+You have unmerged paths.
+
+Changes to be committed:
+1	[32mnew file:   fileA[m
+2	[32mnew file:   fileB[m
+
+Unmerged paths:
+3	[31mboth added:      conflict_file[m
+
+Untracked files:
+4	[31mfileC[m
+
+",
+        );
+}
+
+#[test]
+fn detached_head() {
+    let mut test = gitnu_test!();
+    test.gitnu("", "init")
+        .shell("", "touch file1")
+        .gitnu("", "add --all")
+        .gitnu("", "commit -m add::file1")
+        .shell("", "touch file2")
+        .gitnu("", "add --all")
+        .gitnu("", "commit -m add::file2")
+        .gitnu("", "checkout HEAD~1")
+        .set_sha()
+        .gitnu("", "status")
+        .expect_stdout(
+            "
+---
+[31mHEAD detached at [m[:SHA:]
+nothing to commit, working tree clean
+",
+        );
+}
+
+#[test]
+fn skip_short_flags() {
+    let mut test = gitnu_test!();
+    test.gitnu("", "init")
+        .shell("", "touch A B C D E F G H I J")
+        .gitnu("", "status");
+    for f in "A B C D E F G H I J".split(' ') {
+        test.gitnu("", &format!("add {}", f));
+        test.gitnu("", &format!("commit -m commit::{}", f));
+    }
+    // don't parse the 5 after the -n flag because it's likely used as
+    // a value to that flag
+    //
+    // note that 6-8 is still parsed because the flag before them is a
+    // long flag
+    test.gitnu("", "log -n 5 --pretty=%s 6-8").expect_stdout(
+        "
+---
+commit::H
+commit::G
+commit::F
+",
+    );
+}
+
+#[test]
 fn zero_handling() {
     let mut test = gitnu_test!();
     test.gitnu("", "init")
@@ -272,19 +402,21 @@ fn dont_create_cache_file_without_repo() {
 }
 
 #[test]
-fn many_files() {
-    use crate::data::LONG_EXPECT;
+fn handle_capital_c_flag() {
     let mut test = gitnu_test!();
-    test.shell(
-        "",
-        &(1..1000)
-            .map(|v| format!(" {:0width$}", v, width = 5))
-            .fold(String::from("touch"), |a, v| a + &v),
-    );
-    test.gitnu("", "init")
-        .gitnu("", "status")
-        .gitnu("", "add 69-420")
-        .gitnu("", "status")
-        .expect_stderr("")
-        .expect_stdout(LONG_EXPECT);
+    test.shell("", "mkdir one two")
+        .shell("", "touch one/one_file two/two_file")
+        // populate both repositories' cache
+        .gitnu("one", "init")
+        .gitnu("one", "status")
+        .gitnu("two", "init")
+        .gitnu("two", "status")
+        // run commands from /two
+        .gitnu("two", "-C ../one add 1")
+        .gitnu("two", "-C ../one status --porcelain")
+        .expect_stdout("1  A  one_file\n")
+        .assert()
+        .gitnu("two", "add 1")
+        .gitnu("two", "status --porcelain")
+        .expect_stdout("1  A  two_file\n");
 }

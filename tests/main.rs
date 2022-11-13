@@ -1,9 +1,9 @@
 #[macro_use]
 mod macros;
 
-mod command;
+mod data;
+mod fancy_states;
+mod flags;
 mod integration;
-mod many_files;
-mod result;
 mod test;
 mod utils;

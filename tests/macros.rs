@@ -1,30 +1,4 @@
 #[macro_export]
-macro_rules! assert_eq_pretty {
-    ($expected:expr, $received:expr) => {
-        let expected = &*$expected;
-        let received = &*$received;
-        if expected != received {
-            panic!(
-                "
-printed outputs differ!
-
-expected:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{:?}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-received:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{:?}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-",
-                expected, received
-            );
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! gitnu_test {
     () => {{
         use crate::test::test;
@@ -36,4 +10,30 @@ macro_rules! gitnu_test {
         // pop off the "::f" behind
         test(&name[..name.len() - 3])
     }};
+}
+
+#[macro_export]
+macro_rules! assert_eq_pretty {
+    ($expected:expr, $received:expr) => {
+        let expected = &*$expected;
+        let received = &*$received;
+        if expected != received {
+            panic!(
+                "
+printed outputs differ!
+
+expected:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+received:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+",
+                expected, received
+            );
+        }
+    };
 }

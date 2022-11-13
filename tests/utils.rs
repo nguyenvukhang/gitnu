@@ -1,23 +1,6 @@
-use crate::result::*;
-use std::path::{Path, PathBuf};
-use std::process::Output;
+use std::process::Command;
 
-pub trait SafeJoin {
-    /// Returns Err if the resulting path does not exist
-    fn safe_join<P: AsRef<Path>>(&self, relative_path: P) -> Result<PathBuf>;
-}
-
-impl SafeJoin for PathBuf {
-    fn safe_join<P: AsRef<Path>>(&self, relative_path: P) -> Result<PathBuf> {
-        let p = self.join(relative_path);
-        match p.is_dir() || p.is_file() {
-            true => Ok(p),
-            false => err(&format!("Bad relative path: {}", p.display())),
-        }
-    }
-}
-
-/// stdout-stderr pair to capture full shell output for easy checking.
+/// An stdout-stderr pair to capture full shell output for easy checking.
 #[derive(PartialEq, Default)]
 pub struct ShellOutputs {
     pub stdout: String,
@@ -25,27 +8,37 @@ pub struct ShellOutputs {
 }
 
 pub trait ShellString {
-    /// extracts stdout and stderr into strings for easying checking.
-    fn outputs(&self) -> ShellOutputs;
-    fn stdout_string(&self) -> String;
-    fn stderr_string(&self) -> String;
+    /// Extracts stdout and stderr into strings for easying checking.
+    fn outputs(&mut self) -> ShellOutputs;
 }
 
 fn stringify(v: &[u8]) -> String {
-    String::from(String::from_utf8_lossy(v))
+    String::from_utf8_lossy(v).parse().unwrap_or("".to_string())
 }
 
-impl ShellString for Output {
-    fn stdout_string(&self) -> String {
-        stringify(&self.stdout)
+impl ShellString for Command {
+    fn outputs(&mut self) -> ShellOutputs {
+        self.output()
+            .map(|v| ShellOutputs {
+                stdout: stringify(&v.stdout),
+                stderr: stringify(&v.stderr),
+            })
+            .unwrap_or_default()
     }
-    fn stderr_string(&self) -> String {
-        stringify(&self.stderr)
+}
+
+pub type Result<T> = std::result::Result<T, String>;
+
+pub trait StringError<T, E> {
+    fn serr(self, err_msg: &str) -> Result<T>;
+    fn clear(self) -> std::result::Result<(), E>;
+}
+
+impl<T, E> StringError<T, E> for std::result::Result<T, E> {
+    fn serr(self, err_msg: &str) -> Result<T> {
+        self.map_err(|_| err_msg.to_string())
     }
-    fn outputs(&self) -> ShellOutputs {
-        ShellOutputs {
-            stdout: stringify(&self.stdout),
-            stderr: stringify(&self.stderr),
-        }
+    fn clear(self) -> std::result::Result<(), E> {
+        return self.map(|_| ());
     }
 }
