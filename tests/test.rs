@@ -79,7 +79,18 @@ impl Test {
     /// simulates a `gitnu` binary run at a specific relative path
     /// from the test directory. Also saves stdout to `self.recevied`
     pub fn gitnu(&mut self, rel_path: &str, args: &str) -> &mut Self {
-        self.received = Command::new(&self.bin)
+        // test-specific configs to replicate exact expected outputs
+        let git_configs = [
+            "user.name=bot",
+            "user.email=bot@gitnu.co",
+            "init.defaultBranch=main",
+            "advice.statusHints=false",
+        ];
+        let mut cmd = Command::new(&self.bin);
+        for config in git_configs {
+            cmd.arg("-c").arg(config);
+        }
+        self.received = cmd
             .set_args(args.split(' '))
             .set_dir(&self.test_dir, rel_path)
             .unwrap()
