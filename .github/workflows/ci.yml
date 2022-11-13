@@ -18,4 +18,4 @@ jobs:
       - name: build 📦
         run: cargo build
       - name: run tests 🚀
-        run: bash test
+        run: cargo test
