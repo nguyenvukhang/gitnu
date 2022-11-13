@@ -1,3 +1,26 @@
+macro_rules! assert_eq_pretty {
+    ($received:expr, $expected:expr) => {
+        let expected = $expected;
+        let received = $received;
+        if expected != received {
+            panic!(
+                "
+printed outputs differ!
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+expected:
+{:?}
+
+received:
+{:?}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+",
+                expected, received
+            );
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{parser, Op, Opts};
@@ -31,6 +54,9 @@ mod tests {
     fn opts(args: &[&str], cwd: &str, op: Op, pargs: &[&str]) -> Opts {
         let pargs = pargs.iter().map(|v| v.to_string()).collect();
         let mut cmd = Command::new("");
+        if atty::is(atty::Stream::Stdout) {
+            cmd.args(["-c", "color.ui=always"]);
+        }
         cmd.args(args);
         cmd.current_dir(cwd);
         Opts { pargs, op, cmd, cwd: PathBuf::from(cwd) }
@@ -47,15 +73,13 @@ mod tests {
         env::set_current_dir(env::temp_dir()).ok();
     }
 
-    const CSA: &str = "color.status=always";
-
     #[test]
     fn parse_no_ops() {
         setup();
         // no-ops
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["-C", "/tmp"], "/home"),
-            opts(&["-C", "/tmp"], "/tmp", Op::Unset, &["-C", "/tmp"]),
+            opts(&["-C", "/tmp"], "/tmp", Op::Unset, &["-C", "/tmp"])
         );
     }
 
@@ -63,18 +87,18 @@ mod tests {
     fn parse_status() {
         setup();
         // gitnu <options> status
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["status"], "/tmp"),
-            opts(&["-c", CSA, "status"], "/tmp", Op::Status(true), &[]),
+            opts(&["status"], "/tmp", Op::Status(true), &[])
         );
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["-C", "/tmp", "status"], "/home"),
             opts(
-                &["-C", "/tmp", "-c", CSA, "status"],
+                &["-C", "/tmp", "status"],
                 "/tmp",
                 Op::Status(true),
                 &["-C", "/tmp"]
-            ),
+            )
         );
     }
 
@@ -82,45 +106,42 @@ mod tests {
     fn parse_enumerate() {
         setup();
         // gitnu <command> <numbers>
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["add", "1"], "/home"),
-            opts(&["add", "1"], "/home", Op::Number, &[]),
+            opts(&["add", "1"], "/home", Op::Number, &[])
         );
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["add", "2-4"], "/home"),
-            opts(&["add", "2", "3", "4"], "/home", Op::Number, &[]),
+            opts(&["add", "2", "3", "4"], "/home", Op::Number, &[])
         );
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["add", "8", "2-4"], "/home"),
-            opts(&["add", "8", "2", "3", "4"], "/home", Op::Number, &[]),
+            opts(&["add", "8", "2", "3", "4"], "/home", Op::Number, &[])
         );
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["add", "8", "--", "2-4"], "/home"),
-            opts(&["add", "8", "--", "2-4"], "/home", Op::Number, &[]),
+            opts(&["add", "8", "--", "2-4"], "/home", Op::Number, &[])
         );
     }
 
     #[test]
     fn parse_general() {
         setup();
+        let args = ["-C", "/tmp", "add", "2", "3", "4", "5"];
         // all together
-        assert_eq!(
+        assert_eq_pretty!(
             parse(&["-C", "/tmp", "add", "2-5"], "/home"),
-            opts(
-                &["-C", "/tmp", "add", "2", "3", "4", "5"],
-                "/tmp",
-                Op::Number,
-                &["-C", "/tmp"]
-            ),
+            opts(&args, "/tmp", Op::Number, &["-C", "/tmp"])
         );
     }
 
     #[test]
     fn parse_ignore_nums_after_short_flags() {
         setup();
-        assert_eq!(
+        let args = ["log", "-n", "10", "1", "2", "3"];
+        assert_eq_pretty!(
             parse(&["log", "-n", "10", "1-3"], "/home"),
-            opts(&["log", "-n", "10", "1", "2", "3"], "/home", Op::Number, &[]),
+            opts(&args, "/home", Op::Number, &[])
         );
     }
 }

@@ -12,9 +12,9 @@ On branch main
 No commits yet
 
 Untracked files:
-1	[31mfile-3[m
-2	[31mfile:1[m
-3	[31mfile_2[m
+1	file-3
+2	file:1
+3	file_2
 
 nothing added to commit but untracked files present
 ",
@@ -36,11 +36,11 @@ On branch main
 No commits yet
 
 Changes to be committed:
-1	[32mnew file:   file_2[m
+1	new file:   file_2
 
 Untracked files:
-2	[31mfile-3[m
-3	[31mfile:1[m
+2	file-3
+3	file:1
 
 ",
         );
@@ -62,15 +62,15 @@ On branch main
 No commits yet
 
 Changes to be committed:
-1	[32mnew file:   B[m
-2	[32mnew file:   C[m
-3	[32mnew file:   D[m
-4	[32mnew file:   F[m
+1	new file:   B
+2	new file:   C
+3	new file:   D
+4	new file:   F
 
 Untracked files:
-5	[31mA[m
-6	[31mE[m
-7	[31mG[m
+5	A
+6	E
+7	G
 
 ",
         );
@@ -92,15 +92,15 @@ On branch main
 No commits yet
 
 Changes to be committed:
-1	[32mnew file:   A[m
-2	[32mnew file:   B[m
-3	[32mnew file:   C[m
-4	[32mnew file:   D[m
-5	[32mnew file:   E[m
-6	[32mnew file:   F[m
+1	new file:   A
+2	new file:   B
+3	new file:   C
+4	new file:   D
+5	new file:   E
+6	new file:   F
 
 Untracked files:
-7	[31mG[m
+7	G
 
 ",
         );
@@ -123,9 +123,9 @@ On branch main
 No commits yet
 
 Untracked files:
-1	[31mA[m
-2	[31mB[m
-3	[31mC[m
+1	A
+2	B
+3	C
 
 nothing added to commit but untracked files present
 ",
@@ -150,11 +150,11 @@ On branch main
 No commits yet
 
 Changes to be committed:
-1	[32mnew file:   A[m
+1	new file:   A
 
 Untracked files:
-2	[31mB[m
-3	[31mC[m
+2	B
+3	C
 
 ",
         );
@@ -177,14 +177,14 @@ fn not_from_git_root() {
 ---
 On branch main
 Changes to be committed:
-1	[32mnew file:   ../file3[m
-2	[32mnew file:   emerald[m
-3	[32mnew file:   ruby[m
+1	new file:   ../file3
+2	new file:   emerald
+3	new file:   ruby
 
 Untracked files:
-4	[31m../file1[m
-5	[31m../file2[m
-6	[31msapphire[m
+4	../file1
+5	../file2
+6	sapphire
 
 ",
         );
@@ -206,14 +206,14 @@ fn change_cwd_after_status() {
 ---
 On branch main
 Changes to be committed:
-1	[32mnew file:   file3[m
-2	[32mnew file:   src/emerald[m
-3	[32mnew file:   src/ruby[m
+1	new file:   file3
+2	new file:   src/emerald
+3	new file:   src/ruby
 
 Untracked files:
-4	[31mfile1[m
-5	[31mfile2[m
-6	[31msrc/sapphire[m
+4	file1
+5	file2
+6	src/sapphire
 
 ",
         );

@@ -26,20 +26,20 @@ fn every_git_state() {
 ---
 On branch main
 Changes to be committed:
-1	[32mnew file:   A[m
-2	[32mmodified:   B[m
-3	[32mdeleted:    C[m
-4	[32mtypechange: D[m
-5	[32mrenamed:    E -> _E[m
+1	new file:   A
+2	modified:   B
+3	deleted:    C
+4	typechange: D
+5	renamed:    E -> _E
 
 Changes not staged for commit:
-6	[31mmodified:   G[m
-7	[31mtypechange: H[m
-8	[31mdeleted:    I[m
+6	modified:   G
+7	typechange: H
+8	deleted:    I
 
 Untracked files:
-9	[31mF[m
-10	[31m_I[m
+9	F
+10	_I
 
 ",
         );
@@ -79,14 +79,14 @@ On branch RIGHT
 You have unmerged paths.
 
 Changes to be committed:
-1	[32mnew file:   fileA[m
-2	[32mnew file:   fileB[m
+1	new file:   fileA
+2	new file:   fileB
 
 Unmerged paths:
-3	[31mboth added:      conflict_file[m
+3	both added:      conflict_file
 
 Untracked files:
-4	[31mfileC[m
+4	fileC
 
 ",
         );
@@ -108,7 +108,7 @@ fn detached_head() {
         .expect_stdout(
             "
 ---
-[31mHEAD detached at [m[:SHA:]
+HEAD detached at [:SHA:]
 nothing to commit, working tree clean
 ",
         );

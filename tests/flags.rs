@@ -9,9 +9,9 @@ fn short_status() {
         .expect_stdout(
             "
 ---
-1  [32mA[m  A
-2  [32mA[m  B
-3  [31m??[m C
+1  A  A
+2  A  B
+3  ?? C
 ",
         );
 }
