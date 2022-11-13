@@ -1,40 +1,51 @@
 use crate::result::*;
-use std::fmt::Display;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Output;
 
-pub const TMP_DIR: &str = "/tmp/gitnu_rust";
-
 pub trait SafeJoin {
-    fn safe_join(&self, relative_path: &str) -> Result<PathBuf>;
+    /// Returns Err if the resulting path does not exist
+    fn safe_join<P: AsRef<Path>>(&self, relative_path: P) -> Result<PathBuf>;
 }
 
 impl SafeJoin for PathBuf {
-    fn safe_join(&self, relative_path: &str) -> Result<PathBuf> {
+    fn safe_join<P: AsRef<Path>>(&self, relative_path: P) -> Result<PathBuf> {
         let p = self.join(relative_path);
-        p.is_dir().then_some(p).ok_or("bad relative path".to_string())
+        match p.is_dir() || p.is_file() {
+            true => Ok(p),
+            false => err(&format!("Bad relative path: {}", p.display())),
+        }
     }
 }
 
-pub fn pretty_assert<T: PartialEq + Display>(expected: &T, received: &T) {
-    if !(*received == *expected) {
-        eprintln!("<<<<<<< EXPECTED\n{}", expected);
-        eprintln!("================\n{}", received);
-        eprintln!(">>>>>>> RECEVIED");
-        panic!("Test failed.");
-    }
+/// stdout-stderr pair to capture full shell output for easy checking.
+#[derive(PartialEq, Default)]
+pub struct ShellOutputs {
+    pub stdout: String,
+    pub stderr: String,
 }
 
 pub trait ShellString {
+    /// extracts stdout and stderr into strings for easying checking.
+    fn outputs(&self) -> ShellOutputs;
     fn stdout_string(&self) -> String;
     fn stderr_string(&self) -> String;
 }
 
+fn stringify(v: &[u8]) -> String {
+    String::from(String::from_utf8_lossy(v))
+}
+
 impl ShellString for Output {
     fn stdout_string(&self) -> String {
-        String::from(String::from_utf8_lossy(&self.stdout))
+        stringify(&self.stdout)
     }
     fn stderr_string(&self) -> String {
-        String::from(String::from_utf8_lossy(&self.stderr))
+        stringify(&self.stderr)
+    }
+    fn outputs(&self) -> ShellOutputs {
+        ShellOutputs {
+            stdout: stringify(&self.stdout),
+            stderr: stringify(&self.stderr),
+        }
     }
 }

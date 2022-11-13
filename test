@@ -1,46 +1,13 @@
 #!/usr/bin/env sh
 
-integration() {
-  cargo test integration -- --nocapture
+GITNU_TEST_DIR=/tmp/gitnu_rust
+
+cleanup() {
+  rm -rf $GITNU_TEST_DIR
 }
+trap cleanup EXIT
+cleanup
+mkdir -p $GITNU_TEST_DIR
 
-build() {
-  cargo build || exit 1
-}
-
-# run all tests by cargo
-cargo_test() {
-  cargo test || exit 1
-}
-
-# run shell-based integration tests
-shell_test() {
-  bash tests/run $@ || exit 1
-}
-
-main() {
-  build
-  cargo_test
-  shell_test
-}
-
-parse_first_arg() {
-  case $1 in
-  "i")
-    build
-    integration
-    ;;
-  *)
-    echo "unknown test combi"
-    ;;
-  esac
-}
-
-# core control
-if [ -z $1 ]; then
-  main
-else
-  parse_first_arg $1
-fi
-
-rm -rf /tmp/gitnu*
+cargo build || exit 1
+GITNU_TEST_DIR=$GITNU_TEST_DIR cargo test

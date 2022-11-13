@@ -1,30 +1,29 @@
+use crate::command::CommandBuilder;
 use crate::result::*;
 use crate::utils::*;
 use std::env;
 use std::fs;
+use std::fs::File;
 use std::path::PathBuf;
-use std::process::{Command, Output};
+use std::process::Command;
 
-#[derive(Debug, PartialEq, Default)]
-struct Out2 {
-    stdout: String,
-    stderr: String,
-}
-
-impl Out2 {
-    fn new(output: Output) -> Self {
-        Self { stdout: output.stdout_string(), stderr: output.stderr_string() }
-    }
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub struct Test {
+    called_once: bool,
     name: String, // always call with module_path!()
     test_dir: PathBuf,
     bin: PathBuf,
-    received: Out2,
-    expected: Out2,
-    previous: Out2,
+    received: ShellOutputs,
+    expected: ShellOutputs,
+    sha: String,
+}
+
+pub fn test(name: &str) -> Test {
+    Test::new(name)
+}
+
+fn test_dir() -> String {
+    env::var("GITNU_TEST_DIR").unwrap_or("/tmp/gitnu_rust".into())
 }
 
 /// get path to gitnu's debug binary build
@@ -41,32 +40,14 @@ fn bin_path() -> Result<PathBuf> {
 /// used for setting expected value of tests
 /// "---" is used to prefix longer test outputs so that the string literal
 /// can be flushed to the left.
-fn set_expected(target: &mut String, val: &str) {
-    *target =
-        String::from(val.split_once("---\n").expect("Unlikely test format").1);
-}
-
-/// private functions
-impl Test {
-    fn gitnu_cmd<'a, T: Iterator<Item = &'a str>>(
-        &self,
-        path: &str,
-        args: T,
-    ) -> Result<Command> {
-        let mut cmd = Command::new(&self.bin);
-        let cwd = self.test_dir.safe_join(path)?;
-        cmd.args(args).current_dir(cwd);
-        Ok(cmd)
+fn set_expected(target: &mut String, val: &str, sha: &str) {
+    if val.is_empty() {
+        (*target).clear();
+        return;
     }
-
-    /// removes temporary files
-    fn teardown(&self) {
-        fs::remove_dir_all(&self.test_dir).ok();
-    }
-}
-
-pub fn test(module_path: &str, name: &str) -> Test {
-    Test::new(module_path, name)
+    let v = val.split_once("---\n").map(|(a, b)| (a, String::from(b)));
+    let v = v.unwrap_or(("", val.to_string())).1;
+    *target = v.replace("[:SHA:]", sha);
 }
 
 /// test file layout:
@@ -76,19 +57,20 @@ pub fn test(module_path: &str, name: &str) -> Test {
 ///
 /// throw all errors right here if init fails, hence the unwraps
 impl Test {
-    fn new(module_path: &str, name: &str) -> Test {
-        let name = format!("{}::{}", module_path, name);
-        let test_dir = PathBuf::from(TMP_DIR).join(&name);
+    fn new(name: &str) -> Test {
+        let name = String::from(name);
+        let test_dir = PathBuf::from(test_dir()).join(&name);
         if !test_dir.is_absolute() {
             panic!("Use an absolute path for tests");
         }
         fs::create_dir_all(&test_dir).unwrap();
         env::set_current_dir(&test_dir).unwrap();
         Test {
+            sha: String::new(),
+            called_once: false,
             bin: bin_path().unwrap(),
-            received: Out2::default(),
-            expected: Out2::default(),
-            previous: Out2::default(),
+            received: ShellOutputs::default(),
+            expected: ShellOutputs::default(),
             name,
             test_dir,
         }
@@ -97,13 +79,13 @@ impl Test {
     /// simulates a `gitnu` binary run at a specific relative path
     /// from the test directory. Also saves stdout to `self.recevied`
     pub fn gitnu(&mut self, rel_path: &str, args: &str) -> &mut Self {
-        let mut cmd = match self.gitnu_cmd(rel_path, args.split(' ')) {
-            Err(_) => return self,
-            Ok(v) => v,
-        };
-        // let mut cmd = self.gitnu_cmd(rel_path, args.split(' '));
-        let out = cmd.output().unwrap();
-        self.received = Out2::new(out);
+        self.received = Command::new(&self.bin)
+            .set_args(args.split(' '))
+            .set_dir(&self.test_dir, rel_path)
+            .unwrap()
+            .output()
+            .unwrap()
+            .outputs();
         self
     }
 
@@ -114,34 +96,76 @@ impl Test {
             Err(_) => return self,
         };
         let args: Vec<&str> = shell_cmd.split(' ').collect();
-        let output = Command::new(&args[0])
+        self.received = Command::new(&args[0])
             .args(&args[1..])
             .current_dir(cwd)
             .output()
-            .unwrap();
-        self.previous = Out2::new(output);
+            .unwrap()
+            .outputs();
+        self
+    }
+
+    pub fn set_sha(&mut self) -> &mut Self {
+        self.gitnu("", "rev-parse --short HEAD");
+        std::mem::swap(&mut self.sha, &mut self.received.stdout);
+        self.sha = String::from(self.sha.trim());
+        self
+    }
+
+    /// append text to a file
+    pub fn append_to_file(&mut self, file_path: &str, text: &str) -> &mut Self {
+        let file_path = self.test_dir.safe_join(file_path).unwrap();
+        let mut f = File::options().append(true).open(&file_path).unwrap();
+        use std::io::prelude::Write;
+        f.write_all(text.as_bytes()).unwrap();
+        self
+    }
+
+    /// append text to a file
+    pub fn write_to_file(&mut self, file_path: &str, text: &str) -> &mut Self {
+        let file_path = self.test_dir.safe_join(file_path).unwrap();
+        let mut f = File::options().write(true).open(&file_path).unwrap();
+        use std::io::prelude::Write;
+        f.write_all(text.as_bytes()).unwrap();
+        self
+    }
+
+    /// removes a file/directory recursively
+    pub fn remove(&mut self, file_path: &str) -> &mut Self {
+        let f = self.test_dir.safe_join(file_path).unwrap();
+        if f.is_file() {
+            fs::remove_file(f).ok();
+        } else if f.is_dir() {
+            fs::remove_dir_all(f).ok();
+        }
+        self
+    }
+
+    /// renames a file
+    pub fn rename(&mut self, curr: &str, next: &str) -> &mut Self {
+        let file_path = self.test_dir.safe_join(curr).unwrap();
+        if file_path.is_file() {
+            fs::rename(file_path, self.test_dir.join(next))
+                .expect("Unable to rename file");
+        }
         self
     }
 
     pub fn expect_stdout(&mut self, val: &str) -> &mut Self {
-        match val.is_empty() {
-            true => self.expected.stdout.clear(),
-            false => set_expected(&mut self.expected.stdout, val),
-        }
+        set_expected(&mut self.expected.stdout, val, &self.sha);
         self
     }
 
     pub fn expect_stderr(&mut self, val: &str) -> &mut Self {
-        match val.is_empty() {
-            true => self.expected.stderr.clear(),
-            false => set_expected(&mut self.expected.stderr, val),
-        }
+        set_expected(&mut self.expected.stderr, val, &self.sha);
         self
     }
 
-    pub fn assert(&self) {
-        pretty_assert(&self.expected.stdout, &self.received.stdout);
-        pretty_assert(&self.expected.stderr, &self.received.stderr);
+    pub fn assert(&mut self) -> &mut Self {
+        self.called_once = true;
+        assert_eq_pretty!(&self.expected.stdout, &self.received.stdout);
+        assert_eq_pretty!(&self.expected.stderr, &self.received.stderr);
+        self
     }
 }
 
@@ -149,7 +173,9 @@ impl Drop for Test {
     /// asserts that self.received and self.expected are equal,
     /// and then executes teardown
     fn drop(&mut self) {
-        self.assert();
-        self.teardown();
+        if !self.called_once {
+            self.assert();
+        }
+        fs::remove_dir_all(&self.test_dir).ok();
     }
 }
