@@ -14,6 +14,9 @@ license = "MIT"
 autotests = false
 edition = "2021"
 
+[dependencies]
+atty = "0.2.14"
+
 [lib]
 path = "core/lib.rs"
 doctest = false

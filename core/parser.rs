@@ -25,7 +25,6 @@ fn pre_cmd(
         if git_cmd.contains(arg) {
             if arg.eq("status") {
                 opts.set_once(Op::Status(true));
-                opts.cmd.args(["-c", "color.status=always"]);
             } else {
                 opts.set_once(Op::Number);
                 cache = opts.read_cache().unwrap_or(cache);
@@ -92,6 +91,9 @@ pub fn parse(args: impl Iterator<Item = String>, cwd: PathBuf) -> Opts {
         pargs: Vec::new(),
         cwd,
     };
+    if atty::is(atty::Stream::Stdout) {
+        opts.cmd.args(["-c", "color.ui=always"]);
+    }
     opts.cmd.current_dir(&opts.cwd);
     let mut args = args.skip(1).peekable();
     let cache = pre_cmd(&mut args, &mut opts);
