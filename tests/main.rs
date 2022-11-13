@@ -3,8 +3,7 @@ mod macros;
 
 mod command;
 mod integration;
-mod integration2;
+mod many_files;
 mod result;
 mod test;
 mod utils;
-mod many_files;
