@@ -35,20 +35,22 @@ fn path_from_stdout(out: std::process::Output) -> Option<PathBuf> {
     }
 }
 
+fn git_dir(args: &Vec<String>) -> Option<PathBuf> {
+    let git = Command::new("git")
+        .args(args)
+        .args(["rev-parse", "--git-dir"])
+        .output();
+    path_from_stdout(git.ok()?)
+}
+
 impl Opts {
     /// use the path obtained from `git rev-parse --git-dir` to store the cache.
     /// this is usually the .git folder of regular repositories, and somewhere
     /// deeper for worktrees.
     fn cache_path(&self) -> Option<PathBuf> {
-        let git = Command::new("git")
-            .args(&self.pargs)
-            .args(["rev-parse", "--git-dir"])
-            .output()
-            .ok()?;
-        let relative_path = path_from_stdout(git)?;
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
-        Some(self.cwd.join(relative_path).join("gitnu.txt"))
+        git_dir(&self.pargs).map(|v| self.cwd.join(v).join("gitnu.txt"))
     }
 
     pub fn cache(&self, create: bool) -> Option<File> {
