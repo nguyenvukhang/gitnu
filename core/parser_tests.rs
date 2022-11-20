@@ -23,14 +23,15 @@ received:
 
 #[cfg(test)]
 mod tests {
-    use crate::{parser, Op, Opts};
+    use crate::{parser, App, Subcommand};
     use std::env;
     use std::path::PathBuf;
     use std::process::Command;
+    use Subcommand::*;
 
-    impl PartialEq for Opts {
+    impl PartialEq for App {
         fn eq(&self, other: &Self) -> bool {
-            let op = self.op == other.op;
+            let subcommand = self.subcommand == other.subcommand;
             let cwd = self.cwd.eq(&other.cwd);
             let pargs = *self.pargs == *other.pargs;
             let cmd = {
@@ -46,12 +47,17 @@ mod tests {
                 };
                 args && cwd
             };
-            op && cwd && cmd && pargs
+            subcommand && cwd && cmd && pargs
         }
     }
 
     /// Set expected value
-    fn opts(args: &[&str], cwd: &str, op: Op, pargs: &[&str]) -> Opts {
+    fn app(
+        args: &[&str],
+        cwd: &str,
+        subcommand: Subcommand,
+        pargs: &[&str],
+    ) -> App {
         let pargs = pargs.iter().map(|v| v.to_string()).collect();
         let mut cmd = Command::new("");
         if atty::is(atty::Stream::Stdout) {
@@ -59,11 +65,11 @@ mod tests {
         }
         cmd.args(args);
         cmd.current_dir(cwd);
-        Opts { pargs, op, cmd, cwd: PathBuf::from(cwd) }
+        App { pargs, subcommand, cmd, cwd: PathBuf::from(cwd) }
     }
 
     /// Get received value
-    fn parse(args: &[&str], path: &str) -> Opts {
+    fn parse(args: &[&str], path: &str) -> App {
         let st = |v: &&str| String::from(*v);
         let args = std::iter::once("".to_string()).chain(args.iter().map(st));
         parser::parse(args, PathBuf::from(path))
@@ -79,7 +85,7 @@ mod tests {
         // no-ops
         assert_eq_pretty!(
             parse(&["-C", "/tmp"], "/home"),
-            opts(&["-C", "/tmp"], "/tmp", Op::Unset, &["-C", "/tmp"])
+            app(&["-C", "/tmp"], "/tmp", Unset, &["-C", "/tmp"])
         );
     }
 
@@ -89,14 +95,14 @@ mod tests {
         // gitnu <options> status
         assert_eq_pretty!(
             parse(&["status"], "/tmp"),
-            opts(&["status"], "/tmp", Op::Status(true), &[])
+            app(&["status"], "/tmp", Status(true), &[])
         );
         assert_eq_pretty!(
             parse(&["-C", "/tmp", "status"], "/home"),
-            opts(
+            app(
                 &["-C", "/tmp", "status"],
                 "/tmp",
-                Op::Status(true),
+                Status(true),
                 &["-C", "/tmp"]
             )
         );
@@ -108,19 +114,19 @@ mod tests {
         // gitnu <command> <numbers>
         assert_eq_pretty!(
             parse(&["add", "1"], "/home"),
-            opts(&["add", "1"], "/home", Op::Number, &[])
+            app(&["add", "1"], "/home", Number, &[])
         );
         assert_eq_pretty!(
             parse(&["add", "2-4"], "/home"),
-            opts(&["add", "2", "3", "4"], "/home", Op::Number, &[])
+            app(&["add", "2", "3", "4"], "/home", Number, &[])
         );
         assert_eq_pretty!(
             parse(&["add", "8", "2-4"], "/home"),
-            opts(&["add", "8", "2", "3", "4"], "/home", Op::Number, &[])
+            app(&["add", "8", "2", "3", "4"], "/home", Number, &[])
         );
         assert_eq_pretty!(
             parse(&["add", "8", "--", "2-4"], "/home"),
-            opts(&["add", "8", "--", "2-4"], "/home", Op::Number, &[])
+            app(&["add", "8", "--", "2-4"], "/home", Number, &[])
         );
     }
 
@@ -131,7 +137,7 @@ mod tests {
         // all together
         assert_eq_pretty!(
             parse(&["-C", "/tmp", "add", "2-5"], "/home"),
-            opts(&args, "/tmp", Op::Number, &["-C", "/tmp"])
+            app(&args, "/tmp", Number, &["-C", "/tmp"])
         );
     }
 
@@ -141,7 +147,7 @@ mod tests {
         let args = ["log", "-n", "10", "1", "2", "3"];
         assert_eq_pretty!(
             parse(&["log", "-n", "10", "1-3"], "/home"),
-            opts(&args, "/home", Op::Number, &[])
+            app(&args, "/home", Number, &[])
         );
     }
 }

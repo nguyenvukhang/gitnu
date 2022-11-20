@@ -1,5 +1,5 @@
-use crate::{git_cmd, Op, Opts};
-use std::collections::HashSet;
+use crate::git;
+use crate::{App, Subcommand};
 use std::iter::Peekable;
 use std::{path::PathBuf, process::Command};
 
@@ -15,39 +15,39 @@ fn parse_range(arg: &str) -> Option<[usize; 2]> {
 /// for a list of all git commands, see ./git_cmd.rs
 fn pre_cmd(
     args: &mut Peekable<impl Iterator<Item = String>>,
-    opts: &mut Opts,
+    app: &mut App,
 ) -> Vec<String> {
-    let git_cmd = HashSet::from(git_cmd::GIT_CMD);
+    let git_cmd = git::subcommands();
     let mut cache: Vec<String> = Vec::new();
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
         // set git sub-cmd
         if git_cmd.contains(arg) {
             if arg.eq("status") {
-                opts.set_once(Op::Status(true));
+                app.set_once(Subcommand::Status(true));
             } else {
-                opts.set_once(Op::Number);
-                opts.read_cache(&mut cache);
+                app.set_once(Subcommand::Number);
+                app.read_cache(&mut cache);
             }
-            opts.cmd.arg(arg);
+            app.cmd.arg(arg);
             break;
         }
         // set cwd using git's -C flag
         if arg.eq("-C") {
             if let Some(cwd) = args.peek() {
-                opts.cwd = PathBuf::from(cwd);
-                opts.cmd.current_dir(cwd);
+                app.cwd = PathBuf::from(cwd);
+                app.cmd.current_dir(cwd);
             }
         }
         // cut to displaying version
         if arg.eq("--version") {
-            opts.op = Op::Version;
-            opts.cmd = Command::new("git");
-            opts.cmd.arg("--version");
+            app.subcommand = Subcommand::Version;
+            app.cmd = Command::new("git");
+            app.cmd.arg("--version");
             return Vec::new();
         }
-        opts.pargs.push(arg.to_string());
-        opts.cmd.arg(arg);
+        app.pargs.push(arg.to_string());
+        app.cmd.arg(arg);
     }
     cache
 }
@@ -56,50 +56,51 @@ fn pre_cmd(
 /// for a list of all git commands, see ./git_cmd.rs
 fn post_cmd(
     args: &mut Peekable<impl Iterator<Item = String>>,
-    opts: &mut Opts,
+    app: &mut App,
     cache: Vec<String>,
 ) {
     let mut skip = false;
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
         if arg.eq("--") {
-            opts.cmd.arg(arg);
+            app.cmd.arg(arg);
             break;
         }
         if ["--short", "-s", "--porcelain"].contains(&arg) {
-            opts.set_once(Op::Status(false));
+            app.set_once(Subcommand::Status(false));
         }
         // try to parse argument as a range
         let isf = arg.starts_with('-') && !arg.starts_with("--"); // is short flag
         match (!skip && !isf, parse_range(arg)) {
             (true, Some([s, e])) => (s..e + 1).for_each(|n| {
-                opts.cmd.arg(cache.get(n).unwrap_or(&n.to_string()));
+                app.cmd.arg(cache.get(n).unwrap_or(&n.to_string()));
             }),
             _ => {
-                opts.cmd.arg(arg);
+                app.cmd.arg(arg);
             }
         }
         skip = isf;
     }
-    opts.cmd.args(args);
+    app.cmd.args(args);
 }
 
-pub fn parse(args: impl Iterator<Item = String>, cwd: PathBuf) -> Opts {
-    let mut opts = Opts {
-        op: Op::Unset,
+pub fn parse(args: impl Iterator<Item = String>, cwd: PathBuf) -> App {
+    use Subcommand::*;
+    let mut app = App {
+        subcommand: Unset,
         cmd: Command::new("git"),
         pargs: Vec::new(),
         cwd,
     };
     if atty::is(atty::Stream::Stdout) {
-        opts.cmd.args(["-c", "color.ui=always"]);
+        app.cmd.args(["-c", "color.ui=always"]);
     }
-    opts.cmd.current_dir(&opts.cwd);
+    app.cmd.current_dir(&app.cwd);
     let mut args = args.skip(1).peekable();
-    let cache = pre_cmd(&mut args, &mut opts);
-    match opts.op {
-        Op::Status(_) | Op::Number => post_cmd(&mut args, &mut opts, cache),
-        Op::Unset | Op::Version => (),
+    let cache = pre_cmd(&mut args, &mut app);
+    match app.subcommand {
+        Status(_) | Number => post_cmd(&mut args, &mut app, cache),
+        Unset | Version => (),
     }
-    opts
+    app
 }

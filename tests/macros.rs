@@ -20,7 +20,7 @@ macro_rules! assert_eq_pretty {
         if expected != received {
             panic!(
                 "
-printed outputs differ!
+Printed outputs differ!
 
 expected:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

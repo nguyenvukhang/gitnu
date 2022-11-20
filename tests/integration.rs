@@ -242,26 +242,15 @@ fn zero_filename() {
     let mut test = gitnu_test!();
     test.gitnu("", "init")
         .shell("", "touch 0 A B")
-        .gitnu("", "status --porcelain")
-        .expect_stdout(
-            "
----
-1  ?? 0
-2  ?? A
-3  ?? B
-",
-        )
+        .gitnu("", "status -s")
+        .expect_stdout("1  ?? 0\n2  ?? A\n3  ?? B\n")
         .assert()
+        // expand `gitnu add 0-2` to `git add 0 1 2`
+        // and then convert it to filenames: `git add 0 0 A`
+        // therefore only adding files `0` and `A`
         .gitnu("", "add 0-2")
-        .gitnu("", "status --porcelain")
-        .expect_stdout(
-            "
----
-1  A  0
-2  A  A
-3  ?? B
-",
-        )
+        .gitnu("", "status -s")
+        .expect_stdout("1  A  0\n2  A  A\n3  ?? B\n")
         .assert();
 }
 
@@ -284,7 +273,38 @@ fn many_files() {
     test.gitnu("", "init")
         .gitnu("", "status")
         .gitnu("", "add 69-420")
-        .gitnu("", "status")
+        .gitnu("", "status -s")
         .expect_stderr("")
         .expect_stdout(LONG_EXPECT);
+}
+
+#[test]
+fn support_alias() {
+    gitnu_test!()
+        .gitnu("", "init")
+        .shell("", "touch X Y Z 3")
+        .gitnu("", "status")
+        .gitnu("", "config alias.meme add")
+        // if aliases aren't supported then gitnu will not convert
+        // the number 2 to a filename
+        .gitnu("", "meme 3")
+        .gitnu("", "status -s")
+        // here, `Y` is added instead of `3`
+        .expect_stdout("1  A  Y\n2  ?? 3\n3  ?? X\n4  ?? Z\n");
+}
+
+#[test]
+fn stop_after_double_dash() {
+    gitnu_test!()
+        .gitnu("", "init")
+        .shell("", "touch 3 fileA fileB")
+        .gitnu("", "status -s")
+        .expect_stdout("1  ?? 3\n2  ?? fileA\n3  ?? fileB\n")
+        .assert()
+        // if gitnu continues parsing after double dash then
+        // fileB will be added instead
+        .gitnu("", "add 2 -- 3")
+        .gitnu("", "status -s")
+        .expect_stdout("1  A  3\n2  A  fileA\n3  ?? fileB\n")
+        .assert();
 }

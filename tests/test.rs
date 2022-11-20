@@ -150,8 +150,8 @@ impl Test {
 
     pub fn assert(&mut self) -> &mut Self {
         self.asserted_once = true;
-        assert_eq_pretty!(&self.expected.stdout, &self.received.stdout);
         assert_eq_pretty!(&self.expected.stderr, &self.received.stderr);
+        assert_eq_pretty!(&self.expected.stdout, &self.received.stdout);
         self
     }
 }
