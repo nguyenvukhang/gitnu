@@ -1,5 +1,5 @@
 use std::io::{BufRead, BufReader, Read};
-use std::{fs::File, iter, path::PathBuf, process::Command};
+use std::{fs::File, path::PathBuf, process::Command};
 mod git_cmd;
 mod parser;
 mod status;
@@ -58,9 +58,9 @@ impl Opts {
         })
     }
 
-    pub fn read_cache(&self) -> Option<Vec<String>> {
-        let lines = lines(self.cache(false)?);
-        Some(iter::once("0".to_string()).chain(lines).collect())
+    pub fn read_cache(&self, target: &mut Vec<String>) {
+        std::mem::swap(target, &mut vec!["0".to_string()]);
+        self.cache(false).map(|f| lines(f).for_each(|v| target.push(v)));
     }
 
     pub fn set_once(&mut self, op: Op) {

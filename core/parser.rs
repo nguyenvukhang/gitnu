@@ -27,7 +27,7 @@ fn pre_cmd(
                 opts.set_once(Op::Status(true));
             } else {
                 opts.set_once(Op::Number);
-                cache = opts.read_cache().unwrap_or(cache);
+                opts.read_cache(&mut cache);
             }
             opts.cmd.arg(arg);
             break;
