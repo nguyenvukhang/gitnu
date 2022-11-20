@@ -35,6 +35,9 @@ fn path_from_stdout(out: std::process::Output) -> Option<PathBuf> {
     }
 }
 
+/// Path to git's repository (not workspace)
+///   * .git/
+///   * .git/worktrees/<branch-name>/
 fn git_dir(args: &Vec<String>) -> Option<PathBuf> {
     let git = Command::new("git")
         .args(args)
