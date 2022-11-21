@@ -284,10 +284,12 @@ fn support_alias() {
         .gitnu("", "init")
         .shell("", "touch X Y Z 3")
         .gitnu("", "status")
-        .gitnu("", "config alias.meme add")
+        .gitnu("", "config alias.scroll reflog")
+        .gitnu("", "config alias.dank reset")
+        .gitnu("", "config alias.memes add")
         // if aliases aren't supported then gitnu will not convert
         // the number 2 to a filename
-        .gitnu("", "meme 3")
+        .gitnu("", "memes 3")
         .gitnu("", "status -s")
         // here, `Y` is added instead of `3`
         .expect_stdout("1  A  Y\n2  ?? 3\n3  ?? X\n4  ?? Z\n");

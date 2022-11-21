@@ -1,11 +1,7 @@
 use crate::git_cmd::GIT_CMD;
-use crate::lines;
 use std::collections::HashSet;
-use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::process::{Command, Output, Stdio};
-
-type Args<'a> = &'a Vec<String>;
 
 trait Buffable {
     fn to_pathbuf(&self) -> Option<PathBuf>;
@@ -25,23 +21,26 @@ impl Buffable for Output {
     }
 }
 
-fn git<S: AsRef<OsStr>, I: IntoIterator<Item = S>>(args: I) -> Command {
-    let mut c = Command::new("git");
-    c.args(args);
-    c
+macro_rules! git {
+    ($($arg:tt),*) => {{
+        let mut git = Command::new("git");
+        git.stdout(Stdio::piped());
+        $(git.args($arg);)*
+        git
+    }};
 }
 
-fn load_aliases(set: &mut HashSet<String>) -> Option<()> {
-    let mut git = git(["config", "--name-only", "--get-regexp", "^alias\\."])
-        .stdout(Stdio::piped())
-        .spawn()
-        .ok()?;
-    lines(git.stdout.as_mut()?).for_each(|v| {
-        if let Some(alias) = v.strip_prefix("alias.") {
-            set.insert(alias.to_string());
-        }
+fn stringify(v: &[u8]) -> String {
+    String::from_utf8_lossy(v).parse().unwrap_or("".to_string())
+}
+
+fn load_aliases(set: &mut HashSet<String>) {
+    let mut git = git!(["config", "--name-only", "--get-regexp", "^alias\\."]);
+    let output = git.output().map(|v| stringify(&v.stdout)).unwrap_or_default();
+    let lines = output.split_whitespace();
+    lines.filter_map(|v| v.strip_prefix("alias.")).for_each(|alias| {
+        set.insert(alias.to_string());
     });
-    git.wait().map(|_| ()).ok()
 }
 
 /// Get a hashset of all git subcommands from two sources
@@ -56,7 +55,6 @@ pub fn subcommands() -> HashSet<String> {
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
-pub fn git_dir(args: Args) -> Option<PathBuf> {
-    let git = git(args).args(["rev-parse", "--git-dir"]).output();
-    git.ok()?.to_pathbuf()
+pub fn git_dir(args: &Vec<String>) -> Option<PathBuf> {
+    git!(args, ["rev-parse", "--git-dir"]).output().ok()?.to_pathbuf()
 }
