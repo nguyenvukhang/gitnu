@@ -10,6 +10,7 @@ pub const TEST_DIR: &str = "gitnu-tests";
 #[derive(PartialEq)]
 pub struct Test {
     name: String,
+    status_flag: String,
     bin_path: PathBuf,
     test_dir: PathBuf,
     received: ShellOutputs,
@@ -21,8 +22,8 @@ pub struct Test {
     sha: String,
 }
 
-pub fn test(name: &str) -> Test {
-    Test::new(name)
+pub fn test(name: &str, status_flag: &str) -> Test {
+    Test::new(name, status_flag)
 }
 
 /// used for setting expected value of tests
@@ -38,7 +39,7 @@ fn set_expected(target: &mut String, val: &str, sha: &str) {
 }
 
 impl Test {
-    fn new(name: &str) -> Test {
+    fn new(name: &str, status_flag: &str) -> Test {
         let name = String::from(name);
         let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
         if test_dir.exists() {
@@ -53,6 +54,7 @@ impl Test {
         fs::create_dir_all(&test_dir).unwrap();
         Test {
             bin_path,
+            status_flag: String::from(status_flag),
             sha: String::new(),
             asserted_once: false,
             received: ShellOutputs::default(),
@@ -80,7 +82,12 @@ impl Test {
         for config in git_configs {
             cmd.arg("-c").arg(config);
         }
-        cmd.args(args.split(' '));
+        for arg in args.split(' ') {
+            cmd.arg(arg);
+            if !self.status_flag.is_empty() && arg.eq("status") {
+                cmd.arg(&self.status_flag);
+            }
+        }
         cmd.current_dir(&self.test_dir.join(rel_path));
         self.received = cmd.outputs();
         self

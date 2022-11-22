@@ -1,9 +1,9 @@
 #[macro_use]
 mod macros;
 
+mod coverage;
 mod data;
-mod fancy_states;
-mod flags;
-mod integration;
+mod normal;
+mod short;
 mod test;
 mod utils;
