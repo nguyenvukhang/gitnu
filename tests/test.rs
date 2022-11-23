@@ -42,6 +42,7 @@ impl Test {
             "user.email=bot@gitnu.co",
             "init.defaultBranch=main",
             "advice.statusHints=false",
+            "color.ui=always",
         ];
         for config in git_configs {
             cmd.arg("-c").arg(config);
@@ -63,6 +64,9 @@ impl Test {
         .args(args)
         .current_dir(&self.dir(path))
         .stdout_string()
+        .replace("\x1b[31m", "")
+        .replace("\x1b[32m", "")
+        .replace("\x1b[m", "")
     }
 
     fn get_expected(&self, s: &str) -> String {

@@ -19,8 +19,8 @@ mod tests {
     /// for simulating gitnu's parser
     macro_rules! parse {
         ($args:expr, $cwd:expr) => {{
-            let st = |v: &&str| String::from(*v);
-            let args = iter::once("".to_string()).chain($args.iter().map(st));
+            let args = iter::once("".to_string())
+                .chain($args.iter().map(|v| v.to_string()));
             parser::parse(args, PathBuf::from($cwd))
         }};
     }

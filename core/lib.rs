@@ -113,24 +113,23 @@ fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
 ///
 /// Call this after parsing is complete and command is fully loaded
 /// with all the correct parameters.
-pub fn spawn(mut c: Command) -> Option<()> {
-    c.spawn().ok()?.wait().map(|_| ()).ok()
+pub fn spawn(mut c: Command) {
+    c.spawn().and_then(|mut v| v.wait().map(|_| ())).ok();
 }
 
 /// Entry point to Gitnu.
 ///
 /// Gitnu's binary calls this function directly, passing in args and
 /// current directory obtained from `std::env`.
-pub fn run(app: App) -> Option<()> {
+pub fn run(app: App) {
     match app.subcommand {
-        Status(normal) => status::status(app, normal),
+        Status(is_normal) => status::status(app, is_normal),
         Version => {
-            let res = spawn(app.cmd);
+            spawn(app.cmd);
             println!("gitnu version {}", VERSION.unwrap_or("unknown"));
-            res
         }
         _ => spawn(app.cmd),
-    }
+    };
 }
 
 #[cfg(test)]
