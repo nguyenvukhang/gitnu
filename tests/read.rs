@@ -98,3 +98,45 @@ _I
     t.gitnu("", "status").shell("", "cat .git/gitnu.txt");
     status::general!(t, "cat .git/gitnu.txt", &cache);
 });
+
+test!(renamed_add, |mut t: Test| {
+    let test_dir = t.get_test_dir();
+    t.gitnu("", "status").gitnu("", "add 8 10");
+    status::normal!(
+        t,
+        "
+---
+On branch main
+Changes to be committed:
+1	new file:   A
+2	modified:   B
+3	deleted:    C
+4	typechange: D
+5	renamed:    E -> _E
+6	renamed:    I -> _I
+
+Changes not staged for commit:
+7	modified:   G
+8	typechange: H
+
+Untracked files:
+9	F
+
+"
+    );
+    status::short!(
+        t,
+        "
+---
+1  A  A
+2  M  B
+3  D  C
+4  T  D
+5   M G
+6   T H
+7  R  E -> _E
+8  R  I -> _I
+9  ?? F
+"
+    );
+});
