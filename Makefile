@@ -1,4 +1,6 @@
 BIN=$(HOME)/dots/personal/.local/bin
+GITNU_RELEASE_BIN=$(PWD)/target/release/gitnu
+GITNU_DEBUG_BIN=$(PWD)/target/release/gitnu
 
 quick:
 	cargo build
@@ -10,6 +12,10 @@ build:
 
 size:
 	du -sh target/*/gitnu
+
+bench:
+	@echo "Running bencher"
+	@GITNU_RELEASE_BIN=$(GITNU_RELEASE_BIN) ./bench/bench
 
 test:
 	cargo test --no-fail-fast
@@ -25,4 +31,4 @@ load_bin:
 	@rm -f $(BIN)/gitnu
 	@cp ./target/release/gitnu $(BIN)
 
-.PHONY: test size quick load_bin
+.PHONY: test size quick load_bin bench
