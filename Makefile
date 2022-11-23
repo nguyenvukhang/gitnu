@@ -1,6 +1,6 @@
 BIN=$(HOME)/dots/personal/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/gitnu
-GITNU_DEBUG_BIN=$(PWD)/target/release/gitnu
+GITNU_DEBUG_BIN=$(PWD)/target/debug/gitnu
 
 quick:
 	cargo build

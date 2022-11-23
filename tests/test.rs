@@ -92,6 +92,10 @@ pub trait TestInterface {
     fn shell(&mut self, path: &str, shell_cmd: &str) -> &mut Self;
     /// Gets the short SHA of the current commit during the test
     fn set_sha(&mut self) -> &mut Self;
+    /// Gets the short SHA of the current commit during the test
+    fn extract_stdout(&mut self, cmd: &str, dst: &mut String) -> &mut Self;
+    /// Gets the path to the test dir
+    fn get_test_dir(&self) -> PathBuf;
     /// Write text to a file
     fn write_file(&mut self, path: &str, text: &str) -> &mut Self;
     /// Removes a file
@@ -124,12 +128,27 @@ impl TestInterface for Test {
         test
     }
 
+    fn get_test_dir(&self) -> PathBuf {
+        let p = PathBuf::from(&self.test_dir);
+        std::fs::canonicalize(&p).unwrap_or(p)
+    }
+
     fn gitnu(&mut self, path: &str, args: &str) -> &mut Self {
         self.bin()
             .current_dir(&self.dir(path))
             .args(args.split(' '))
             .output()
             .ok();
+        self
+    }
+
+    fn extract_stdout(&mut self, cmd: &str, dst: &mut String) -> &mut Self {
+        assert_ne!(cmd, "");
+        let mut args = cmd.split(' ');
+        *dst = Command::new(args.next().unwrap())
+            .args(args)
+            .current_dir(&self.test_dir)
+            .stdout_string();
         self
     }
 

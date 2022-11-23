@@ -8,7 +8,7 @@ struct State {
     count: usize,
 }
 
-fn uncolor(base: &str) -> String {
+fn uncolor(base: &str) -> Vec<u8> {
     let mut base = base.as_bytes();
     let mut dst: Vec<u8> = vec![];
     while !base.is_empty() {
@@ -25,7 +25,31 @@ fn uncolor(base: &str) -> String {
         }
     }
     dst.extend(base);
-    String::from_utf8(dst).unwrap_or("".to_string())
+    dst
+}
+
+fn pust_past_all(base: &mut &[u8], ch: u8) {
+    while !base.is_empty() {
+        *base = match base.iter().position(|&b| b == ch) {
+            None => break,
+            Some(i) => &base[i + 1..],
+        };
+    }
+}
+
+fn pust_past_next(base: &mut &[u8], ch: u8) {
+    if let Some(i) = base.iter().position(|&b| b == ch) {
+        *base = &base[i + 1..]
+    };
+}
+
+fn trim_left(base: &mut &[u8], ch: u8) {
+    while !base.is_empty() {
+        *base = match base[0] {
+            v if v == ch => &base[1..],
+            _ => break,
+        };
+    }
 }
 
 fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
@@ -36,18 +60,29 @@ fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
     }
     println!("{}{}", state.count, line);
     state.count += 1;
-    let f = uncolor(&line.trim_start_matches('\t'));
-    let f = match state.seen_untracked {
-        true => &f,
-        false => f.split_once(':')?.1.trim_start(),
-    };
-    Some(app.cwd.join(f))
+    let mut line: &[u8] = &uncolor(&line);
+    let ptr = &mut line;
+    pust_past_all(ptr, b'\t');
+    let is_rename = ptr.starts_with(b"renamed:");
+    if !state.seen_untracked {
+        pust_past_all(ptr, b':');
+    }
+    trim_left(ptr, b' ');
+    if is_rename {
+        pust_past_next(ptr, b' ');
+        pust_past_next(ptr, b' ');
+    }
+    if line.is_empty() {
+        return None;
+    }
+    std::str::from_utf8(line).ok().map(|v| app.cwd.join(v))
 }
 
 fn short(state: &mut State, app: &App, line: String) -> PathBuf {
     println!("{: <3}{}", state.count, line);
     state.count += 1;
-    app.cwd.join(&uncolor(&line)[3..])
+    let line = String::from_utf8(uncolor(&line)).unwrap();
+    app.cwd.join(&line[3..])
 }
 
 fn inner(mut app: App, is_normal: bool) -> Option<()> {

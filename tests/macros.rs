@@ -16,6 +16,28 @@ macro_rules! gitnu_test {
 }
 
 #[macro_export]
+macro_rules! cache {
+    ($dir:expr, $files:expr) => {{
+        let mut iter = $files.lines();
+        while let Some(v) = iter.next() {
+            if (v.eq("---")) {
+                break;
+            }
+        }
+        iter.map_while(|v| match v.starts_with("---") {
+            true => None,
+            false => Some(v),
+        })
+        .map(|line| match line.is_empty() {
+            true => line.to_string(),
+            _ => $dir.join(line).to_string_lossy().to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+    }};
+}
+
+#[macro_export]
 macro_rules! assert_eq_pretty {
     ($expected:expr, $received:expr) => {
         let expected = &*$expected;
