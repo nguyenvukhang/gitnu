@@ -17,6 +17,14 @@ edition = "2021"
 [dependencies]
 atty = "0.2.14"
 
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "bench"
+path = "bench/main.rs"
+harness = false
+
 [lib]
 path = "core/lib.rs"
 doctest = false

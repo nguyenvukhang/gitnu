@@ -133,4 +133,4 @@ pub fn run(app: App) {
 }
 
 #[cfg(test)]
-mod parser_tests;
+mod tests;

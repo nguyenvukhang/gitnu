@@ -14,8 +14,8 @@ size:
 	du -sh target/*/gitnu
 
 bench:
-	@echo "Running bencher"
-	@GITNU_RELEASE_BIN=$(GITNU_RELEASE_BIN) ./bench/bench
+	cargo build --release
+	cargo bench --quiet
 
 test:
 	cargo test --no-fail-fast
