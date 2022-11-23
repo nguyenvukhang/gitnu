@@ -5,6 +5,7 @@ mod git_cmd;
 mod parser;
 mod status;
 pub use parser::parse;
+use Subcommand::*;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
@@ -50,6 +51,9 @@ pub struct App {
     /// Essentially these are Git's options, rather than Git's
     /// subcommand's options.
     pargs: Vec<String>,
+
+    /// Cache that came from latest run of `gitnu status`
+    cache: Vec<String>,
 }
 
 impl App {
@@ -69,18 +73,33 @@ impl App {
         })
     }
 
-    pub fn read_cache(&self, target: &mut Vec<String>) {
-        std::mem::swap(target, &mut vec!["0".to_string()]);
-        self.cache(false).map(|f| lines(f).for_each(|v| target.push(v)));
+    pub fn read_cache(&mut self) {
+        std::mem::swap(&mut self.cache, &mut vec!["0".to_string()]);
+        self.cache(false).map(|f| lines(f).for_each(|v| self.cache.push(v)));
     }
 
     pub fn set_once(&mut self, sc: Subcommand) {
-        use Subcommand::*;
         match (&self.subcommand, &sc) {
             (Unset, _) => self.subcommand = sc,
             (Status(true), Status(false)) => self.subcommand = sc,
             _ => (),
         }
+    }
+
+    pub fn push_arg(&mut self, arg: &str) {
+        self.cmd.arg(arg);
+        if self.subcommand == Unset {
+            self.pargs.push(arg.to_string());
+        }
+    }
+
+    pub fn new(cwd: PathBuf) -> Self {
+        let mut cmd = Command::new("git");
+        if atty::is(atty::Stream::Stdout) {
+            cmd.args(["-c", "color.ui=always"]);
+        }
+        cmd.current_dir(&cwd);
+        Self { cwd, subcommand: Unset, pargs: vec![], cache: vec![], cmd }
     }
 }
 
@@ -103,7 +122,6 @@ pub fn spawn(mut c: Command) -> Option<()> {
 /// Gitnu's binary calls this function directly, passing in args and
 /// current directory obtained from `std::env`.
 pub fn run(app: App) -> Option<()> {
-    use Subcommand::*;
     match app.subcommand {
         Status(normal) => status::status(app, normal),
         Version => {

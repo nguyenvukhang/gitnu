@@ -1,9 +1,7 @@
 #[macro_use]
 mod macros;
+use macros::status;
 
-mod coverage;
 mod data;
-mod normal;
-mod short;
+mod integration;
 mod test;
-mod utils;

@@ -34,7 +34,17 @@ mod tests {
                 cmd.args(["-c", "color.ui=always"]);
             }
             cmd.args($args).current_dir($cwd);
-            App { pargs, subcommand: $sc, cmd, cwd: PathBuf::from($cwd) }
+            let cwd = PathBuf::from($cwd);
+            App { subcommand: $sc, cmd, cwd, pargs, cache: vec![] }
+        }};
+        ($args:expr, $cwd:expr, $sc:expr) => {{
+            let mut cmd = Command::new("");
+            if atty::is(atty::Stream::Stdout) {
+                cmd.args(["-c", "color.ui=always"]);
+            }
+            cmd.args($args).current_dir($cwd);
+            let cwd = PathBuf::from($cwd);
+            App { subcommand: $sc, cmd, cwd, pargs: vec![], cache: vec![] }
         }};
     }
 
@@ -48,12 +58,6 @@ mod tests {
     }
 
     test!(
-        macro_memes,
-        parse!(["-C", "/tmp"], "/home"),
-        app!(["-C", "/tmp"], "/tmp", Unset, ["-C", "/tmp"])
-    );
-
-    test!(
         parse_no_ops,
         parse!(["-C", "/tmp"], "/home"),
         app!(["-C", "/tmp"], "/tmp", Unset, ["-C", "/tmp"])
@@ -62,7 +66,7 @@ mod tests {
     test!(
         parse_status,
         parse!(["status"], "/tmp"),
-        app!(["status"], "/tmp", Status(true), [])
+        app!(["status"], "/tmp", Status(true))
     );
 
     test!(
@@ -74,31 +78,31 @@ mod tests {
     test!(
         parse_enumerate_single,
         parse!(["add", "1"], "/home"),
-        app!(["add", "1"], "/home", Number, [])
+        app!(["add", "1"], "/home", Number)
     );
 
     test!(
         parse_enumerate_range,
         parse!(["add", "2-4"], "/home"),
-        app!(["add", "2", "3", "4"], "/home", Number, [])
+        app!(["add", "2", "3", "4"], "/home", Number)
     );
 
     test!(
         parse_enumerate_mix,
         parse!(["add", "8", "2-4"], "/home"),
-        app!(["add", "8", "2", "3", "4"], "/home", Number, [])
+        app!(["add", "8", "2", "3", "4"], "/home", Number)
     );
 
     test!(
         parse_enumerate_overlap,
         parse!(["add", "3", "2-4"], "/home"),
-        app!(["add", "3", "2", "3", "4"], "/home", Number, [])
+        app!(["add", "3", "2", "3", "4"], "/home", Number)
     );
 
     test!(
         parse_enumerate_double_dash,
         parse!(["add", "8", "--", "2-4"], "/home"),
-        app!(["add", "8", "--", "2-4"], "/home", Number, [])
+        app!(["add", "8", "--", "2-4"], "/home", Number)
     );
 
     test!(
@@ -110,6 +114,18 @@ mod tests {
             Number,
             ["-C", "/tmp"]
         )
+    );
+
+    test!(
+        parse_version,
+        parse!(["--version"], "/home"),
+        app!(["--version"], "/home", Version)
+    );
+
+    test!(
+        parse_version_weird,
+        parse!(["--version", "status"], "/home"),
+        app!(["--version", "status"], "/home", Version)
     );
 
     #[test]
