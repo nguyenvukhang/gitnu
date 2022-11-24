@@ -1,42 +1,6 @@
 use crate::status;
-use crate::test::{Test, TestInterface};
 
-#[macro_export]
-macro_rules! test {
-    ($name:ident, $fun:expr) => {
-        gitnu_test!($name, |mut t: Test| {
-            setup(&mut t);
-            $fun(t)
-        });
-    };
-}
-
-fn setup(t: &mut Test) {
-    t.gitnu("", "init");
-    for file in "A B C D E F G H I".split(' ') {
-        t.shell("", &format!("touch {}", file));
-        t.write_file(file, file);
-    }
-    t.gitnu("", "add B C D E G H I")
-        .gitnu("", "commit -m pre")
-        // modify
-        .write_file("B", "B_")
-        .write_file("G", "G_")
-        // remove
-        .remove("C")
-        // rename
-        .rename("E", "_E")
-        .rename("I", "_I")
-        // typechange
-        .shell("", "ln -sf . D")
-        .shell("", "ln -sf . H")
-        .gitnu("", "add A B C D E _E");
-}
-
-test!(base, |mut t: Test| {
-    status::normal!(
-        t,
-        "
+const EVERY_STATE: &str = "
 ---
 On branch main
 Changes to be committed:
@@ -55,8 +19,28 @@ Untracked files:
 9	F
 10	_I
 
-"
-    );
+";
+
+#[macro_export]
+macro_rules! test {
+    ($name:ident, $fun:expr) => {
+        gitnu_test!($name, |mut t: Test| {
+            t.gitnu("", "init");
+            t.shell("", "touch A B C D E F G H I");
+            "A B C D E F G H I".split(' ').for_each(|v| {
+                t.write_file(v, v);
+            });
+            t.gitnu("", "add B C D E G H I").gitnu("", "commit -m pre");
+            t.write_file("B", "B_").write_file("G", "G_").remove("C");
+            t.rename("E", "_E").rename("I", "_I").shell("", "ln -sf . D");
+            t.shell("", "ln -sf . H").gitnu("", "add A B C D E _E");
+            $fun(t)
+        });
+    };
+}
+
+test!(base, |mut t: Test| {
+    status::normal!(t, EVERY_STATE);
     status::short!(
         t,
         "
@@ -140,6 +124,9 @@ Untracked files:
     );
 });
 
+// git status shows both filenames of the rename (before and after),
+// gitnu picks the second one to replace the number because it's the
+// one that still exists as a file
 test!(renamed_reset, |mut t: Test| {
     t.gitnu("", "status").gitnu("", "reset 5");
     status::normal!(

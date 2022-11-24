@@ -27,7 +27,6 @@ impl Line for &[u8] {
             *self = &self[i + 1..]
         }
     }
-
     fn after_first_sequence(&mut self, seq: &[u8]) {
         let mut found = seq;
         while !found.is_empty() && !self.is_empty() {
