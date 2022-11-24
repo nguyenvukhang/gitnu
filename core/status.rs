@@ -1,3 +1,4 @@
+use crate::line::{uncolor, Line};
 use crate::{lines, App};
 use std::io::{LineWriter, Write};
 use std::path::PathBuf;
@@ -8,52 +9,8 @@ struct State {
     count: usize,
 }
 
-fn uncolor(base: &str) -> Vec<u8> {
-    let mut base = base.as_bytes();
-    let mut dst: Vec<u8> = vec![];
-    while !base.is_empty() {
-        match base.iter().position(|&b| b == b'\x1b') {
-            None => break,
-            Some(i) => {
-                dst.extend(&base[..i]);
-                base = &base[i..];
-            }
-        }
-        match base.iter().position(|&b| b == b'm') {
-            None => break,
-            Some(i) => base = &base[i + 1..],
-        }
-    }
-    dst.extend(base);
-    dst
-}
-
-fn pust_past_all(base: &mut &[u8], ch: u8) {
-    while !base.is_empty() {
-        *base = match base.iter().position(|&b| b == ch) {
-            None => break,
-            Some(i) => &base[i + 1..],
-        };
-    }
-}
-
-fn pust_past_next(base: &mut &[u8], ch: u8) {
-    if let Some(i) = base.iter().position(|&b| b == ch) {
-        *base = &base[i + 1..]
-    };
-}
-
-fn trim_left(base: &mut &[u8], ch: u8) {
-    while !base.is_empty() {
-        *base = match base[0] {
-            v if v == ch => &base[1..],
-            _ => break,
-        };
-    }
-}
-
 fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
-    state.seen_untracked |= line.contains("Untracked files:");
+    state.seen_untracked |= line.starts_with("Untracked files:");
     if !line.starts_with('\t') {
         println!("{}", line);
         return None;
@@ -61,16 +18,16 @@ fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
     println!("{}{}", state.count, line);
     state.count += 1;
     let mut line: &[u8] = &uncolor(&line);
-    let ptr = &mut line;
-    pust_past_all(ptr, b'\t');
-    let is_rename = ptr.starts_with(b"renamed:");
+    let line = &mut line;
+    line.after_last(b'\t');
+    let is_rename = line.starts_with(b"renamed:");
     if !state.seen_untracked {
-        pust_past_all(ptr, b':');
+        line.after_last(b':');
     }
-    trim_left(ptr, b' ');
+    line.trim_left(b' ');
     if is_rename {
-        pust_past_next(ptr, b' ');
-        pust_past_next(ptr, b' ');
+        line.after_first_sequence(b"->");
+        line.trim_left_while(|v| v.is_ascii_whitespace());
     }
     if line.is_empty() {
         return None;

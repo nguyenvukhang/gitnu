@@ -3,6 +3,7 @@ use std::{fs::File, path::PathBuf, process::Command};
 mod command;
 mod git;
 mod git_cmd;
+mod line;
 mod parser;
 mod status;
 pub use parser::parse;
