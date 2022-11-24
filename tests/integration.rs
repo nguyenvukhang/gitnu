@@ -1,31 +1,26 @@
-use crate::status;
+use crate::{assert, status};
 
 gitnu_test!(untracked_files, |mut t: Test| {
     t.gitnu("", "init").shell("", "touch file:1 file_2 file-3");
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Untracked files:
-1	file-3
-2	file:1
-3	file_2
-
-nothing added to commit but untracked files present
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Untracked files:",
+            "1	file-3",
+            "2	file:1",
+            "3	file_2",
+            "",
+            "nothing added to commit but untracked files present",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  ?? file-3
-2  ?? file:1
-3  ?? file_2
-"
+        lines!("1  ?? file-3", "2  ?? file:1", "3  ?? file_2", "")
     );
 });
 
@@ -35,29 +30,24 @@ gitnu_test!(staging_files_with_filename, |mut t: Test| {
         .gitnu("", "add file_2"); // use filename
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   file_2
-
-Untracked files:
-2	file-3
-3	file:1
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   file_2",
+            "",
+            "Untracked files:",
+            "2	file-3",
+            "3	file:1",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  file_2
-2  ?? file-3
-3  ?? file:1
-"
+        lines!("1  A  file_2", "2  ?? file-3", "3  ?? file:1", "")
     );
 });
 
@@ -68,37 +58,31 @@ gitnu_test!(staging_files_with_numbers, |mut t: Test| {
         .gitnu("", "add 2-4 6"); // use number and range
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   B
-2	new file:   C
-3	new file:   D
-4	new file:   F
-
-Untracked files:
-5	A
-6	E
-7	G
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   B",
+            "2	new file:   C",
+            "3	new file:   D",
+            "4	new file:   F",
+            "",
+            "Untracked files:",
+            "5	A",
+            "6	E",
+            "7	G",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  B
-2  A  C
-3  A  D
-4  A  F
-5  ?? A
-6  ?? E
-7  ?? G
-"
+        lines!(
+            "1  A  B", "2  A  C", "3  A  D", "4  A  F", "5  ?? A", "6  ?? E",
+            "7  ?? G", ""
+        )
     );
 });
 
@@ -109,37 +93,31 @@ gitnu_test!(range_overlap, |mut t: Test| {
         .gitnu("", "add 1-4 2-6");
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   A
-2	new file:   B
-3	new file:   C
-4	new file:   D
-5	new file:   E
-6	new file:   F
-
-Untracked files:
-7	G
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   A",
+            "2	new file:   B",
+            "3	new file:   C",
+            "4	new file:   D",
+            "5	new file:   E",
+            "6	new file:   F",
+            "",
+            "Untracked files:",
+            "7	G",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  A
-2  A  B
-3  A  C
-4  A  D
-5  A  E
-6  A  F
-7  ?? G
-"
+        lines!(
+            "1  A  A", "2  A  B", "3  A  C", "4  A  D", "5  A  E", "6  A  F",
+            "7  ?? G", ""
+        )
     );
 });
 
@@ -151,29 +129,21 @@ gitnu_test!(add_unindexed_number, |mut t: Test| {
         .gitnu("", "add 2-5"); // 2-5 out of range
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Untracked files:
-1	A
-2	B
-3	C
-
-nothing added to commit but untracked files present
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Untracked files:",
+            "1	A",
+            "2	B",
+            "3	C",
+            "",
+            "nothing added to commit but untracked files present",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "
----
-1  ?? A
-2  ?? B
-3  ?? C
-"
-    );
+    status::short!(t, lines!("1  ?? A", "2  ?? B", "3  ?? C", ""));
 });
 
 // Just as git would respond, some files will be reset
@@ -185,30 +155,22 @@ gitnu_test!(reset_unindexed_number, |mut t: Test| {
         .gitnu("", "reset 2-5"); // 2-5 out of range
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   A
-
-Untracked files:
-2	B
-3	C
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   A",
+            "",
+            "Untracked files:",
+            "2	B",
+            "3	C",
+            "",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "
----
-1  A  A
-2  ?? B
-3  ?? C
-"
-    );
+    status::short!(t, lines!("1  A  A", "2  ?? B", "3  ?? C", ""));
 });
 
 gitnu_test!(not_from_git_root, |mut t: Test| {
@@ -222,32 +184,32 @@ gitnu_test!(not_from_git_root, |mut t: Test| {
         .gitnu("src", "add 3-5");
     status::normal!(
         t,
-        "
----
-On branch main
-Changes to be committed:
-1	new file:   file3
-2	new file:   src/emerald
-3	new file:   src/ruby
-
-Untracked files:
-4	file1
-5	file2
-6	src/sapphire
-
-"
+        lines!(
+            "On branch main",
+            "Changes to be committed:",
+            "1	new file:   file3",
+            "2	new file:   src/emerald",
+            "3	new file:   src/ruby",
+            "",
+            "Untracked files:",
+            "4	file1",
+            "5	file2",
+            "6	src/sapphire",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  file3
-2  A  src/emerald
-3  A  src/ruby
-4  ?? file1
-5  ?? file2
-6  ?? src/sapphire
-"
+        lines!(
+            "1  A  file3",
+            "2  A  src/emerald",
+            "3  A  src/ruby",
+            "4  ?? file1",
+            "5  ?? file2",
+            "6  ?? src/sapphire",
+            ""
+        )
     );
 });
 
@@ -262,54 +224,50 @@ gitnu_test!(change_cwd_after_status, |mut t: Test| {
         .gitnu("", "add 3-5"); // run add command from /
     status::normal!(
         t,
-        "
----
-On branch main
-Changes to be committed:
-1	new file:   file3
-2	new file:   src/emerald
-3	new file:   src/ruby
-
-Untracked files:
-4	file1
-5	file2
-6	src/sapphire
-
-"
+        lines!(
+            "On branch main",
+            "Changes to be committed:",
+            "1	new file:   file3",
+            "2	new file:   src/emerald",
+            "3	new file:   src/ruby",
+            "",
+            "Untracked files:",
+            "4	file1",
+            "5	file2",
+            "6	src/sapphire",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  file3
-2  A  src/emerald
-3  A  src/ruby
-4  ?? file1
-5  ?? file2
-6  ?? src/sapphire
-"
+        lines!(
+            "1  A  file3",
+            "2  A  src/emerald",
+            "3  A  src/ruby",
+            "4  ?? file1",
+            "5  ?? file2",
+            "6  ?? src/sapphire",
+            ""
+        )
     );
 });
 
 gitnu_test!(zero_handling, |mut t: Test| {
     t.gitnu("", "init").shell("", "touch A B");
-    let normal = "
----
-On branch main
-
-No commits yet
-
-Untracked files:
-1	A
-2	B
-
-nothing added to commit but untracked files present
-";
-    let short = "
----
-1  ?? A
-2  ?? B
-";
+    let normal = lines!(
+        "On branch main",
+        "",
+        "No commits yet",
+        "",
+        "Untracked files:",
+        "1	A",
+        "2	B",
+        "",
+        "nothing added to commit but untracked files present",
+        ""
+    );
+    let short = lines!("1  ?? A", "2  ?? B", "");
     t.gitnu("", "add 0");
     status::normal!(t, normal);
     status::short!(t, short);
@@ -331,35 +289,27 @@ gitnu_test!(zero_filename, |mut t: Test| {
         .gitnu("", "add 0-2");
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   0
-2	new file:   A
-
-Untracked files:
-3	B
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   0",
+            "2	new file:   A",
+            "",
+            "Untracked files:",
+            "3	B",
+            "",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "
----
-1  A  0
-2  A  A
-3  ?? B
-"
-    );
+    status::short!(t, lines!("1  A  0", "2  A  A", "3  ?? B", ""));
 });
 
 gitnu_test!(dont_create_cache_file_without_repo, |mut t: Test| {
     t.gitnu("", "status");
-    status::general!(t, "ls -lA", "total 0\n");
+    assert::stdout!(t, "ls -lA", "total 0\n");
 });
 
 gitnu_test!(many_files, |mut t: Test| {
@@ -390,32 +340,23 @@ gitnu_test!(support_aliases, |mut t: Test| {
     // here, `Y` is added instead of `3`
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   Y
-
-Untracked files:
-2	3
-3	X
-4	Z
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   Y",
+            "",
+            "Untracked files:",
+            "2	3",
+            "3	X",
+            "4	Z",
+            "",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "
----
-1  A  Y
-2  ?? 3
-3  ?? X
-4  ?? Z
-"
-    );
+    status::short!(t, lines!("1  A  Y", "2  ?? 3", "3  ?? X", "4  ?? Z", ""));
 });
 
 gitnu_test!(stop_after_double_dash, |mut t: Test| {
@@ -425,30 +366,22 @@ gitnu_test!(stop_after_double_dash, |mut t: Test| {
     t.gitnu("", "add 2 -- 3");
     status::normal!(
         t,
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   3
-2	new file:   fileA
-
-Untracked files:
-3	fileB
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   3",
+            "2	new file:   fileA",
+            "",
+            "Untracked files:",
+            "3	fileB",
+            "",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "
----
-1  A  3
-2  A  fileA
-3  ?? fileB
-"
-    );
+    status::short!(t, lines!("1  A  3", "2  A  fileA", "3  ?? fileB", ""));
 });
 
 gitnu_test!(every_git_state, |mut t: Test| {
@@ -473,42 +406,42 @@ gitnu_test!(every_git_state, |mut t: Test| {
         .gitnu("", "add A B C D E _E");
     status::normal!(
         t,
-        "
----
-On branch main
-Changes to be committed:
-1	new file:   A
-2	modified:   B
-3	deleted:    C
-4	typechange: D
-5	renamed:    E -> _E
-
-Changes not staged for commit:
-6	modified:   G
-7	typechange: H
-8	deleted:    I
-
-Untracked files:
-9	F
-10	_I
-
-"
+        lines!(
+            "On branch main",
+            "Changes to be committed:",
+            "1	new file:   A",
+            "2	modified:   B",
+            "3	deleted:    C",
+            "4	typechange: D",
+            "5	renamed:    E -> _E",
+            "",
+            "Changes not staged for commit:",
+            "6	modified:   G",
+            "7	typechange: H",
+            "8	deleted:    I",
+            "",
+            "Untracked files:",
+            "9	F",
+            "10	_I",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  A
-2  M  B
-3  D  C
-4  T  D
-5   M G
-6   T H
-7   D I
-8  R  E -> _E
-9  ?? F
-10 ?? _I
-"
+        lines!(
+            "1  A  A",
+            "2  M  B",
+            "3  D  C",
+            "4  T  D",
+            "5   M G",
+            "6   T H",
+            "7   D I",
+            "8  R  E -> _E",
+            "9  ?? F",
+            "10 ?? _I",
+            ""
+        )
     );
 });
 
@@ -538,32 +471,32 @@ gitnu_test!(merge_conflict, |mut t: Test| {
         .gitnu("", "add 3");
     status::normal!(
         t,
-        "
----
-On branch RIGHT
-You have unmerged paths.
-
-Changes to be committed:
-1	new file:   fileA
-2	new file:   fileB
-
-Unmerged paths:
-3	both added:      conflict_file
-
-Untracked files:
-4	fileC
-
-"
+        lines!(
+            "On branch RIGHT",
+            "You have unmerged paths.",
+            "",
+            "Changes to be committed:",
+            "1	new file:   fileA",
+            "2	new file:   fileB",
+            "",
+            "Unmerged paths:",
+            "3	both added:      conflict_file",
+            "",
+            "Untracked files:",
+            "4	fileC",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  AA conflict_file
-2  A  fileA
-3  A  fileB
-4  ?? fileC
-"
+        lines!(
+            "1  AA conflict_file",
+            "2  A  fileA",
+            "3  A  fileB",
+            "4  ?? fileC",
+            ""
+        )
     );
 });
 
@@ -579,11 +512,11 @@ gitnu_test!(detached_head, |mut t: Test| {
         .set_sha();
     status::normal!(
         t,
-        "
----
-HEAD detached at [:SHA:]
-nothing to commit, working tree clean
-"
+        lines!(
+            "HEAD detached at [:SHA:]",
+            "nothing to commit, working tree clean",
+            ""
+        )
     );
     status::short!(t, "");
 });
@@ -601,15 +534,10 @@ gitnu_test!(skip_short_flags, |mut t: Test| {
     //
     // note that 6-8 is still parsed because the flag before them is a
     // long flag
-    status::general!(
+    assert::stdout!(
         t,
         "gitnu log -n 5 --pretty=%s 6-8",
-        "
----
-commit_H
-commit_G
-commit_F
-"
+        lines!("commit_H", "commit_G", "commit_F", "")
     );
 });
 
@@ -628,45 +556,31 @@ gitnu_test!(handle_capital_c_flag, |mut t: Test| {
     status::normal!(
         t,
         "one",
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   one_file
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   one_file",
+            "",
+            ""
+        )
     );
     status::normal!(
         t,
         "two",
-        "
----
-On branch main
-
-No commits yet
-
-Changes to be committed:
-1	new file:   two_file
-
-"
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   two_file",
+            "",
+            ""
+        )
     );
-    status::short!(
-        t,
-        "one",
-        "
----
-1  A  one_file
-"
-    );
-    status::short!(
-        t,
-        "two",
-        "
----
-1  A  two_file
-"
-    );
+    status::short!(t, "one", lines!("1  A  one_file", ""));
+    status::short!(t, "two", lines!("1  A  two_file", ""));
 });

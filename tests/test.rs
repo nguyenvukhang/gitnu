@@ -100,8 +100,8 @@ pub trait TestInterface {
     fn remove(&mut self, path: &str) -> &mut Self;
     /// Renames a file
     fn rename(&mut self, curr: &str, next: &str) -> &mut Self;
-    /// make assertion about a general command
-    fn assert_general(&mut self, path: &str, expect: &str, cmd: &str);
+    /// make assertion about a command's output
+    fn assert_stdout(&mut self, path: &str, expect: &str, cmd: &str);
     /// make assertion on `gitnu status`
     fn assert_normal(&mut self, path: &str, expect: &str);
     /// make assertion on `gitnu status --short`
@@ -179,7 +179,7 @@ impl TestInterface for Test {
         self
     }
 
-    fn assert_general(&mut self, path: &str, expect: &str, cmd: &str) {
+    fn assert_stdout(&mut self, path: &str, expect: &str, cmd: &str) {
         self.assert(path, expect, cmd, [true, true]);
     }
 

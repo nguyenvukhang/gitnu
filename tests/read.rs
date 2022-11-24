@@ -1,4 +1,4 @@
-use crate::status;
+use crate::{assert, status};
 
 const EVERY_STATE: &str = "
 ---
@@ -80,47 +80,47 @@ _I
 "
     );
     t.gitnu("", "status").shell("", "cat .git/gitnu.txt");
-    status::general!(t, "cat .git/gitnu.txt", &cache);
+    assert::stdout!(t, "cat .git/gitnu.txt", &cache);
 });
 
 test!(renamed_add, |mut t: Test| {
     t.gitnu("", "status").gitnu("", "add 8 10");
     status::normal!(
         t,
-        "
----
-On branch main
-Changes to be committed:
-1	new file:   A
-2	modified:   B
-3	deleted:    C
-4	typechange: D
-5	renamed:    E -> _E
-6	renamed:    I -> _I
-
-Changes not staged for commit:
-7	modified:   G
-8	typechange: H
-
-Untracked files:
-9	F
-
-"
+        lines!(
+            "On branch main",
+            "Changes to be committed:",
+            "1	new file:   A",
+            "2	modified:   B",
+            "3	deleted:    C",
+            "4	typechange: D",
+            "5	renamed:    E -> _E",
+            "6	renamed:    I -> _I",
+            "",
+            "Changes not staged for commit:",
+            "7	modified:   G",
+            "8	typechange: H",
+            "",
+            "Untracked files:",
+            "9	F",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  A
-2  M  B
-3  D  C
-4  T  D
-5   M G
-6   T H
-7  R  E -> _E
-8  R  I -> _I
-9  ?? F
-"
+        lines!(
+            "1  A  A",
+            "2  M  B",
+            "3  D  C",
+            "4  T  D",
+            "5   M G",
+            "6   T H",
+            "7  R  E -> _E",
+            "8  R  I -> _I",
+            "9  ?? F",
+            ""
+        )
     );
 });
 
@@ -131,43 +131,33 @@ test!(renamed_reset, |mut t: Test| {
     t.gitnu("", "status").gitnu("", "reset 5");
     status::normal!(
         t,
-        "
----
-On branch main
-Changes to be committed:
-1	new file:   A
-2	modified:   B
-3	deleted:    C
-4	typechange: D
-5	deleted:    E
-
-Changes not staged for commit:
-6	modified:   G
-7	typechange: H
-8	deleted:    I
-
-Untracked files:
-9	F
-10	_E
-11	_I
-
-"
+        lines!(
+            "On branch main",
+            "Changes to be committed:",
+            "1	new file:   A",
+            "2	modified:   B",
+            "3	deleted:    C",
+            "4	typechange: D",
+            "5	deleted:    E",
+            "",
+            "Changes not staged for commit:",
+            "6	modified:   G",
+            "7	typechange: H",
+            "8	deleted:    I",
+            "",
+            "Untracked files:",
+            "9	F",
+            "10	_E",
+            "11	_I",
+            "",
+            ""
+        )
     );
     status::short!(
         t,
-        "
----
-1  A  A
-2  M  B
-3  D  C
-4  T  D
-5  D  E
-6   M G
-7   T H
-8   D I
-9  ?? F
-10 ?? _E
-11 ?? _I
-"
+        lines!(
+            "1  A  A", "2  M  B", "3  D  C", "4  T  D", "5  D  E", "6   M G",
+            "7   T H", "8   D I", "9  ?? F", "10 ?? _E", "11 ?? _I", ""
+        )
     );
 });

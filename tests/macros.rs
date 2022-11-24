@@ -38,6 +38,15 @@ macro_rules! cache {
 }
 
 #[macro_export]
+macro_rules! lines {
+    ($( $x:expr ),*) => {{
+        let mut t = Vec::new();
+        $(t.push($x);)*
+        &t.join("\n")
+    }};
+}
+
+#[macro_export]
 macro_rules! assert_eq_pretty {
     ($expected:expr, $received:expr) => {
         let expected = &*$expected;
@@ -63,6 +72,17 @@ received:
     };
 }
 
+pub mod assert {
+    macro_rules! stdout {
+        ($test:expr, $command:expr, $expected:expr) => {
+            crate::test::Test::assert_stdout(
+                &mut $test, "", $expected, $command,
+            );
+        };
+    }
+    pub(crate) use stdout;
+}
+
 pub mod status {
     macro_rules! short {
         ($test:expr, $expected:expr) => {
@@ -81,14 +101,5 @@ pub mod status {
             crate::test::Test::assert_normal(&mut $test, $path, $expected);
         };
     }
-
-    macro_rules! general {
-        ($test:expr, $command:expr, $expected:expr) => {
-            crate::test::Test::assert_general(
-                &mut $test, "", $expected, $command,
-            );
-        };
-    }
-
-    pub(crate) use {general, normal, short};
+    pub(crate) use {normal, short};
 }
