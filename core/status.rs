@@ -85,7 +85,7 @@ fn short(state: &mut State, app: &App, line: String) -> PathBuf {
     app.cwd.join(&line[3..])
 }
 
-fn inner(mut app: App, is_normal: bool) -> Option<()> {
+fn inner(app: &mut App, is_normal: bool) -> Option<()> {
     let mut git = app.cmd.stdout(Stdio::piped()).spawn().ok()?;
     let lines = lines(git.stdout.as_mut()?);
     let writer = &mut app.cache(true).map(LineWriter::new);
@@ -107,6 +107,6 @@ fn inner(mut app: App, is_normal: bool) -> Option<()> {
 ///
 /// Runs `git status` then parses its output, enumerates it, and
 /// prints it out to stdout.
-pub fn status(app: App, is_normal: bool) {
+pub fn status(app: &mut App, is_normal: bool) {
     inner(app, is_normal);
 }

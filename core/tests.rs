@@ -23,6 +23,16 @@ macro_rules! parse {
     }};
 }
 
+/// for quickly generating expected values
+macro_rules! app {
+    ($args:expr, $cwd:expr, $sc:expr, $pargs:expr) => {
+        quick_app(&$args, $cwd, $sc, &$pargs)
+    };
+    ($args:expr, $cwd:expr, $sc:expr) => {
+        quick_app(&$args, $cwd, $sc, &[])
+    };
+}
+
 fn quick_app(args: &[&str], cwd: &str, sc: Subcommand, pargs: &[&str]) -> App {
     let pargs = pargs.iter().map(|v| v.to_string()).collect();
     let mut cmd = Command::new("");
@@ -34,16 +44,6 @@ fn quick_app(args: &[&str], cwd: &str, sc: Subcommand, pargs: &[&str]) -> App {
     App { subcommand: sc, cmd, cwd, pargs, cache: vec![] }
 }
 
-/// for quickly generating expected values
-macro_rules! app {
-    ($args:expr, $cwd:expr, $sc:expr, $pargs:expr) => {
-        quick_app(&$args, $cwd, $sc, &$pargs)
-    };
-    ($args:expr, $cwd:expr, $sc:expr) => {
-        quick_app(&$args, $cwd, $sc, &[])
-    };
-}
-
 impl PartialEq for App {
     fn eq(&self, b: &Self) -> bool {
         let subcommand = self.subcommand == b.subcommand;
@@ -51,6 +51,14 @@ impl PartialEq for App {
             && self.cmd.get_current_dir().eq(&b.cmd.get_current_dir());
         subcommand && self.cwd.eq(&b.cwd) && cmd && self.pargs.eq(&b.pargs)
     }
+}
+
+#[test]
+fn partial_eq_works() {
+    assert_ne!(app!(["a"], "", Unset, [""]), app!(["b"], "", Unset, [""]));
+    assert_ne!(app!([""], "a", Unset, [""]), app!([""], "b", Unset, [""]));
+    assert_ne!(app!([""], "", Unset, [""]), app!([""], "", Number, [""]));
+    assert_ne!(app!([""], "", Unset, ["a"]), app!([""], "", Unset, ["b"]));
 }
 
 test!(
@@ -118,11 +126,3 @@ test!(
     parse!(["--version", "status"], "/home"),
     app!(["--version", "status"], "/home", Version)
 );
-
-#[test]
-fn partial_eq_works() {
-    assert_ne!(app!(["a"], "", Unset, [""]), app!(["b"], "", Unset, [""]));
-    assert_ne!(app!([""], "a", Unset, [""]), app!([""], "b", Unset, [""]));
-    assert_ne!(app!([""], "", Unset, [""]), app!([""], "", Number, [""]));
-    assert_ne!(app!([""], "", Unset, ["a"]), app!([""], "", Unset, ["b"]));
-}

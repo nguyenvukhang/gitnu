@@ -1,5 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 use std::{fs::File, path::PathBuf, process::Command};
+mod command;
 mod git;
 mod git_cmd;
 mod parser;
@@ -101,35 +102,24 @@ impl App {
         cmd.current_dir(&cwd);
         Self { cwd, subcommand: Unset, pargs: vec![], cache: vec![], cmd }
     }
+
+    pub fn run(&mut self) {
+        use command::CommandOps;
+        match self.subcommand {
+            Status(is_normal) => status::status(self, is_normal),
+            Version => {
+                self.cmd.run();
+                println!("gitnu version {}", VERSION.unwrap_or("unknown"));
+            }
+            _ => self.cmd.run(),
+        }
+    }
 }
 
 /// Conveniently converts either a `File` or `Output` into an iterator of
 /// `String`s, dropping the invalid ones.
 fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     BufReader::new(src).lines().filter_map(|v| v.ok())
-}
-
-/// Runs the command and doesn't look back.
-///
-/// Call this after parsing is complete and command is fully loaded
-/// with all the correct parameters.
-pub fn spawn(mut c: Command) {
-    c.spawn().and_then(|mut v| v.wait().map(|_| ())).ok();
-}
-
-/// Entry point to Gitnu.
-///
-/// Gitnu's binary calls this function directly, passing in args and
-/// current directory obtained from `std::env`.
-pub fn run(app: App) {
-    match app.subcommand {
-        Status(is_normal) => status::status(app, is_normal),
-        Version => {
-            spawn(app.cmd);
-            println!("gitnu version {}", VERSION.unwrap_or("unknown"));
-        }
-        _ => spawn(app.cmd),
-    };
 }
 
 #[cfg(test)]
