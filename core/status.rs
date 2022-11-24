@@ -1,5 +1,6 @@
 use crate::line::{uncolor, Line};
 use crate::{lines, App};
+use std::fs::File;
 use std::io::{LineWriter, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
@@ -42,21 +43,32 @@ fn short(state: &mut State, path: &PathBuf, line: String) -> PathBuf {
     path.join(&line[3..])
 }
 
+trait Writer {
+    fn write(self, writer: &mut Option<LineWriter<File>>);
+}
+
+impl<I: Iterator<Item = PathBuf>> Writer for I {
+    fn write(self, writer: &mut Option<LineWriter<File>>) {
+        if let Some(writer) = writer.as_mut() {
+            self.for_each(|v| {
+                v.to_str().map(|v| writeln!(writer, "{v}"));
+            });
+        }
+    }
+}
+
 fn inner(app: &mut App, is_normal: bool) -> Option<()> {
     let mut git = app.cmd.stdout(Stdio::piped()).spawn().ok()?;
     let lines = lines(git.stdout.as_mut()?);
     let writer = &mut app.cache(true).map(LineWriter::new);
-    let write = |line: PathBuf| {
-        writer.as_mut().map(|w| writeln!(w, "{}", line.display()));
-    };
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
-        lines.filter_map(|v| normal(state, &app.cwd, v)).for_each(write);
+        lines.filter_map(|v| normal(state, &app.cwd, v)).write(writer);
     } else {
-        lines.map(|v| short(state, &app.cwd, v)).for_each(write);
+        lines.map(|v| short(state, &app.cwd, v)).write(writer);
     };
     git.wait().ok();
-    writer.as_mut().and_then(|w| w.flush().ok())
+    writer.as_mut().and_then(|v| v.flush().ok())
 }
 
 /// Endpoint function for everything git-status related.
