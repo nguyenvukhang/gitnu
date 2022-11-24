@@ -18,7 +18,7 @@ bench:
 	cargo bench --quiet
 
 test:
-	cargo test --no-fail-fast
+	cargo test --no-fail-fast --quiet
 
 version:
 	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/version.sh

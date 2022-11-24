@@ -9,7 +9,7 @@ struct State {
     count: usize,
 }
 
-fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
+fn normal(state: &mut State, path: &PathBuf, line: String) -> Option<PathBuf> {
     state.seen_untracked |= line.starts_with("Untracked files:");
     if !line.starts_with('\t') {
         println!("{}", line);
@@ -32,14 +32,14 @@ fn normal(state: &mut State, app: &App, line: String) -> Option<PathBuf> {
     if line.is_empty() {
         return None;
     }
-    std::str::from_utf8(line).ok().map(|v| app.cwd.join(v))
+    std::str::from_utf8(line).map(|v| path.join(v)).ok()
 }
 
-fn short(state: &mut State, app: &App, line: String) -> PathBuf {
+fn short(state: &mut State, path: &PathBuf, line: String) -> PathBuf {
     println!("{: <3}{}", state.count, line);
     state.count += 1;
     let line = String::from_utf8(uncolor(&line)).unwrap();
-    app.cwd.join(&line[3..])
+    path.join(&line[3..])
 }
 
 fn inner(app: &mut App, is_normal: bool) -> Option<()> {
@@ -47,17 +47,16 @@ fn inner(app: &mut App, is_normal: bool) -> Option<()> {
     let lines = lines(git.stdout.as_mut()?);
     let writer = &mut app.cache(true).map(LineWriter::new);
     let write = |line: PathBuf| {
-        writer.as_mut().map(|lw| writeln!(lw, "{}", line.display()));
+        writer.as_mut().map(|w| writeln!(w, "{}", line.display()));
     };
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
-        lines.filter_map(|v| normal(state, &app, v)).for_each(write);
+        lines.filter_map(|v| normal(state, &app.cwd, v)).for_each(write);
     } else {
-        lines.map(|v| short(state, &app, v)).for_each(write);
+        lines.map(|v| short(state, &app.cwd, v)).for_each(write);
     };
     git.wait().ok();
-    writer.as_mut().map(|lw| lw.flush().ok()).flatten();
-    Some(())
+    writer.as_mut().and_then(|w| w.flush().ok())
 }
 
 /// Endpoint function for everything git-status related.
