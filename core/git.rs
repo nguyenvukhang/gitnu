@@ -1,6 +1,7 @@
 use crate::command::CommandOps;
 use crate::git_cmd::GIT_CMD;
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -16,8 +17,7 @@ macro_rules! git {
 fn load_aliases(set: &mut HashSet<String>) {
     let mut git = git!(["config", "--name-only", "--get-regexp", "^alias\\."]);
     let output = git.stdout_string();
-    let lines = output.split_whitespace();
-    lines.filter_map(|v| v.strip_prefix("alias.")).for_each(|alias| {
+    output.lines().filter_map(|v| v.strip_prefix("alias.")).for_each(|alias| {
         set.insert(alias.to_string());
     });
 }
@@ -34,6 +34,10 @@ pub fn subcommands() -> HashSet<String> {
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
-pub fn git_dir(args: &Vec<String>) -> Option<PathBuf> {
+pub fn git_dir<S, I>(args: I) -> Option<PathBuf>
+where
+    S: AsRef<OsStr>,
+    I: Iterator<Item = S>,
+{
     git!(args, ["rev-parse", "--git-dir"]).stdout_pathbuf()
 }

@@ -22,7 +22,7 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
                 app.set_once(Subcommand::Status(true));
             } else {
                 app.set_once(Subcommand::Number);
-                app.read_cache();
+                app.load_cache_buffer();
             }
             app.cmd.arg(arg);
             break;
@@ -60,9 +60,10 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
         // try to parse argument as a range
         let isf = arg.starts_with('-') && !arg.starts_with("--"); // is short flag
         match (!skip && !isf, parse_range(arg)) {
-            (true, Some([s, e])) => (s..e + 1).for_each(|n| {
-                app.cmd.arg(app.cache.get(n).unwrap_or(&n.to_string()));
-            }),
+            (true, Some([s, e])) => {
+                app.read_until(e);
+                (s..e + 1).for_each(|n| app.add_file_by_number(n));
+            }
             _ => {
                 app.cmd.arg(arg);
             }

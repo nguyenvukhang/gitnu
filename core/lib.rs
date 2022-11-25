@@ -7,6 +7,7 @@ mod line;
 mod parser;
 mod status;
 pub use parser::parse;
+use std::io::Lines;
 use Subcommand::*;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
@@ -49,13 +50,14 @@ pub struct App {
     /// The command that will be ran once all processing is complete.
     cmd: Command,
 
-    /// Arguments that came before the subcommand.
+    /// Numer of arguments that came before the subcommand.
     /// Essentially these are Git's options, rather than Git's
     /// subcommand's options.
-    pargs: Vec<String>,
+    argc: usize,
 
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
+    buffer: Option<Lines<BufReader<File>>>,
 }
 
 impl App {
@@ -65,7 +67,8 @@ impl App {
     fn cache_path(&self) -> Option<PathBuf> {
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
-        git::git_dir(&self.pargs).map(|v| self.cwd.join(v).join("gitnu.txt"))
+        git::git_dir(self.cmd.get_args().take(self.argc))
+            .map(|v| self.cwd.join(v).join("gitnu.txt"))
     }
 
     pub fn cache(&self, create: bool) -> Option<File> {
@@ -75,15 +78,35 @@ impl App {
         })
     }
 
-    pub fn read_cache(&mut self) {
-        std::mem::swap(&mut self.cache, &mut vec!["0".to_string()]);
-        self.cache(false).map(|f| lines(f).for_each(|v| self.cache.push(v)));
+    /// eagerly read cache until cache contains the nth file
+    pub fn read_until(&mut self, n: usize) {
+        let len = self.cache.len();
+        if n < len || self.buffer.is_none() {
+            return;
+        }
+        let buffer = self.buffer.as_mut().unwrap().take(n + 1 - len);
+        buffer
+            .enumerate()
+            .map(|(i, v)| v.unwrap_or((len + i).to_string()))
+            .for_each(|v| self.cache.push(v));
     }
 
-    pub fn set_once(&mut self, sc: Subcommand) {
-        match (&self.subcommand, &sc) {
-            (Unset, _) => self.subcommand = sc,
-            (Status(true), Status(false)) => self.subcommand = sc,
+    /// Adds a file of index n as and argument to the `Command` that
+    /// will eventually be run.
+    pub fn add_file_by_number(&mut self, n: usize) {
+        self.cmd.arg(self.cache.get(n).unwrap_or(&n.to_string()));
+    }
+
+    /// Lazily loads cache file into buffer without actually reading
+    /// any lines yet.
+    pub fn load_cache_buffer(&mut self) {
+        self.cache = vec!["0".to_string()];
+        self.buffer = self.cache(false).map(|v| BufReader::new(v).lines());
+    }
+
+    pub fn set_once(&mut self, s: Subcommand) {
+        match (&self.subcommand, &s) {
+            (Unset, _) | (Status(true), Status(false)) => self.subcommand = s,
             _ => (),
         }
     }
@@ -91,7 +114,7 @@ impl App {
     pub fn push_arg(&mut self, arg: &str) {
         self.cmd.arg(arg);
         if self.subcommand == Unset {
-            self.pargs.push(arg.to_string());
+            self.argc += 1;
         }
     }
 
@@ -101,7 +124,14 @@ impl App {
             cmd.args(["-c", "color.ui=always"]);
         }
         cmd.current_dir(&cwd);
-        Self { cwd, subcommand: Unset, pargs: vec![], cache: vec![], cmd }
+        Self {
+            cwd,
+            subcommand: Unset,
+            cache: vec![],
+            cmd,
+            buffer: None,
+            argc: 0,
+        }
     }
 
     pub fn run(&mut self) {
