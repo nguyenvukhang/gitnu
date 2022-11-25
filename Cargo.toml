@@ -1,6 +1,6 @@
 [package]
 name = "gitnu"
-version = "0.4.8"
+version = "0.5.0"
 authors = ["Nguyen Vu Khang <brew4k@gmail.com>"]
 description = """
 gitnu indexes your git status so you can use numbers instead of filenames.
@@ -20,21 +20,21 @@ atty = "0.2.14"
 [dev-dependencies]
 criterion = "0.4"
 
-[[bench]]
-name = "bench"
-path = "bench/main.rs"
-harness = false
-
-[lib]
-path = "core/lib.rs"
-doctest = false
-
 [[bin]]
 bench = false
 test = false
 path = "core/main.rs"
 name = "gitnu"
 
+[lib]
+path = "core/lib.rs"
+doctest = false
+
 [[test]]
 name = "integration"
 path = "tests/main.rs"
+
+[[bench]]
+name = "bench"
+path = "bench/main.rs"
+harness = false
