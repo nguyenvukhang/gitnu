@@ -1,12 +1,19 @@
 use std::io::{BufRead, BufReader, Read};
-use std::{fs::File, path::PathBuf, process::Command};
+use std::process::Command;
+use std::{fs::File, path::PathBuf};
+
 mod command;
+mod error;
 mod git;
 mod git_cmd;
 mod line;
 mod parser;
 mod status;
+
+pub use error::GitnuError;
 pub use parser::parse;
+
+pub(self) use error::ToGitnuError;
 use std::io::Lines;
 use Subcommand::*;
 
@@ -84,11 +91,13 @@ impl App {
         if n < len || self.buffer.is_none() {
             return;
         }
-        let buffer = self.buffer.as_mut().unwrap().take(n + 1 - len);
-        buffer
-            .enumerate()
-            .map(|(i, v)| v.unwrap_or((len + i).to_string()))
-            .for_each(|v| self.cache.push(v));
+        self.buffer.as_mut().map(|buffer| {
+            buffer
+                .take(n + 1 - len)
+                .enumerate()
+                .map(|(i, v)| v.unwrap_or((len + i).to_string()))
+                .for_each(|v| self.cache.push(v));
+        });
     }
 
     /// Adds a file of index n as and argument to the `Command` that
@@ -134,17 +143,16 @@ impl App {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), GitnuError> {
         use command::CommandOps;
-        use std::process::exit;
         match self.subcommand {
             Status(is_normal) => status::status(self, is_normal),
             Version => {
-                let exit_code = self.cmd.run();
+                let result = self.cmd.run();
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
-                exit(exit_code)
+                result
             }
-            _ => exit(self.cmd.run()),
+            _ => self.cmd.run(),
         }
     }
 }

@@ -588,10 +588,46 @@ gitnu_test!(handle_capital_c_flag, |mut t: Test| {
     status::short!(t, "two", lines!("1  A  two_file", ""));
 });
 
+gitnu_test!(filename_with_colon, |mut t: Test| {
+    t.gitnu("", "init")
+        .shell("", "touch file:A file:B file:C")
+        .gitnu("", "status")
+        .gitnu("", "add 1")
+        .gitnu("", "status")
+        .gitnu("", "reset 1");
+    status::normal!(
+        t,
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Untracked files:",
+            "1	file:A",
+            "2	file:B",
+            "3	file:C",
+            "",
+            "nothing added to commit but untracked files present",
+            ""
+        )
+    );
+    status::short!(
+        t,
+        lines!("1  ?? file:A", "2  ?? file:B", "3  ?? file:C", "")
+    );
+});
+
 gitnu_test!(exit_codes, |mut t: Test| {
-    t.gitnu("", "status");
-    t.assert_exit_code("", "gitnu status", 0);
+    t.assert_exit_code("", "git status", 128);
+    t.assert_exit_code("", "gitnu status", 128);
+
+    t.assert_exit_code("", "gitnu status --bad-flag", 128);
+    t.assert_exit_code("", "git status --bad-flag", 128);
+    
     t.assert_exit_code("", "gitnu stat", 1);
+    t.assert_exit_code("", "git stat", 1);
+
     t.mark_as_checked();
     assert_eq!(1, 1)
 });
+

@@ -13,7 +13,7 @@ fn cmd() -> Command {
 fn buffered(target: impl Write) -> Option<()> {
     let mut proc = cmd().spawn().ok()?;
     let mut writer = BufWriter::new(target);
-    let br = BufReader::new(proc.stdout.as_mut()?);
+    let br = BufReader::new(proc.stdout.take().unwrap());
     br.lines().filter_map(|v| v.ok()).for_each(|v| {
         writeln!(writer, "{}", v).ok();
     });

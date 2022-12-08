@@ -75,13 +75,10 @@ impl Test {
             fs::remove_dir_all(&test.test_dir).ok();
         }
         fs::create_dir_all(&test.test_dir).unwrap();
-        test.bin_path = env::current_exe()
-            .unwrap()
-            .parent()
-            .expect("test directory")
-            .parent()
-            .expect("executable's directory")
-            .join(format!("gitnu{}", env::consts::EXE_SUFFIX));
+        test.bin_path = env::current_exe().unwrap();
+        test.bin_path.pop();
+        test.bin_path.pop();
+        test.bin_path.push(format!("gitnu{}", env::consts::EXE_SUFFIX));
         test
     }
 

@@ -1,5 +1,6 @@
 use crate::line::{uncolor, Line};
-use crate::{lines, App};
+use crate::GitnuError;
+use crate::{lines, App, ToGitnuError};
 use std::fs::File;
 use std::io::{LineWriter, Write};
 use std::path::PathBuf;
@@ -23,9 +24,9 @@ fn normal(state: &mut State, path: &PathBuf, line: String) -> Option<PathBuf> {
     line.after_last(b'\t');
     let is_rename = line.starts_with(b"renamed:");
     if !state.seen_untracked {
-        line.after_last(b':');
+        line.after_first(b':');
     }
-    line.trim_left(b' ');
+    line.trim_left_while(|v| v.is_ascii_whitespace());
     if is_rename {
         line.after_first_sequence(b"->");
         line.trim_left_while(|v| v.is_ascii_whitespace());
@@ -57,9 +58,16 @@ impl<I: Iterator<Item = PathBuf>> Writer for I {
     }
 }
 
-fn inner(app: &mut App, is_normal: bool) -> Option<()> {
-    let mut git = app.cmd.stdout(Stdio::piped()).spawn().ok()?;
-    let lines = lines(git.stdout.as_mut()?);
+/// Endpoint function for everything git-status related.
+///
+/// Runs `git status` then parses its output, enumerates it, and
+/// prints it out to stdout.
+pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
+    let mut git = app.cmd.stdout(Stdio::piped()).spawn().gitnu_err()?;
+    let lines = match git.stdout.take() {
+        Some(v) => lines(v),
+        None => return git.wait().gitnu_err().map(|_| ()),
+    };
     let writer = &mut app.cache(true).map(LineWriter::new);
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
@@ -67,14 +75,6 @@ fn inner(app: &mut App, is_normal: bool) -> Option<()> {
     } else {
         lines.map(|v| short(state, &app.cwd, v)).write(writer);
     };
-    git.wait().ok();
-    writer.as_mut().and_then(|v| v.flush().ok())
-}
-
-/// Endpoint function for everything git-status related.
-///
-/// Runs `git status` then parses its output, enumerates it, and
-/// prints it out to stdout.
-pub fn status(app: &mut App, is_normal: bool) {
-    inner(app, is_normal);
+    writer.as_mut().and_then(|v| v.flush().ok());
+    git.wait().gitnu_err().map(|_| ())
 }

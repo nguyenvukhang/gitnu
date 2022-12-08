@@ -1,5 +1,6 @@
 use crate::command::CommandOps;
 use crate::git_cmd::GIT_CMD;
+use crate::lines;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::PathBuf;
@@ -14,27 +15,20 @@ macro_rules! git {
     }};
 }
 
-pub struct GitSubcommand {
-    aliases: HashSet<String>,
-}
-
-impl GitSubcommand {
-    fn build() {
-
-    }
-
-    fn is(&self, arg: &str) -> bool {
-        self.aliases.contains(arg)
-
-    }
-}
-
-fn load_aliases(set: &mut HashSet<String>) {
+fn load_aliases(set: &mut HashSet<String>) -> Option<()> {
     let mut git = git!(["config", "--name-only", "--get-regexp", "^alias\\."]);
-    let output = git.stdout_string();
-    output.lines().filter_map(|v| v.strip_prefix("alias.")).for_each(|alias| {
-        set.insert(alias.to_string());
+    let mut git = git.spawn().ok()?;
+    let stdout = match git.stdout.take() {
+        Some(v) => v,
+        None => return git.wait().ok().map(|_| ()),
+    };
+    lines(stdout).for_each(|v| match v.strip_prefix("alias.") {
+        Some(v) => {
+            set.insert(v.to_string());
+        }
+        None => (),
     });
+    git.wait().ok().map(|_| ())
 }
 
 /// Get a hashset of all git subcommands from two sources
