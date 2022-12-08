@@ -1,28 +1,28 @@
-use std::ffi::OsStr;
 use std::process::Command;
-use std::{env, fs, path::PathBuf};
-
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::{env, fs, path::PathBuf};
 
 static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
 
+/// A test with a unique id, a dedicated temporary directory,
+/// and a path to the gitnu binary
 #[derive(Default)]
 pub struct Test {
     name: String,
     test_dir: PathBuf,
     bin_path: PathBuf,
+    ideal_path: PathBuf,
 }
 
 const TEST_DIR: &str = "gitnu-tests";
 
-trait Run {
-    fn run(&mut self);
-}
-
-impl Run for Command {
-    fn run(&mut self) {
-        self.output().ok();
-    }
+fn bin(exe: &str) -> PathBuf {
+    env::current_exe()
+        .unwrap()
+        .parent()
+        .expect("executable's directory")
+        .to_path_buf()
+        .join(format!("../{}{}", exe, env::consts::EXE_SUFFIX))
 }
 
 impl Test {
@@ -35,38 +35,38 @@ impl Test {
             fs::remove_dir_all(&test.test_dir).ok();
         }
         fs::create_dir_all(&test.test_dir).unwrap();
-        test.bin_path = env::current_exe()
-            .unwrap()
-            .parent()
-            .expect("executable's directory")
-            .to_path_buf()
-            .join(format!("../gitnu{}", env::consts::EXE_SUFFIX));
+        test.bin_path = bin("gitnu");
+        test.ideal_path = bin("gitnu-ideal");
         test
     }
 
-    fn cmd<S: AsRef<OsStr>>(&self, cmd: S) -> Command {
-        let mut cmd = Command::new(cmd);
+    pub fn dir(&self) -> &PathBuf {
+        &self.test_dir
+    }
+
+    pub fn file(&self, name: &str) -> fs::File {
+        fs::File::create(&self.test_dir.join(name)).unwrap()
+    }
+
+    pub fn cmd(&self, cmd: &str) -> Command {
+        let mut cmd = match cmd {
+            "gitnu" => Command::new(&self.bin_path),
+            "ideal" => Command::new(&self.ideal_path),
+            v => Command::new(v),
+        };
         cmd.current_dir(&self.test_dir);
         cmd
     }
 
     /// creates `file_count` number of files in the test directory
     /// and initializes it as a git repository
-    pub fn setup(&self, file_count: usize) {
-        self.cmd("git").arg("init").run();
+    pub fn setup(&self, file_count: u32) {
+        self.cmd("git").arg("init").output().ok();
         let mut touch = self.cmd("touch");
         for i in 0..file_count {
             touch.arg(format!("file_{}", i));
         }
-        touch.run();
-    }
-
-    pub fn run_gitnu(&self) {
-        self.cmd(&self.bin_path).arg("status").run();
-    }
-
-    pub fn run_git(&self) {
-        self.cmd("git").arg("status").run();
+        touch.output().ok();
     }
 }
 

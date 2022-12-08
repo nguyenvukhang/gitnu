@@ -6,9 +6,10 @@ quick:
 	cargo build
 
 build:
-	cargo test
+	cargo test --quiet
 	cargo build --release
 	make load_bin
+	@echo "Release build complete."
 
 size:
 	du -sh target/*/gitnu
@@ -16,6 +17,10 @@ size:
 bench:
 	cargo build --release
 	cargo bench --quiet
+
+bench-wrap:
+	cargo build --release
+	cargo bench-wrap --quiet
 
 test:
 	cargo test --no-fail-fast --quiet

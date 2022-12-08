@@ -28,11 +28,13 @@ impl Line for &[u8] {
     fn after_first_sequence(&mut self, seq: &[u8]) {
         let mut found = seq;
         while !found.is_empty() && !self.is_empty() {
-            if let Some(i) = find(self, found[0]) {
-                *self = &self[i + 1..];
+            if found[0] == self[0] {
+                *self = &self[1..];
                 found = &found[1..];
+                continue;
             } else {
-                found = seq
+                *self = &self[1..];
+                found = seq;
             }
         }
     }
@@ -121,6 +123,7 @@ fn after_first_sequence_test() {
     test!(f, "xfooxbar", "xbar");
     test!(f, "foo bar", " bar");
     test!(f, "bar foo", "");
+    test!(f, "f o o foobar", "bar");
     test!(f, "", "");
 }
 

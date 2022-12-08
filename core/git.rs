@@ -14,6 +14,21 @@ macro_rules! git {
     }};
 }
 
+pub struct GitSubcommand {
+    aliases: HashSet<String>,
+}
+
+impl GitSubcommand {
+    fn build() {
+
+    }
+
+    fn is(&self, arg: &str) -> bool {
+        self.aliases.contains(arg)
+
+    }
+}
+
 fn load_aliases(set: &mut HashSet<String>) {
     let mut git = git!(["config", "--name-only", "--get-regexp", "^alias\\."]);
     let output = git.stdout_string();
