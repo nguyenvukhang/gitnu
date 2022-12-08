@@ -1,5 +1,5 @@
 use crate::git;
-use crate::{App, Subcommand};
+use crate::{App, Cache, Subcommand};
 use std::path::PathBuf;
 
 fn parse_range(arg: &str) -> Option<[usize; 2]> {
@@ -18,30 +18,29 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
         let arg = arg.as_str();
         // set git sub-cmd
         if git_cmd.contains(arg) {
-            if arg.eq("status") {
-                app.set_once(Subcommand::Status(true));
-            } else {
-                app.set_once(Subcommand::Number);
-                app.load_cache_buffer();
-            }
-            app.cmd.arg(arg);
+            app.set_subcommand(match arg {
+                "status" => Subcommand::Status(true),
+                _ => Subcommand::Number,
+            });
+            app.arg(arg);
             break;
         }
         // set cwd using git's -C flag
         if arg.eq("-C") {
-            app.push_arg(arg);
+            app.arg(arg);
             if let Some(cwd) = args.next() {
                 app.cwd = PathBuf::from(&cwd);
                 app.cmd.current_dir(&cwd);
-                app.push_arg(&cwd);
+                app.arg(&cwd);
             }
             continue;
         }
         if arg.eq("--version") {
-            app.set_once(Subcommand::Version);
+            app.set_subcommand(Subcommand::Version);
         }
-        app.push_arg(arg);
+        app.arg(arg);
     }
+    app.load_cache_buffer();
 }
 
 /// parse arguments after the git command
@@ -51,22 +50,17 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
         if arg.eq("--") {
-            app.cmd.arg(arg);
+            app.arg(arg);
             break;
         }
         if ["--short", "-s", "--porcelain"].contains(&arg) {
-            app.set_once(Subcommand::Status(false));
+            app.set_subcommand(Subcommand::Status(false));
         }
         // try to parse argument as a range
         let isf = arg.starts_with('-') && !arg.starts_with("--"); // is short flag
         match (!skip && !isf, parse_range(arg)) {
-            (true, Some([s, e])) => {
-                app.read_until(e);
-                (s..e + 1).for_each(|n| app.add_file_by_number(n));
-            }
-            _ => {
-                app.cmd.arg(arg);
-            }
+            (true, Some([s, e])) => app.load_range(s, e),
+            _ => app.arg(arg),
         }
         skip = isf;
     }

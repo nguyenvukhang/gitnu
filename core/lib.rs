@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader, Read};
 use std::process::Command;
 use std::{fs::File, path::PathBuf};
 
+mod cache;
 mod command;
 mod error;
 mod git;
@@ -13,6 +14,7 @@ mod status;
 pub use error::GitnuError;
 pub use parser::parse;
 
+pub(self) use cache::Cache;
 pub(self) use error::ToGitnuError;
 use std::io::Lines;
 use Subcommand::*;
@@ -68,63 +70,16 @@ pub struct App {
 }
 
 impl App {
-    /// use the path obtained from `git rev-parse --git-dir` to store the cache.
-    /// this is usually the .git folder of regular repositories, and somewhere
-    /// deeper for worktrees.
-    fn cache_path(&self) -> Option<PathBuf> {
-        // git.stdout returns the git-dir relative to cwd,
-        // so prepend it with current dir
-        git::git_dir(self.cmd.get_args().take(self.argc))
-            .map(|v| self.cwd.join(v).join("gitnu.txt"))
-    }
-
-    pub fn cache(&self, create: bool) -> Option<File> {
-        self.cache_path().and_then(|v| match create {
-            true => File::create(v).ok(),
-            false => File::open(v).ok(),
-        })
-    }
-
-    /// eagerly read cache until cache contains the nth file
-    pub fn read_until(&mut self, n: usize) {
-        let len = self.cache.len();
-        if n < len || self.buffer.is_none() {
-            return;
-        }
-        self.buffer.as_mut().map(|buffer| {
-            buffer
-                .take(n + 1 - len)
-                .enumerate()
-                .map(|(i, v)| v.unwrap_or((len + i).to_string()))
-                .for_each(|v| self.cache.push(v));
-        });
-    }
-
-    /// Adds a file of index n as and argument to the `Command` that
-    /// will eventually be run.
-    pub fn add_file_by_number(&mut self, n: usize) {
-        self.cmd.arg(self.cache.get(n).unwrap_or(&n.to_string()));
-    }
-
-    /// Lazily loads cache file into buffer without actually reading
-    /// any lines yet.
-    pub fn load_cache_buffer(&mut self) {
-        self.cache = vec!["0".to_string()];
-        self.buffer = self.cache(false).map(|v| BufReader::new(v).lines());
-    }
-
-    pub fn set_once(&mut self, s: Subcommand) {
+    /// Sets the subcommand of the App.
+    pub fn set_subcommand(&mut self, s: Subcommand) {
         match (&self.subcommand, &s) {
             (Unset, _) | (Status(true), Status(false)) => self.subcommand = s,
             _ => (),
         }
     }
 
-    pub fn push_arg(&mut self, arg: &str) {
+    pub fn arg<S: AsRef<std::ffi::OsStr>>(&mut self, arg: S) {
         self.cmd.arg(arg);
-        if self.subcommand == Unset {
-            self.argc += 1;
-        }
     }
 
     pub fn new(cwd: PathBuf) -> Self {
@@ -157,11 +112,28 @@ impl App {
     }
 }
 
+impl App {
+    pub fn mock(args: &[&str], cwd: &str, sc: Subcommand, argc: usize) -> App {
+        let mut app = App::new(PathBuf::from(cwd));
+        app.argc = app.cmd.get_args().count();
+        app.cmd.args(args).current_dir(&app.cwd);
+        app.subcommand = sc;
+        app.argc += argc;
+        app
+    }
+}
+
+impl PartialEq for App {
+    fn eq(&self, b: &Self) -> bool {
+        let subcommand = self.subcommand == b.subcommand;
+        let cmd = self.cmd.get_args().eq(b.cmd.get_args())
+            && self.cmd.get_current_dir().eq(&b.cmd.get_current_dir());
+        subcommand && cmd && self.cwd.eq(&b.cwd) && self.argc == b.argc
+    }
+}
+
 /// Conveniently converts either a `File` or `Output` into an iterator of
 /// `String`s, dropping the invalid ones.
 fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     BufReader::new(src).lines().filter_map(|v| v.ok())
 }
-
-#[cfg(test)]
-mod tests;

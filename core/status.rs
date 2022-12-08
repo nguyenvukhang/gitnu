@@ -1,6 +1,6 @@
 use crate::line::{uncolor, Line};
-use crate::GitnuError;
 use crate::{lines, App, ToGitnuError};
+use crate::{Cache, GitnuError};
 use std::fs::File;
 use std::io::{LineWriter, Write};
 use std::path::PathBuf;
@@ -68,7 +68,7 @@ pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
         Some(v) => lines(v),
         None => return git.wait().gitnu_err().map(|_| ()),
     };
-    let writer = &mut app.cache(true).map(LineWriter::new);
+    let writer = &mut app.cache_file(true).map(LineWriter::new);
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
         lines.filter_map(|v| normal(state, &app.cwd, v)).write(writer);

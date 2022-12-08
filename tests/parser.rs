@@ -1,4 +1,4 @@
-use crate::{parser, App, Subcommand};
+use gitnu::{parse, App, Subcommand};
 use std::path::PathBuf;
 use std::{env, iter};
 use Subcommand::*;
@@ -17,32 +17,15 @@ macro_rules! test {
 macro_rules! parse {
     ($args:expr, $cwd:expr) => {{
         let args = iter::once(&"git").chain($args.iter());
-        parser::parse(args.map(|v| v.to_string()), PathBuf::from($cwd))
+        parse(args.map(|v| v.to_string()), PathBuf::from($cwd))
     }};
 }
 
 /// for quickly generating expected values
 macro_rules! app {
     ($args:expr, $cwd:expr, $sc:expr, $argc:expr) => {
-        quick_app(&$args, $cwd, $sc, $argc)
+        App::mock(&$args, $cwd, $sc, $argc)
     };
-}
-
-fn quick_app(args: &[&str], cwd: &str, sc: Subcommand, argc: usize) -> App {
-    let mut app = App::new(PathBuf::from(cwd));
-    app.cmd.args(args).current_dir(&app.cwd);
-    app.subcommand = sc;
-    app.argc = argc;
-    app
-}
-
-impl PartialEq for App {
-    fn eq(&self, b: &Self) -> bool {
-        let subcommand = self.subcommand == b.subcommand;
-        let cmd = self.cmd.get_args().eq(b.cmd.get_args())
-            && self.cmd.get_current_dir().eq(&b.cmd.get_current_dir());
-        subcommand && cmd && self.cwd.eq(&b.cwd) && self.argc == b.argc
-    }
 }
 
 #[test]
@@ -120,5 +103,5 @@ test!(
 test!(
     parse_version_weird,
     parse!(["--version", "status"], "/home"),
-    app!(["--version", "status"], "/home", Version, 0)
+    app!(["--version", "status"], "/home", Version, 1)
 );

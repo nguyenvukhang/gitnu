@@ -8,8 +8,3 @@ fn main() -> ExitCode {
         Err(e) => ExitCode::from(e.code()),
     }
 }
-
-
-// fn main() {
-//     println!("memes")
-// }
