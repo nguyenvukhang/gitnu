@@ -2,11 +2,11 @@ use std::path::PathBuf;
 use std::process::Command;
 
 pub trait CommandOps {
-    /// Runs the command and doesn't look back.
+    /// Runs the command gets exit code. Defaults to 1.
     ///
     /// Call this after parsing is complete and command is fully loaded
     /// with all the correct parameters.
-    fn run(&mut self);
+    fn run(&mut self) -> i32;
 
     /// Get stduout as a string
     fn stdout_string(&mut self) -> String;
@@ -16,8 +16,8 @@ pub trait CommandOps {
 }
 
 impl CommandOps for Command {
-    fn run(&mut self) {
-        self.spawn().and_then(|mut v| v.wait()).ok();
+    fn run(&mut self) -> i32 {
+        self.status().ok().and_then(|v| v.code()).unwrap_or(1)
     }
 
     fn stdout_string(&mut self) -> String {

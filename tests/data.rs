@@ -1,7 +1,6 @@
 /// output of running
 /// gitnu add 69-420 on 999 untracked files ranging 00001-00999 inclusive
-pub const LONG_EXPECT_SHORT_FLAG: &str = "
----
+pub const LONG_EXPECT_SHORT_FLAG: &str = "\
 1  A  00069\n2  A  00070\n3  A  00071\n4  A  00072\n5  A  00073\n6  A  00074
 7  A  00075\n8  A  00076\n9  A  00077\n10 A  00078\n11 A  00079\n12 A  00080
 13 A  00081\n14 A  00082\n15 A  00083\n16 A  00084\n17 A  00085\n18 A  00086
@@ -170,8 +169,7 @@ pub const LONG_EXPECT_SHORT_FLAG: &str = "
 991?? 00991\n992?? 00992\n993?? 00993\n994?? 00994\n995?? 00995\n996?? 00996
 997?? 00997\n998?? 00998\n999?? 00999\n";
 
-pub const LONG_EXPECT_NO_FLAG: &str = "
----
+pub const LONG_EXPECT_NO_FLAG: &str = "\
 On branch main\n\nNo commits yet\n\nChanges to be committed:
 1	new file:   00069\n2	new file:   00070\n3	new file:   00071
 4	new file:   00072\n5	new file:   00073\n6	new file:   00074

@@ -1,6 +1,6 @@
 #[macro_use]
 mod macros;
-use macros::assert;
+mod util;
 use macros::status;
 
 mod data;

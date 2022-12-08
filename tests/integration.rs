@@ -1,4 +1,4 @@
-use crate::{assert, status};
+use crate::status;
 
 gitnu_test!(untracked_files, |mut t: Test| {
     t.gitnu("", "init").shell("", "touch file:1 file_2 file-3");
@@ -309,7 +309,8 @@ gitnu_test!(zero_filename, |mut t: Test| {
 
 gitnu_test!(dont_create_cache_file_without_repo, |mut t: Test| {
     t.gitnu("", "status");
-    assert::stdout!(t, "ls -lA", "total 0\n");
+    t.assert("", "ls -lA", "total 0\n");
+    t.mark_as_checked();
 });
 
 gitnu_test!(many_files, |mut t: Test| {
@@ -534,11 +535,13 @@ gitnu_test!(skip_short_flags, |mut t: Test| {
     //
     // note that 6-8 is still parsed because the flag before them is a
     // long flag
-    assert::stdout!(
-        t,
+
+    t.assert(
+        "",
         "gitnu log -n 5 --pretty=%s 6-8",
-        lines!("commit_H", "commit_G", "commit_F", "")
+        lines!("commit_H", "commit_G", "commit_F", ""),
     );
+    t.mark_as_checked();
 });
 
 gitnu_test!(handle_capital_c_flag, |mut t: Test| {
@@ -583,4 +586,12 @@ gitnu_test!(handle_capital_c_flag, |mut t: Test| {
     );
     status::short!(t, "one", lines!("1  A  one_file", ""));
     status::short!(t, "two", lines!("1  A  two_file", ""));
+});
+
+gitnu_test!(exit_codes, |mut t: Test| {
+    t.gitnu("", "status");
+    t.assert_exit_code("", "gitnu status", 0);
+    t.assert_exit_code("", "gitnu stat", 1);
+    t.mark_as_checked();
+    assert_eq!(1, 1)
 });

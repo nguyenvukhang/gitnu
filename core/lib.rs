@@ -136,13 +136,15 @@ impl App {
 
     pub fn run(&mut self) {
         use command::CommandOps;
+        use std::process::exit;
         match self.subcommand {
             Status(is_normal) => status::status(self, is_normal),
             Version => {
-                self.cmd.run();
+                let exit_code = self.cmd.run();
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
+                exit(exit_code)
             }
-            _ => self.cmd.run(),
+            _ => exit(self.cmd.run()),
         }
     }
 }

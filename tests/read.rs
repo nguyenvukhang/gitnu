@@ -1,7 +1,6 @@
-use crate::{assert, status};
+use crate::status;
 
-const EVERY_STATE: &str = "
----
+const EVERY_STATE: &str = "\
 On branch main
 Changes to be committed:
 1	new file:   A
@@ -43,44 +42,29 @@ test!(base, |mut t: Test| {
     status::normal!(t, EVERY_STATE);
     status::short!(
         t,
-        "
----
-1  A  A
-2  M  B
-3  D  C
-4  T  D
-5   M G
-6   T H
-7   D I
-8  R  E -> _E
-9  ?? F
-10 ?? _I
-"
+        lines!(
+            "1  A  A",
+            "2  M  B",
+            "3  D  C",
+            "4  T  D",
+            "5   M G",
+            "6   T H",
+            "7   D I",
+            "8  R  E -> _E",
+            "9  ?? F",
+            "10 ?? _I",
+            ""
+        )
     );
 });
 
 test!(cache_state, |mut t: Test| {
-    let test_dir = t.get_test_dir();
-    let cache = cache!(
-        test_dir,
-        "
----
-A
-B
-C
-D
-_E
-G
-H
-I
-F
-_I
-
----
-"
-    );
-    t.gitnu("", "status").shell("", "cat .git/gitnu.txt");
-    assert::stdout!(t, "cat .git/gitnu.txt", &cache);
+    let mut cache =
+        t.mock_cache(vec!["A", "B", "C", "D", "_E", "G", "H", "I", "F", "_I"]);
+    cache.push('\n');
+    t.gitnu("", "status");
+    t.assert("", "cat .git/gitnu.txt", &cache);
+    t.mark_as_checked();
 });
 
 test!(renamed_add, |mut t: Test| {
