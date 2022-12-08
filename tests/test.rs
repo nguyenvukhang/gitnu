@@ -42,16 +42,25 @@ impl Test {
         self.test_dir.join(path)
     }
 
+    fn command(&self, path: &str, cmd: &str) -> Option<Command> {
+        assert_ne!(cmd, "");
+        let mut args = cmd.split(' ');
+        let mut cmd = match args.next() {
+            Some("gitnu") => self.bin(),
+            Some(v) => Command::new(v),
+            _ => return None,
+        };
+        cmd.load(args, self.dir(path));
+        Some(cmd)
+    }
+
     /// Gets the stdout of a shell command ran at path `path` as a `String`
     fn stdout(&self, cmd: &str, path: &str) -> String {
         assert_ne!(cmd, "");
-        let mut args = cmd.split(' ');
-        match args.next() {
-            Some("gitnu") => self.bin(),
-            Some(v) => Command::new(v),
-            None => return "".to_string(),
+        match self.command(path, cmd) {
+            Some(v) => v,
+            None => return String::new(),
         }
-        .load(args, self.dir(path))
         .stdout_string()
         .replace("\x1b[31m", "")
         .replace("\x1b[32m", "")
@@ -90,23 +99,17 @@ impl Test {
 
     /// Runs a `gitnu` command at a relative path from the test directory
     pub fn gitnu(&mut self, path: &str, args: &str) -> &mut Self {
-        self.bin()
-            .current_dir(&self.dir(path))
-            .args(args.split(' '))
-            .output()
-            .ok();
+        self.bin().load(args.split(' '), self.dir(path)).output().ok();
         self
     }
 
     /// Runs a shell command and populates `self.received` with output
     pub fn shell(&mut self, path: &str, shell_cmd: &str) -> &mut Self {
         assert_ne!(shell_cmd, "");
-        let mut args = shell_cmd.split(' ');
-        Command::new(args.next().unwrap())
-            .args(args)
-            .current_dir(self.dir(path))
-            .output()
-            .ok();
+        match self.command(path, shell_cmd) {
+            Some(mut v) => v.output().ok(),
+            _ => None,
+        };
         self
     }
 
@@ -135,10 +138,9 @@ impl Test {
     /// Make assertion about a command's exit code
     pub fn assert_exit_code(&mut self, path: &str, cmd: &str, code: i32) {
         assert_ne!(cmd, "");
-        let mut args = cmd.split(' ');
-        let received = Command::new(args.next().unwrap())
-            .args(args)
-            .current_dir(self.dir(path))
+        let received = self
+            .command(path, cmd)
+            .unwrap()
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .status()

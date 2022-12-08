@@ -22,6 +22,10 @@ bench-wrap:
 	cargo build --release
 	cargo bench-wrap --quiet
 
+memes:
+	cargo build --release
+	./target/release/gitnu
+
 test:
 	cargo test --no-fail-fast --quiet
 
