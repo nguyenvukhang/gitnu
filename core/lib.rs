@@ -70,6 +70,17 @@ pub struct App {
 }
 
 impl App {
+    /// Creates a new App instance.
+    pub fn new(cwd: PathBuf) -> App {
+        let mut cmd = Command::new("git");
+        if atty::is(atty::Stream::Stdout) {
+            cmd.args(["-c", "color.ui=always"]);
+        }
+        cmd.current_dir(&cwd);
+        let subcommand = Subcommand::Unset;
+        App { cwd, subcommand, cache: vec![], cmd, buffer: None, argc: 0 }
+    }
+
     /// Sets the subcommand of the App.
     pub fn set_subcommand(&mut self, s: Subcommand) {
         match (&self.subcommand, &s) {
@@ -78,26 +89,21 @@ impl App {
         }
     }
 
+    /// Sets the pre-subcommand argument count.
+    pub fn set_argc(&mut self) {
+        let argc = self.cmd.get_args().count();
+        self.argc = match self.subcommand {
+            Unset => argc,
+            _ => argc - 1,
+        }
+    }
+
+    /// Appends an argument to the final command to be ran.
     pub fn arg<S: AsRef<std::ffi::OsStr>>(&mut self, arg: S) {
         self.cmd.arg(arg);
     }
 
-    pub fn new(cwd: PathBuf) -> Self {
-        let mut cmd = Command::new("git");
-        if atty::is(atty::Stream::Stdout) {
-            cmd.args(["-c", "color.ui=always"]);
-        }
-        cmd.current_dir(&cwd);
-        Self {
-            cwd,
-            subcommand: Unset,
-            cache: vec![],
-            cmd,
-            buffer: None,
-            argc: 0,
-        }
-    }
-
+    /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<(), GitnuError> {
         use command::CommandOps;
         match self.subcommand {
@@ -113,6 +119,7 @@ impl App {
 }
 
 impl App {
+    /// Mocks a quick instance of `App` easily by allowing literals.
     pub fn mock(args: &[&str], cwd: &str, sc: Subcommand, argc: usize) -> App {
         let mut app = App::new(PathBuf::from(cwd));
         app.argc = app.cmd.get_args().count();

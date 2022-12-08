@@ -1,4 +1,4 @@
-use crate::{git, App, Subcommand};
+use crate::{git, App};
 use std::io::{BufRead, BufReader};
 use std::{fs::File, path::PathBuf};
 
@@ -13,7 +13,8 @@ pub trait Cache {
     fn load_range(&mut self, start: usize, end: usize);
 
     /// Lazily loads cache file into buffer without actually reading any lines
-    /// yet. Only loads if subcommand is of the `Number` variant.
+    /// yet. Should only be called when confirmed App's subcommand is of the
+    /// `Number` variant.
     fn load_cache_buffer(&mut self);
 }
 
@@ -56,15 +57,6 @@ impl Cache for App {
     }
 
     fn load_cache_buffer(&mut self) {
-        let argc = self.cmd.get_args().count();
-        if self.subcommand == Subcommand::Unset {
-            self.argc = argc;
-            return;
-        }
-        self.argc = argc - 1;
-        if self.subcommand != Subcommand::Number {
-            return;
-        }
         self.cache = vec!["0".to_string()];
         self.buffer = self.cache_file(false).map(|v| BufReader::new(v).lines());
     }

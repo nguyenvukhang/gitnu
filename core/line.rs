@@ -1,12 +1,13 @@
 pub trait Line {
     /// get contents after the last occurrence of the supplied byte
     fn after_last(&mut self, byte: u8);
+
     /// get contents after the first occurrence of the supplied byte
     fn after_first(&mut self, byte: u8);
+
     /// get contents after the first occurrence of the supplied byte
     fn after_first_sequence(&mut self, seq: &[u8]);
-    /// repeatedly remove the first byte if it matches the supplied byte
-    fn trim_left(&mut self, byte: u8);
+
     /// repeatedly remove the first byte if it passes the predicate
     fn trim_left_while<F: Fn(u8) -> bool>(&mut self, predicate: F);
 }
@@ -20,11 +21,13 @@ impl Line for &[u8] {
             }
         }
     }
+
     fn after_first(&mut self, byte: u8) {
         if let Some(i) = find(self, byte) {
             *self = &self[i + 1..]
         }
     }
+
     fn after_first_sequence(&mut self, seq: &[u8]) {
         let mut found = seq;
         while !found.is_empty() && !self.is_empty() {
@@ -38,14 +41,7 @@ impl Line for &[u8] {
             }
         }
     }
-    fn trim_left(&mut self, byte: u8) {
-        while !self.is_empty() {
-            match self[0] {
-                v if v == byte => *self = &self[1..],
-                _ => break,
-            };
-        }
-    }
+
     fn trim_left_while<F: Fn(u8) -> bool>(&mut self, predicate: F) {
         while !self.is_empty() {
             match predicate(self[0]) {
@@ -105,15 +101,6 @@ fn after_first_test() {
     test!(f, "fooxbarx", "barx");
     test!(f, "fooxbar", "bar");
     test!(f, "xfooxbar", "fooxbar");
-    test!(f, "", "");
-}
-
-#[test]
-fn trim_left_test() {
-    let f = |v: &mut &[u8]| v.trim_left(b'x');
-    test!(f, "fooxbarx", "fooxbarx");
-    test!(f, "xfoox", "foox");
-    test!(f, "xxxfoo", "foo");
     test!(f, "", "");
 }
 

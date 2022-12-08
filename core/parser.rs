@@ -1,8 +1,12 @@
 use crate::git;
-use crate::{App, Cache, Subcommand};
+use crate::{App, Cache, Subcommand::*};
 use std::path::PathBuf;
 
-fn parse_range(arg: &str) -> Option<[usize; 2]> {
+/// Parses a string into an inclusive range.
+/// "5"   -> Some([5, 5])
+/// "2-6" -> Some([2, 6])
+/// "foo" -> None
+pub fn parse_range(arg: &str) -> Option<[usize; 2]> {
     arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
         let (a, b) = arg.split_once("-")?;
         let a: usize = a.parse().ok()?;
@@ -16,16 +20,14 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     let git_cmd = git::subcommands();
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
-        // set git sub-cmd
         if git_cmd.contains(arg) {
             app.set_subcommand(match arg {
-                "status" => Subcommand::Status(true),
-                _ => Subcommand::Number,
+                "status" => Status(true),
+                _ => Number,
             });
             app.arg(arg);
             break;
         }
-        // set cwd using git's -C flag
         if arg.eq("-C") {
             app.arg(arg);
             if let Some(cwd) = args.next() {
@@ -36,11 +38,11 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
             continue;
         }
         if arg.eq("--version") {
-            app.set_subcommand(Subcommand::Version);
+            app.set_subcommand(Version);
         }
         app.arg(arg);
     }
-    app.load_cache_buffer();
+    app.set_argc();
 }
 
 /// parse arguments after the git command
@@ -48,17 +50,18 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
 fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     let mut skip = false;
     while let Some(arg) = args.next() {
-        let arg = arg.as_str();
-        if arg.eq("--") {
-            app.arg(arg);
-            break;
+        match arg.as_str() {
+            "--" => {
+                app.arg(arg);
+                break;
+            }
+            "--short" | "-s" | "--porcelain" => {
+                app.set_subcommand(Status(false))
+            }
+            _ => (),
         }
-        if ["--short", "-s", "--porcelain"].contains(&arg) {
-            app.set_subcommand(Subcommand::Status(false));
-        }
-        // try to parse argument as a range
         let isf = arg.starts_with('-') && !arg.starts_with("--"); // is short flag
-        match (!skip && !isf, parse_range(arg)) {
+        match (!skip && !isf, parse_range(&arg)) {
             (true, Some([s, e])) => app.load_range(s, e),
             _ => app.arg(arg),
         }
@@ -67,13 +70,15 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     app.cmd.args(args);
 }
 
+/// Parses all command-line arguments and returns an App instance that is ready
+/// to be ran.
 pub fn parse<I: Iterator<Item = String>>(args: I, cwd: PathBuf) -> App {
-    use Subcommand::*;
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
     pre_cmd(args, &mut app);
     match app.subcommand {
-        Status(_) | Number => (),
+        Status(_) => (),
+        Number => app.load_cache_buffer(),
         Unset | Version => return app,
     }
     post_cmd(args, &mut app);
