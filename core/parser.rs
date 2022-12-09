@@ -7,11 +7,27 @@ use std::path::PathBuf;
 /// "2-6" -> Some([2, 6])
 /// "foo" -> None
 pub fn parse_range(arg: &str) -> Option<[usize; 2]> {
-    arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
-        let (a, b) = arg.split_once("-")?;
-        let a: usize = a.parse().ok()?;
-        Some(b.parse().map(|b| [a.min(b), a.max(b)]).unwrap_or([a, a]))
-    })
+    let (mut i, mut p, mut ok) = (0, [0, 0], [false; 2]);
+    let arg: &[u8] = arg.as_bytes();
+    let len = arg.len();
+    for x in 0..len {
+        match arg[x] {
+            b'0'..=b'9' => {
+                p[i] = p[i] * 10 + (arg[x] - 48) as usize;
+                ok[i] |= true;
+            }
+            b'-' if i == 0 && 0 < x && x < len - 1 => i += 1,
+            _ => return None,
+        }
+    }
+    match ok {
+        [true, false] => Some([p[0], p[0]]),
+        [true, true] => {
+            p.sort_unstable();
+            Some(p)
+        }
+        _ => None,
+    }
 }
 
 /// parse arguments before the git command
