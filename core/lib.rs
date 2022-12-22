@@ -14,8 +14,8 @@ mod status;
 pub use error::GitnuError;
 pub use parser::parse;
 
-pub(self) use cache::Cache;
-pub(self) use error::ToGitnuError;
+use cache::Cache;
+use error::ToGitnuError;
 use std::io::Lines;
 use Subcommand::*;
 
@@ -67,6 +67,8 @@ pub struct App {
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
     buffer: Option<Lines<BufReader<File>>>,
+    /// Location that `git status` was last ran on
+    cache_cwd: PathBuf,
 }
 
 impl App {
@@ -77,8 +79,15 @@ impl App {
             cmd.args(["-c", "color.ui=always"]);
         }
         cmd.current_dir(&cwd);
-        let subcommand = Subcommand::Unset;
-        App { cwd, subcommand, cache: vec![], cmd, buffer: None, argc: 0 }
+        App {
+            cwd,
+            subcommand: Subcommand::Unset,
+            cache: vec![],
+            cmd,
+            buffer: None,
+            argc: 0,
+            cache_cwd: PathBuf::new(),
+        }
     }
 
     /// Sets the subcommand of the App.

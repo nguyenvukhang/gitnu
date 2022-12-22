@@ -27,7 +27,8 @@ memes:
 	./target/release/gitnu
 
 test:
-	cargo test --no-fail-fast --quiet
+	# cargo test --no-fail-fast --quiet
+	cargo test --quiet
 
 version:
 	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/version.sh

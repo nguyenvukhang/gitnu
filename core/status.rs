@@ -3,7 +3,6 @@ use crate::{lines, App, ToGitnuError};
 use crate::{Cache, GitnuError};
 use std::fs::File;
 use std::io::{LineWriter, Write};
-use std::path::PathBuf;
 use std::process::Stdio;
 
 struct State {
@@ -11,7 +10,7 @@ struct State {
     count: usize,
 }
 
-fn normal(state: &mut State, path: &PathBuf, line: String) -> Option<PathBuf> {
+fn normal(state: &mut State, line: String) -> Option<String> {
     state.seen_untracked |= line.starts_with("Untracked files:");
     if !line.starts_with('\t') {
         println!("{}", line);
@@ -34,25 +33,24 @@ fn normal(state: &mut State, path: &PathBuf, line: String) -> Option<PathBuf> {
     if line.is_empty() {
         return None;
     }
-    std::str::from_utf8(line).map(|v| path.join(v)).ok()
+    std::str::from_utf8(line).map(|v| v.to_string()).ok()
 }
 
-fn short(state: &mut State, path: &PathBuf, line: String) -> PathBuf {
+fn short(state: &mut State, line: String) -> String {
     println!("{: <3}{}", state.count, line);
     state.count += 1;
-    let line = String::from_utf8(uncolor(&line)).unwrap();
-    path.join(&line[3..])
+    String::from_utf8_lossy(&uncolor(&line))[3..].to_string()
 }
 
 trait Writer {
     fn write(self, writer: &mut Option<LineWriter<File>>);
 }
 
-impl<I: Iterator<Item = PathBuf>> Writer for I {
+impl<I: Iterator<Item = String>> Writer for I {
     fn write(self, writer: &mut Option<LineWriter<File>>) {
         if let Some(writer) = writer.as_mut() {
             self.for_each(|v| {
-                v.to_str().map(|v| writeln!(writer, "{v}"));
+                writeln!(writer, "{v}").unwrap();
             });
         }
     }
@@ -69,11 +67,14 @@ pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
         None => return git.wait().gitnu_err().map(|_| ()),
     };
     let writer = &mut app.cache_file(true).map(LineWriter::new);
+    writer.as_mut().map(|lw| {
+        writeln!(lw, "{}", app.cwd.to_str().unwrap()).unwrap();
+    });
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
-        lines.filter_map(|v| normal(state, &app.cwd, v)).write(writer);
+        lines.filter_map(|v| normal(state, v)).write(writer);
     } else {
-        lines.map(|v| short(state, &app.cwd, v)).write(writer);
+        lines.map(|v| short(state, v)).write(writer);
     };
     writer.as_mut().and_then(|v| v.flush().ok());
     git.wait().gitnu_err().map(|_| ())

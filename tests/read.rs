@@ -59,11 +59,16 @@ test!(base, |mut t: Test| {
 });
 
 test!(cache_state, |mut t: Test| {
-    let mut cache =
-        t.mock_cache(vec!["A", "B", "C", "D", "_E", "G", "H", "I", "F", "_I"]);
-    cache.push('\n');
+    let test_dir = t.get_test_dir();
+    let test_dir = test_dir.to_str().unwrap();
     t.gitnu("", "status");
-    t.assert("", "cat .git/gitnu.txt", &cache);
+    t.assert(
+        "",
+        "cat .git/gitnu.txt",
+        lines!(
+            test_dir, "A", "B", "C", "D", "_E", "G", "H", "I", "F", "_I", ""
+        ),
+    );
     t.mark_as_checked();
 });
 
