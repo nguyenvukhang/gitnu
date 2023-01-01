@@ -26,9 +26,13 @@ test:
 	# cargo test --no-fail-fast --quiet
 	cargo test --quiet
 
+# step 1 of 2 in publishing a new version to crates.io
+# this bumps the version in Cargo.toml and creates a new commit and tags it
 version:
 	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/version.sh
 
+# step 1 of 2 in publishing a new version to crates.io
+# after running this step, the latest version will be available on Crates.io
 publish:
 	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/publish.sh
 

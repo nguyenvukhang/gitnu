@@ -3,7 +3,7 @@
 gitnu adds numbers to git status.
 
 [![build status](https://github.com/nguyenvukhang/gitnu/workflows/ci/badge.svg)](https://github.com/nguyenvukhang/gitnu/actions)
-[![crates.io](https://img.shields.io/crates/dr/gitnu?color=brightgreen)](https://crates.io/crates/gitnu)
+[![crates.io](https://img.shields.io/crates/d/gitnu?color=brightgreen)](https://crates.io/crates/gitnu)
 
 ## Install
 

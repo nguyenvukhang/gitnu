@@ -124,17 +124,6 @@ impl Test {
         self
     }
 
-    /// Mocks a cache file with a list of filenames
-    pub fn mock_cache(&self, files: Vec<&str>) -> String {
-        let test_dir = self.get_test_dir();
-        files
-            .iter()
-            .map(|file| test_dir.join(file))
-            .map(|path| path.to_string_lossy().to_string())
-            .collect::<Vec<String>>()
-            .join("\n")
-    }
-
     /// Make assertion about a command's exit code
     pub fn assert_exit_code(&mut self, path: &str, cmd: &str, code: i32) {
         assert_ne!(cmd, "");

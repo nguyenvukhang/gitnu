@@ -81,16 +81,9 @@ pub fn parse<I: Iterator<Item = String>>(args: I, cwd: PathBuf) -> App {
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
     pre_cmd(args, &mut app);
-    match app.subcommand {
-        Status(_) => (),
-        Number => app.load_cache_buffer(),
-        Unset | Version => return app,
+    if app.subcommand == Number {
+        app.load_cache_buffer();
     }
     post_cmd(args, &mut app);
-    if let Ok(debug) = std::env::var("DEBUG") {
-        if debug.eq("1") {
-            println!("{app:?}")
-        }
-    }
     app
 }

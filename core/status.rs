@@ -62,20 +62,29 @@ impl<I: Iterator<Item = String>> Writer for I {
 /// prints it out to stdout.
 pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
     let mut git = app.cmd.stdout(Stdio::piped()).spawn().gitnu_err()?;
+
     let lines = match git.stdout.take() {
         Some(v) => lines(v),
         None => return git.wait().gitnu_err().map(|_| ()),
     };
     let writer = &mut app.cache_file(true).map(LineWriter::new);
-    writer.as_mut().map(|lw| {
+
+    // first line of the cache file is the current directory
+    if let Some(lw) = writer {
         writeln!(lw, "{}", app.cwd().to_str().unwrap()).unwrap();
-    });
+    }
+
+    // write all the files listed by `git status`
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {
         lines.filter_map(|v| normal(state, v)).write(writer);
     } else {
         lines.map(|v| short(state, v)).write(writer);
     };
-    writer.as_mut().and_then(|v| v.flush().ok());
+
+    // close the writer if it exists
+    if let Some(lw) = writer {
+        lw.flush().ok();
+    }
     git.wait().gitnu_err().map(|_| ())
 }

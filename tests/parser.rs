@@ -103,5 +103,5 @@ test!(
 test!(
     parse_version_weird,
     parse!(["--version", "status"], "/home"),
-    app!(["--version"], "/home", Version, 0)
+    app!(["--version", "status"], "/home", Version, 0)
 );
