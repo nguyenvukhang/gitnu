@@ -10,6 +10,8 @@ struct State {
     count: usize,
 }
 
+/// Uses the `\t` character to differentiate between lines that
+/// contain pathspecs and those that do not.
 fn normal(state: &mut State, line: String) -> Option<String> {
     state.seen_untracked |= line.starts_with("Untracked files:");
     if !line.starts_with('\t') {

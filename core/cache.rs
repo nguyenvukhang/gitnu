@@ -1,3 +1,4 @@
+use crate::pathdiff::diff_paths;
 use crate::{git, App};
 use std::io::{BufRead, BufReader};
 use std::{fs::File, path::PathBuf};
@@ -25,8 +26,7 @@ impl App {
     fn cache_path(&self) -> Option<PathBuf> {
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
-        git::git_dir(self.cmd.get_args().take(self.argc))
-            .map(|v| self.cwd().join(v).join("gitnu.txt"))
+        git::git_dir(self.cwd()).map(|v| self.cwd().join(v).join("gitnu.txt"))
     }
 
     fn read_until(&mut self, n: usize) {
@@ -53,7 +53,7 @@ impl Cache for App {
         self.read_until(end);
         (start..end + 1).for_each(|n| match self.cache.get(n) {
             Some(pathspec) => {
-                self.cmd.arg(self.cache_cwd.join(pathspec));
+                self.cmd.arg(self.file_prefix.join(pathspec));
             }
             None => {
                 self.cmd.arg(n.to_string());
@@ -65,7 +65,8 @@ impl Cache for App {
         self.cache = vec!["0".to_string()];
         if let Some(file) = self.cache_file(false) {
             let mut buffer = BufReader::new(file).lines();
-            self.cache_cwd = PathBuf::from(buffer.next().unwrap().unwrap());
+            let cache_cwd = PathBuf::from(buffer.next().unwrap().unwrap());
+            self.file_prefix = diff_paths(cache_cwd, self.cwd()).unwrap();
             self.buffer = Some(buffer);
         }
     }

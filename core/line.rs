@@ -77,7 +77,7 @@ fn find(hay: &[u8], needle: u8) -> Option<usize> {
     hay.iter().position(|&b| b == needle)
 }
 
-#[macro_export]
+#[cfg(test)]
 macro_rules! test {
     ($fun:expr, $input:expr, $expected:expr) => {
         let line = &mut $input.as_bytes();

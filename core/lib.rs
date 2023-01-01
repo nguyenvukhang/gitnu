@@ -1,6 +1,8 @@
+use std::fs::File;
+use std::io::Lines;
 use std::io::{BufRead, BufReader, Read};
+use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::{fs::File, path::Path, path::PathBuf};
 
 mod cache;
 mod command;
@@ -9,6 +11,7 @@ mod git;
 mod git_cmd;
 mod line;
 mod parser;
+mod pathdiff;
 mod status;
 
 pub use error::GitnuError;
@@ -16,7 +19,6 @@ pub use parser::parse;
 
 use cache::Cache;
 use error::ToGitnuError;
-use std::io::Lines;
 use Subcommand::*;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
@@ -63,7 +65,7 @@ pub struct App {
     cache: Vec<String>,
     buffer: Option<Lines<BufReader<File>>>,
     /// Location that `git status` was last ran on
-    cache_cwd: PathBuf,
+    file_prefix: PathBuf,
 }
 
 impl App {
@@ -80,7 +82,7 @@ impl App {
             cmd,
             buffer: None,
             argc: 0,
-            cache_cwd: PathBuf::new(),
+            file_prefix: PathBuf::new(),
         }
     }
 
@@ -126,26 +128,15 @@ impl App {
             _ => self.cmd.run(),
         }
     }
-}
 
-impl App {
-    /// Mocks a quick instance of `App` easily by allowing literals.
-    pub fn mock(args: &[&str], cwd: &str, sc: Subcommand, argc: usize) -> App {
-        let mut app = App::new(PathBuf::from(cwd));
-        app.argc = app.cmd.get_args().count();
-        app.cmd.args(args);
-        app.subcommand = sc;
-        app.argc += argc;
-        app
+    #[cfg(test)]
+    pub fn subcommand(&self) -> &Subcommand {
+        &self.subcommand
     }
-}
 
-impl PartialEq for App {
-    fn eq(&self, b: &Self) -> bool {
-        let subcommand = self.subcommand == b.subcommand;
-        let cmd = self.cmd.get_args().eq(b.cmd.get_args())
-            && self.cmd.get_current_dir().eq(&b.cmd.get_current_dir());
-        subcommand && cmd && self.argc == b.argc
+    #[cfg(test)]
+    pub fn cmd(&self) -> &Command {
+        &self.cmd
     }
 }
 
@@ -154,3 +145,6 @@ impl PartialEq for App {
 fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
     BufReader::new(src).lines().filter_map(|v| v.ok())
 }
+
+#[cfg(test)]
+mod tests;

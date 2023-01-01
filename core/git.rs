@@ -2,15 +2,20 @@ use crate::command::CommandOps;
 use crate::git_cmd::GIT_CMD;
 use crate::lines;
 use std::collections::{HashMap, HashSet};
-use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 macro_rules! git {
-    ($($arg:tt),*) => {{
+    ($args:expr) => {{
+        git!(None as Option<PathBuf>, $args)
+    }};
+    ($cwd:expr, $args:expr) => {{
         let mut git = Command::new("git");
         git.stdout(Stdio::piped());
-        $(git.args($arg);)*
+        if let Some(cwd) = $cwd {
+            git.current_dir(cwd);
+        }
+        git.args($args);
         git
     }};
 }
@@ -23,8 +28,8 @@ pub struct Commander {
 }
 
 impl Commander {
-    pub fn new() -> Self {
-        Self { aliases: aliases(), subcommands: subcommands() }
+    pub fn new<P: AsRef<Path>>(cwd: P) -> Self {
+        Self { aliases: aliases(cwd), subcommands: subcommands() }
     }
 
     /// Gets the actual subcommand of the argument passed in.
@@ -40,8 +45,8 @@ impl Commander {
     }
 }
 
-pub fn aliases() -> HashMap<String, String> {
-    let mut git = git!(["config", "--get-regexp", "^alias\\."]);
+pub fn aliases<P: AsRef<Path>>(cwd: P) -> HashMap<String, String> {
+    let mut git = git!(Some(cwd), ["config", "--get-regexp", "^alias\\."]);
     let mut git = git.spawn().ok().expect("Unable to collect aliases.");
     let stdout = match git.stdout.take() {
         Some(v) => v,
@@ -67,10 +72,6 @@ pub fn subcommands() -> HashSet<String> {
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
-pub fn git_dir<S, I>(args: I) -> Option<PathBuf>
-where
-    S: AsRef<OsStr>,
-    I: Iterator<Item = S>,
-{
-    git!(args, ["rev-parse", "--git-dir"]).stdout_pathbuf()
+pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Option<PathBuf> {
+    git!(Some(cwd), ["rev-parse", "--git-dir"]).stdout_pathbuf()
 }

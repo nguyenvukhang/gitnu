@@ -1,9 +1,9 @@
 BIN=$(HOME)/dots/personal/.local/bin
-GITNU_RELEASE_BIN=$(PWD)/target/release/gitnu
-GITNU_DEBUG_BIN=$(PWD)/target/debug/gitnu
+GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
+GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 quick:
-	cargo build
+	cargo test
 
 build:
 	cargo test --quiet
@@ -12,7 +12,7 @@ build:
 	@echo "Release build complete."
 
 size:
-	du -sh target/*/gitnu
+	du -sh target/*/git-nu
 
 bench:
 	cargo build --release
@@ -38,7 +38,7 @@ publish:
 
 # copies built binary to a path specified by $BIN
 load_bin:
-	@rm -f $(BIN)/gitnu
-	@cp ./target/release/gitnu $(BIN)
+	@rm -f $(BIN)/git-nu
+	@cp ./target/release/git-nu $(BIN)
 
 .PHONY: test size quick load_bin bench

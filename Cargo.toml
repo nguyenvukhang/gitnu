@@ -24,15 +24,11 @@ criterion = "0.4"
 bench = false
 test = false
 path = "core/main.rs"
-name = "gitnu"
+name = "git-nu"
 
 [lib]
 path = "core/lib.rs"
 doctest = false
-
-[[test]]
-name = "integration"
-path = "tests/main.rs"
 
 [[bench]]
 name = "bench"
