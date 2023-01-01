@@ -360,6 +360,34 @@ gitnu_test!(support_aliases, |mut t: Test| {
     status::short!(t, lines!("1  A  Y", "2  ?? 3", "3  ?? X", "4  ?? Z", ""));
 });
 
+gitnu_test!(support_status_alias, |mut t: Test| {
+    t.gitnu("", "init")
+        .shell("", "touch X Y Z 3")
+        .gitnu("", "status")
+        .gitnu("", "config alias.memes status")
+        .gitnu("", "memes 3");
+
+    t.assert(
+        "",
+        "gitnu memes",
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Untracked files:",
+            "1	3",
+            "2	X",
+            "3	Y",
+            "4	Z",
+            "",
+            "nothing added to commit but untracked files present",
+            ""
+        ),
+    );
+    t.mark_as_checked();
+});
+
 gitnu_test!(stop_after_double_dash, |mut t: Test| {
     t.gitnu("", "init").shell("", "touch 3 fileA fileB").gitnu("", "status");
     // if gitnu continues parsing after double dash then
@@ -623,7 +651,7 @@ gitnu_test!(exit_codes, |mut t: Test| {
 
     t.assert_exit_code("", "gitnu status --bad-flag", 128);
     t.assert_exit_code("", "git status --bad-flag", 128);
-    
+
     t.assert_exit_code("", "gitnu stat", 1);
     t.assert_exit_code("", "git stat", 1);
 
@@ -631,3 +659,31 @@ gitnu_test!(exit_codes, |mut t: Test| {
     assert_eq!(1, 1)
 });
 
+// Reminder that git ls-files only catches files that are indexed by git, and
+// so untracked files will not show
+gitnu_test!(ls_files, |mut t: Test| {
+    t.gitnu("", "init").shell("", "touch file:1 file:2 file:3");
+    t.gitnu("", "add file:1");
+    t.gitnu("", "status");
+    t.assert(
+        "",
+        "gitnu status",
+        lines!(
+            "On branch main",
+            "",
+            "No commits yet",
+            "",
+            "Changes to be committed:",
+            "1	new file:   file:1",
+            "",
+            "Untracked files:",
+            "2	file:2",
+            "3	file:3",
+            "",
+            ""
+        ),
+    );
+    t.assert("", "gitnu ls-files file:1", "file:1\n");
+    t.assert("", "gitnu ls-files file:2", "");
+    t.mark_as_checked();
+});

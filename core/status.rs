@@ -68,7 +68,7 @@ pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
     };
     let writer = &mut app.cache_file(true).map(LineWriter::new);
     writer.as_mut().map(|lw| {
-        writeln!(lw, "{}", app.cwd.to_str().unwrap()).unwrap();
+        writeln!(lw, "{}", app.cwd().to_str().unwrap()).unwrap();
     });
     let state = &mut State { seen_untracked: false, count: 1 };
     if is_normal {

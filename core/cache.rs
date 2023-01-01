@@ -26,7 +26,7 @@ impl App {
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
         git::git_dir(self.cmd.get_args().take(self.argc))
-            .map(|v| self.cwd.join(v).join("gitnu.txt"))
+            .map(|v| self.cwd().join(v).join("gitnu.txt"))
     }
 
     fn read_until(&mut self, n: usize) {

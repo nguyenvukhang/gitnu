@@ -6,56 +6,45 @@ use std::path::PathBuf;
 /// "5"   -> Some([5, 5])
 /// "2-6" -> Some([2, 6])
 /// "foo" -> None
-pub fn parse_range(arg: &str) -> Option<[usize; 2]> {
-    let (mut i, mut p, mut ok) = (0, [0, 0], [false; 2]);
-    let arg: &[u8] = arg.as_bytes();
-    let len = arg.len();
-    for x in 0..len {
-        match arg[x] {
-            b'0'..=b'9' => {
-                p[i] = p[i] * 10 + (arg[x] - 48) as usize;
-                ok[i] |= true;
-            }
-            b'-' if i == 0 && 0 < x && x < len - 1 => i += 1,
-            _ => return None,
-        }
-    }
-    match ok {
-        [true, false] => Some([p[0], p[0]]),
-        [true, true] => {
-            p.sort_unstable();
-            Some(p)
-        }
-        _ => None,
-    }
+fn parse_range(arg: &str) -> Option<[usize; 2]> {
+    arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
+        let (a, b) = arg.split_once("-")?;
+        let a: usize = a.parse().ok()?;
+        Some(b.parse().map(|b| [a.min(b), a.max(b)]).unwrap_or([a, a]))
+    })
 }
 
 /// parse arguments before the git command
 /// for a list of all git commands, see ./git_cmd.rs
 fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
-    let git_cmd = git::subcommands();
+    let cmdr = git::Commander::new();
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
-        if git_cmd.contains(arg) {
-            app.set_subcommand(match arg {
+
+        // obtain subcommand
+        if let Some(subcommand) = cmdr.get_subcommand(arg) {
+            app.set_subcommand(match subcommand {
                 "status" => Status(true),
                 _ => Number,
             });
             app.arg(arg);
             break;
+        } else if arg.eq("--version") {
+            app.set_subcommand(Version);
+            app.arg(arg);
+            break;
         }
+
+        // set app cwd using the -C flag
         if arg.eq("-C") {
             app.arg(arg);
             if let Some(cwd) = args.next() {
-                app.cwd = PathBuf::from(&cwd);
                 app.cmd.current_dir(&cwd);
                 app.arg(&cwd);
             }
             continue;
         }
-        if arg.eq("--version") {
-            app.set_subcommand(Version);
-        }
+
         app.arg(arg);
     }
     app.set_argc();
@@ -98,5 +87,10 @@ pub fn parse<I: Iterator<Item = String>>(args: I, cwd: PathBuf) -> App {
         Unset | Version => return app,
     }
     post_cmd(args, &mut app);
+    if let Ok(debug) = std::env::var("DEBUG") {
+        if debug.eq("1") {
+            println!("{app:?}")
+        }
+    }
     app
 }

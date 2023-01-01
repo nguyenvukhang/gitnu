@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 use std::process::Command;
-use std::{fs::File, path::PathBuf};
+use std::{fs::File, path::Path, path::PathBuf};
 
 mod cache;
 mod command;
@@ -51,11 +51,6 @@ pub struct App {
     /// Controls main flow (read/write/which parser to use)
     subcommand: Subcommand,
 
-    /// Directory that Gitnu was ran from.
-    /// This can be overridden by using the `-C` flag, which is
-    /// identical behaviour to vanilla Git.
-    cwd: PathBuf,
-
     /// The command that will be ran once all processing is complete.
     cmd: Command,
 
@@ -80,7 +75,6 @@ impl App {
         }
         cmd.current_dir(&cwd);
         App {
-            cwd,
             subcommand: Subcommand::Unset,
             cache: vec![],
             cmd,
@@ -88,6 +82,13 @@ impl App {
             argc: 0,
             cache_cwd: PathBuf::new(),
         }
+    }
+
+    /// Get the current directory of the app
+    pub fn cwd(&self) -> &Path {
+        // Unwrap safety is guaranteed by App::new() always initializing
+        // `self.cmd` with a value
+        self.cmd.get_current_dir().unwrap()
     }
 
     /// Sets the subcommand of the App.
@@ -132,7 +133,7 @@ impl App {
     pub fn mock(args: &[&str], cwd: &str, sc: Subcommand, argc: usize) -> App {
         let mut app = App::new(PathBuf::from(cwd));
         app.argc = app.cmd.get_args().count();
-        app.cmd.args(args).current_dir(&app.cwd);
+        app.cmd.args(args);
         app.subcommand = sc;
         app.argc += argc;
         app
@@ -144,7 +145,7 @@ impl PartialEq for App {
         let subcommand = self.subcommand == b.subcommand;
         let cmd = self.cmd.get_args().eq(b.cmd.get_args())
             && self.cmd.get_current_dir().eq(&b.cmd.get_current_dir());
-        subcommand && cmd && self.cwd.eq(&b.cwd) && self.argc == b.argc
+        subcommand && cmd && self.argc == b.argc
     }
 }
 
