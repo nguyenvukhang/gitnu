@@ -51,6 +51,15 @@ macro_rules! test {
                 fs::remove_dir_all(&test_dir).ok();
             }
             fs::create_dir_all(&test_dir).unwrap();
+
+            // Sets the $PATH environment variable such that the debug version of
+            // `git-nu` is front-and-center.
+            let path = env::var("PATH").unwrap();
+            let mut bin = PathBuf::from(bin_path());
+            bin.pop();
+            env::set_var("PATH", format!("{}:{path}", bin.to_string_lossy()));
+
+            // run the test
             $fun(&Test { dir: test_dir });
         }
     };
@@ -76,8 +85,11 @@ macro_rules! gitnu {
 #[macro_export]
 macro_rules! sh {
     ($t:expr, $cmd:expr) => {
+        sh!($t, "", $cmd)
+    };
+    ($t:expr, $cwd:expr, $cmd:expr) => {
         Command::new("sh")
-            .current_dir(&$t.dir)
+            .current_dir(&$t.dir.join($cwd))
             .arg("-c")
             .arg($cmd)
             .output()

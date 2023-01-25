@@ -20,8 +20,6 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     let cmdr = git::Commander::new(app.cwd());
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
-
-        // obtain subcommand
         if let Some(subcommand) = cmdr.get_subcommand(arg) {
             app.set_subcommand(match subcommand {
                 "status" => Status(true),
@@ -34,17 +32,6 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
             app.arg(arg);
             break;
         }
-
-        // set app cwd using the -C flag
-        if arg.eq("-C") {
-            app.arg(arg);
-            if let Some(cwd) = args.next() {
-                app.cmd.current_dir(&cwd);
-                app.arg(&cwd);
-            }
-            continue;
-        }
-
         app.arg(arg);
     }
     app.set_argc();
@@ -89,8 +76,6 @@ pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
 }
 
 #[cfg(test)]
-use std::path::Path;
-#[cfg(test)]
 use std::process::Command;
 
 macro_rules! test {
@@ -128,18 +113,8 @@ macro_rules! assert_args {
     }};
 }
 
-test!(test_no_ops, "/home", ["-C", "/tmp"], |app: App| {
-    assert_eq!(app.cwd(), Path::new("/tmp"));
-    assert_eq!(app.subcommand(), &Unset);
-});
-
-test!(test_status, "/tmp", ["status"], |app: App| {
+test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
     assert_eq!(app.subcommand(), &Status(true));
-});
-
-test!(test_status_diff_dir, "/home", ["-C", "/tmp", "status"], |app: App| {
-    assert_eq!(app.subcommand(), &Status(true));
-    assert_eq!(app.cwd(), Path::new("/tmp"));
 });
 
 test!(test_single, ["add", "1"], |app: App| {

@@ -23,7 +23,7 @@ bench-wrap:
 	cargo bench-wrap --quiet
 
 test:
-	# cargo test --no-fail-fast --quiet
+	cargo build
 	cargo test --quiet
 
 # step 1 of 2 in publishing a new version to crates.io

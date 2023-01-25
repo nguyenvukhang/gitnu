@@ -2,8 +2,10 @@
 mod util;
 
 use crate::{parse as gitnu_parse, Subcommand};
+use std::env;
 use std::fs;
 use std::os::unix;
+use std::path::PathBuf;
 use std::process::Command;
 use util::*;
 
@@ -159,6 +161,7 @@ Untracked files:
 // Special display case 1 of 2: Merge conflict
 test!(merge_conflict_display, |t: &Test| {
     // create base commit
+    println!("GOT HERE");
     sh!(t, "git init");
     sh!(t, "touch base");
     sh!(t, "git add --all");
@@ -250,4 +253,17 @@ test!(exit_codes, |t: &Test| {
 
     assert_code!("git status", 0);
     assert_code!("gitnu status", 0);
+});
+
+// Run `gitnu` from a different repository using the `-C` flag.
+test!(different_workspace, |t: &Test| {
+    sh!(t, "mkdir one two");
+    sh!(t, "one", "git init && git branch -m one");
+    sh!(t, "two", "git init && git branch -m two");
+    sh!(t, "one", "touch gold silver");
+    sh!(t, "two", "git -C ../one nu status");
+    sh!(t, "two", "git -C ../one nu add 1");
+
+    let status = sh!(t, "two", "git -C ../one nu status --short");
+    assert_eq!(status.stdout, "1  A  gold\n2  ?? silver\n");
 });
