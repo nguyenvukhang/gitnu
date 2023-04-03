@@ -47,18 +47,19 @@ impl Commander {
 pub fn aliases<P: AsRef<Path>>(cwd: P) -> HashMap<String, String> {
     let mut git = git!(Some(cwd), ["config", "--get-regexp", "^alias\\."]);
     let mut git = git.spawn().ok().expect("Unable to collect aliases.");
-    let stdout = match git.stdout.take() {
-        Some(v) => v,
-        None => return HashMap::new(),
+    let mut ht = HashMap::new();
+    if let Some(aliases) = git.stdout.take().map(lines) {
+        let aliases = aliases.filter_map(|v| {
+            v.strip_prefix("alias.")
+                .and_then(|v| v.split_once(" "))
+                .map(|v| (v.0.to_string(), v.1.to_string()))
+        });
+        for (k, v) in aliases {
+            ht.insert(k, v);
+        }
     };
-    let mut hs = HashMap::new();
-    hs.extend(lines(stdout).filter_map(|v| {
-        v.strip_prefix("alias.")
-            .and_then(|v| v.split_once(" "))
-            .map(|v| (v.0.to_string(), v.1.to_string()))
-    }));
     git.wait().ok().map(|_| ());
-    hs
+    ht
 }
 
 /// Path to git's repository (not workspace)
