@@ -42,6 +42,7 @@ jobs:
           git config --global user.email bot@gitnu.co
           git config --global init.defaultBranch main
           git config --global advice.statusHints false
+
       - name: Run tests
         run: make test
 

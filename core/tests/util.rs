@@ -93,9 +93,14 @@ macro_rules! sh {
             .arg("-c")
             .arg($cmd)
             .output()
-            .map(|v| Output {
-                stdout: String::from_utf8_lossy(&v.stdout).to_string(),
-                exit_code: v.status.code(),
+            .map(|v| {
+                let stdout = String::from_utf8_lossy(&v.stdout).to_string();
+                let stderr = String::from_utf8_lossy(&v.stderr).to_string();
+                let dir = &$t.dir.join($cwd);
+                println!("[{}] {}", dir.to_string_lossy(), $cmd);
+                println!("[stdout] ({})", stdout);
+                println!("[stderr] ({})", stderr);
+                Output { stdout, exit_code: v.status.code() }
             })
             .unwrap()
     };
