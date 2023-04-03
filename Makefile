@@ -6,9 +6,7 @@ quick:
 	cargo test
 
 build:
-	cargo test --quiet
 	cargo build --release
-	make load_bin
 	@echo "Release build complete."
 
 size:

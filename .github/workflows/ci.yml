@@ -37,10 +37,10 @@ jobs:
           echo "TARGET_DIR=$T" >> $GITHUB_ENV
           echo "BINFILE=$T/release/gitnu" >> $GITHUB_ENV
       - name: Run tests
-        run: cargo test
+        run: make test
 
       - name: Build binary
-        run: cargo build --release
+        run: make build
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
