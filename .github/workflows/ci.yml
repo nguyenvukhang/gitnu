@@ -35,7 +35,7 @@ jobs:
           T=./target/${{ matrix.target }}
           echo "SEMVER=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "TARGET_DIR=$T" >> $GITHUB_ENV
-          echo "BINFILE=$T/release/gitnu" >> $GITHUB_ENV
+          echo "BINFILE=$T/release/git-nu" >> $GITHUB_ENV
 
       - run: |
           git config --global user.name bot
@@ -59,7 +59,7 @@ jobs:
         if: github.ref_type == 'tag'
         shell: bash
         run: |
-          staging="gitnu-${{ env.SEMVER }}-${{ matrix.target }}"
+          staging="git-nu-${{ env.SEMVER }}-${{ matrix.target }}"
           mkdir -p "$staging"
           cp ${{ env.BINFILE }} "$staging"
           tar czf "$staging.tar.gz" "$staging"
