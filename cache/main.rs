@@ -26,12 +26,14 @@ fn bench<T: Debug, F: Fn() -> T>(f: F, times: usize) -> Duration {
     while Instant::elapsed(&start) < Duration::from_millis(2000) {
         f();
     }
-    for _ in 0..times {
+    writeln!(io::stdout(), "running...").ok();
+    for i in 0..times {
+        writeln!(io::stdout(), "#{i}").ok();
         let start = Instant::now();
-        let x = f();
-        println!("{:?}", x);
+        f();
         t += Instant::elapsed(&start);
     }
+    writeln!(io::stdout(), "done!").ok();
     t / times as u32
 }
 
@@ -64,11 +66,11 @@ macro_rules! sh {
 }
 
 fn pure_git_status(cwd: &Path) {
-    println!("--------- {:?}", cwd);
     sh!(cwd, "git init");
     let x = sh!(cwd, "git status");
+    let count = x.stdout.into_iter().filter(|v| *v == b'\n').count();
+    assert!(count > 65536);
     sh!(cwd, "rm -rf .git");
-    println!("{x:?}")
 }
 
 fn main() {
@@ -77,25 +79,27 @@ fn main() {
     let limit = 65536;
 
     // raw read speeds
-    // let test_file = here().join(format!("cache/texts/{limit}.txt"));
-    // let avg = bench(|| read_cache(&test_file), 10);
-    // println!("avg raw read speed: {:?}", avg);
+    let test_file = here().join(format!("cache/texts/{limit}.txt"));
+    let avg = bench(|| read_cache(&test_file), 10);
+    println!("avg raw read speed: {:?}", avg);
 
     // git status speeds
     let tmp_dir = std::env::temp_dir().join("gitnu-cache-tests");
     std::fs::create_dir_all(&tmp_dir).unwrap();
-    for i in 0..limit / 8 {
-        let p = tmp_dir.join(i.to_string() + ".txt");
-        println!("{i}");
-        writeln!(File::create(p).unwrap(), "_").unwrap();
+    for i in 0..4 {
+        let mut touch = Command::new("touch");
+        touch.current_dir(&tmp_dir);
+        for j in 0..limit / 4 {
+            touch.arg((limit / 4 * i + j).to_string() + ".txt");
+        }
+        touch.output().unwrap();
     }
     Command::new("git").arg("init").current_dir(&tmp_dir).output().unwrap();
-    // let avg = bench(|| pure_git_status(&tmp_dir), 1);
-    pure_git_status(&tmp_dir);
-    // println!("avg pure git status: {:?}", avg);
+    let avg = bench(|| pure_git_status(&tmp_dir), 5);
+    println!("avg pure git status: {:?}", avg);
 
     println!("deleting {:?}", tmp_dir);
-    std::fs::remove_dir_all(&tmp_dir).unwrap();
+    sh!(&tmp_dir, format!("rm -rf {}", tmp_dir.to_string_lossy()));
 
     println!("end of cache bench!");
 }
