@@ -34,3 +34,8 @@ doctest = false
 name = "bench"
 path = "bench/main.rs"
 harness = false
+
+[[bin]]
+name = "cache"
+path = "cache/main.rs"
+harness = false

@@ -2,8 +2,9 @@ BIN=$(HOME)/dots/personal/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
-quick:
-	cargo test
+dev:
+	cargo build --bin cache
+	./target/debug/cache
 
 build:
 	cargo build --release
