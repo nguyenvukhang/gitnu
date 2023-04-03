@@ -1,7 +1,7 @@
 use crate::command::CommandOps;
-use crate::git_cmd::GIT_CMD;
+use crate::git_cmd::is_default_git_cmd;
 use crate::lines;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -24,12 +24,11 @@ macro_rules! git {
 /// aliases included.
 pub struct Commander {
     aliases: HashMap<String, String>,
-    subcommands: HashSet<String>,
 }
 
 impl Commander {
     pub fn new<P: AsRef<Path>>(cwd: P) -> Self {
-        Self { aliases: aliases(cwd), subcommands: subcommands() }
+        Self { aliases: aliases(cwd) }
     }
 
     /// Gets the actual subcommand of the argument passed in.
@@ -38,7 +37,7 @@ impl Commander {
     pub fn get_subcommand<'a>(&'a self, arg: &'a str) -> Option<&'a str> {
         if let Some(sc) = self.aliases.get(arg) {
             return Some(sc);
-        } else if self.subcommands.contains(arg) {
+        } else if is_default_git_cmd(arg) {
             return Some(arg);
         }
         None
@@ -60,13 +59,6 @@ pub fn aliases<P: AsRef<Path>>(cwd: P) -> HashMap<String, String> {
     }));
     git.wait().ok().map(|_| ());
     hs
-}
-
-/// Get a hashset of all git subcommands from two sources
-///   1. git's default subcommand list
-///   2. user's git subcommand aliases
-pub fn subcommands() -> HashSet<String> {
-    HashSet::from_iter(GIT_CMD.iter().map(|v| v.to_string()))
 }
 
 /// Path to git's repository (not workspace)
