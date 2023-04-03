@@ -36,6 +36,12 @@ jobs:
           echo "SEMVER=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "TARGET_DIR=$T" >> $GITHUB_ENV
           echo "BINFILE=$T/release/gitnu" >> $GITHUB_ENV
+
+      - run: |
+          git config --global user.name bot
+          git config --global user.email bot@gitnu.co
+          git config --global init.defaultBranch main
+          git config --global advice.statusHints false
       - name: Run tests
         run: make test
 
