@@ -49,12 +49,53 @@ fn read_cache(file: &Path) -> Vec<String> {
     }))
 }
 
-fn pure_git_status() {}
+macro_rules! sh {
+    ($cmd:expr) => {
+        sh!($t, "", $cmd)
+    };
+    ($cwd:expr, $cmd:expr) => {
+        Command::new("sh")
+            .current_dir($cwd)
+            .arg("-c")
+            .arg($cmd)
+            .output()
+            .unwrap()
+    };
+}
+
+fn pure_git_status(cwd: &Path) {
+    println!("--------- {:?}", cwd);
+    sh!(cwd, "git init");
+    let x = sh!(cwd, "git status");
+    sh!(cwd, "rm -rf .git");
+    println!("{x:?}")
+}
 
 fn main() {
     println!("start benching cache!");
-    let test_file = here().join("cache/texts/262144.txt");
-    let avg = bench(|| read_cache(&test_file), 10);
-    println!("avg time: {:?}", avg);
+
+    let limit = 65536;
+
+    // raw read speeds
+    // let test_file = here().join(format!("cache/texts/{limit}.txt"));
+    // let avg = bench(|| read_cache(&test_file), 10);
+    // println!("avg raw read speed: {:?}", avg);
+
+    // git status speeds
+    let tmp_dir = std::env::temp_dir().join("gitnu-cache-tests");
+    std::fs::create_dir_all(&tmp_dir).unwrap();
+    for i in 0..limit / 8 {
+        let p = tmp_dir.join(i.to_string() + ".txt");
+        println!("{i}");
+        writeln!(File::create(p).unwrap(), "_").unwrap();
+    }
+    Command::new("git").arg("init").current_dir(&tmp_dir).output().unwrap();
+    // let avg = bench(|| pure_git_status(&tmp_dir), 1);
+    pure_git_status(&tmp_dir);
+    // println!("avg pure git status: {:?}", avg);
+
+    println!("deleting {:?}", tmp_dir);
+    std::fs::remove_dir_all(&tmp_dir).unwrap();
+
     println!("end of cache bench!");
 }
