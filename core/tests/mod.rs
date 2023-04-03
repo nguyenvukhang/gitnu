@@ -161,7 +161,6 @@ Untracked files:
 // Special display case 1 of 2: Merge conflict
 test!(merge_conflict_display, |t: &Test| {
     // create base commit
-    println!("GOT HERE");
     sh!(t, "git init");
     sh!(t, "touch base");
     sh!(t, "git add --all");
