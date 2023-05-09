@@ -46,12 +46,11 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
             }
             _ => (),
         }
-        let isf = arg.starts_with('-') && !arg.starts_with("--"); // is short flag
-        match (!skip && !isf, parse_range(&arg)) {
-            (true, Some([s, e])) => app.load_range(s, e),
-            _ => app.arg(arg),
+        match (skip, parse_range(&arg)) {
+            (false, Some([s, e])) => app.load_range(s, e),
+            _ => app.arg(&arg),
         }
-        skip = isf;
+        skip = app.git_command().map_or(false, |v| v.skip_next_arg(&arg));
     }
     app.cmd.args(args);
 }

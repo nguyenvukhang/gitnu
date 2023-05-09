@@ -3,38 +3,34 @@
 pub enum GitCommand {
     // full list found from running `git help --all`
     Status(bool),
-    Add, Am, Annotate, Apply, Archimport, Archive, Attributes, Bisect,
-    Blame, Branch, Bugreport, Bundle, CatFile, CheckAttr, CheckIgnore,
-    CheckMailmap, CheckRefFormat, Checkout, CheckoutIndex, Cherry,
-    CherryPick, Citool, Clean, Cli, Clone, Column, Commit,
-    CommitGraph, CommitTree, Config, CountObjects, Credential,
-    CredentialCache, CredentialStore, Cvsexportcommit, Cvsimport,
-    Cvsserver, Daemon, Describe, Diagnose, Diff, DiffFiles, DiffIndex,
-    DiffTree, Difftool, FastExport, FastImport, Fetch, FetchPack,
-    FilterBranch, FmtMergeMsg, ForEachRef, ForEachRepo, FormatBundle,
-    FormatChunk, FormatCommitGraph, FormatIndex, FormatPack,
-    FormatPatch, FormatSignature, Fsck, Gc, GetTarCommitId, Gitk,
-    Gitweb, Grep, Gui, HashObject, Help, Hook, Hooks, HttpBackend,
-    Ignore, ImapSend, IndexPack, Init, Instaweb, InterpretTrailers,
-    Log, LsFiles, LsRemote, LsTree, Mailinfo, Mailmap, Mailsplit,
-    Maintenance, Merge, MergeBase, MergeFile, MergeIndex,
-    MergeOneFile, MergeTree, Mergetool, Mktag, Mktree, Modules,
-    MultiPackIndex, Mv, NameRev, Notes, P4, PackObjects,
-    PackRedundant, PackRefs, PatchId, ProtocolCapabilities,
-    ProtocolCommon, ProtocolHttp, ProtocolPack, ProtocolV2, Prune,
-    PrunePacked, Pull, Push, Quiltimport, RangeDiff, ReadTree, Rebase,
-    Reflog, Remote, Repack, Replace, RepositoryLayout, RequestPull,
-    Rerere, Reset, Restore, RevList, RevParse, Revert, Revisions, Rm,
-    Scalar, SendEmail, SendPack, ShI18n, ShSetup, Shortlog, Show,
-    ShowBranch, ShowIndex, ShowRef, SparseCheckout, Stash,
-    Stripspace, Submodule, Svn, Switch, SymbolicRef, Tag, UnpackFile,
-    UnpackObjects, UpdateIndex, UpdateRef, UpdateServerInfo, Var,
-    VerifyCommit, VerifyPack, VerifyTag, Version, WhatChanged,
-    Worktree, WriteTree
+    Add, Am, Annotate, Apply, Archimport, Archive, Attributes, Bisect, Blame,
+    Branch, Bugreport, Bundle, CatFile, CheckAttr, CheckIgnore, CheckMailmap,
+    CheckRefFormat, Checkout, CheckoutIndex, Cherry, CherryPick, Citool, Clean,
+    Cli, Clone, Column, Commit, CommitGraph, CommitTree, Config, CountObjects,
+    Credential, CredentialCache, CredentialStore, Cvsexportcommit, Cvsimport,
+    Cvsserver, Daemon, Describe, Diagnose, Diff, DiffFiles, DiffIndex, DiffTree,
+    Difftool, FastExport, FastImport, Fetch, FetchPack, FilterBranch,
+    FmtMergeMsg, ForEachRef, ForEachRepo, FormatBundle, FormatChunk,
+    FormatCommitGraph, FormatIndex, FormatPack, FormatPatch, FormatSignature,
+    Fsck, Gc, GetTarCommitId, Gitk, Gitweb, Grep, Gui, HashObject, Help, Hook,
+    Hooks, HttpBackend, Ignore, ImapSend, IndexPack, Init, Instaweb,
+    InterpretTrailers, Log, LsFiles, LsRemote, LsTree, Mailinfo, Mailmap,
+    Mailsplit, Maintenance, Merge, MergeBase, MergeFile, MergeIndex,
+    MergeOneFile, MergeTree, Mergetool, Mktag, Mktree, Modules, MultiPackIndex,
+    Mv, NameRev, Notes, P4, PackObjects, PackRedundant, PackRefs, PatchId,
+    ProtocolCapabilities, ProtocolCommon, ProtocolHttp, ProtocolPack,
+    ProtocolV2, Prune, PrunePacked, Pull, Push, Quiltimport, RangeDiff,
+    ReadTree, Rebase, Reflog, Remote, Repack, Replace, RepositoryLayout,
+    RequestPull, Rerere, Reset, Restore, RevList, RevParse, Revert, Revisions,
+    Rm, Scalar, SendEmail, SendPack, ShI18n, ShSetup, Shortlog, Show,
+    ShowBranch, ShowIndex, ShowRef, SparseCheckout, Stash, Stripspace,
+    Submodule, Svn, Switch, SymbolicRef, Tag, UnpackFile, UnpackObjects,
+    UpdateIndex, UpdateRef, UpdateServerInfo, Var, VerifyCommit, VerifyPack,
+    VerifyTag, Version, WhatChanged, Worktree, WriteTree
 }
 
 impl GitCommand {
-    fn skip_next_arg(&self, arg: &str) -> bool {
+    pub fn skip_next_arg(&self, arg: &str) -> bool {
         use GitCommand as G;
         match (self, arg) {
             (G::Log, "-n") => true,
