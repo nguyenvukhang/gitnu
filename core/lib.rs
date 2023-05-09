@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 mod cache;
-mod command;
 mod error;
 mod git;
 mod git_cmd;
@@ -75,16 +74,15 @@ impl App {
 
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<(), GitnuError> {
-        use command::CommandOps;
         use GitCommand as G;
         match self.git_command {
             Some(G::Status(is_normal)) => status::status(self, is_normal),
             Some(G::Version) => {
-                let result = self.cmd.run();
+                let result = self.cmd.status().gitnu_err().map(|_| ());
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
                 result
             }
-            _ => self.cmd.run(),
+            _ => self.cmd.status().gitnu_err().map(|_| ()),
         }
     }
 
