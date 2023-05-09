@@ -23,7 +23,7 @@ bench-wrap:
 
 test:
 	cargo build
-	cargo test --quiet
+	cargo test --lib
 
 # step 1 of 2 in publishing a new version to crates.io
 # this bumps the version in Cargo.toml and creates a new commit and tags it
