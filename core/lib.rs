@@ -15,51 +15,22 @@ mod pathdiff;
 mod status;
 
 pub use error::GitnuError;
+use git_cmd::GitCommand;
 pub use parser::parse;
 
 use cache::Cache;
 use error::ToGitnuError;
-use Subcommand::*;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
-
-/// Git sub-command.
-///
-/// Lets Gitnu know what output to expect, and whether or not to
-/// read/write cache.
-#[derive(Debug, PartialEq)]
-pub enum Subcommand {
-    /// Contained value represents if the status command is the
-    /// regular variant.
-    ///
-    /// `gitnu status` with no flags gives Status(true).
-    /// flags `-s`, `--short`, `--porcelain` gives Status(false).
-    Status(bool),
-
-    /// Gitnu will fetch cache in this state.
-    Number,
-
-    /// A special case where gitnu drops everything and prints its own
-    /// version next to git's version.
-    Version,
-
-    /// Original state.
-    Unset,
-}
 
 /// Gitnu's running state.
 #[derive(Debug)]
 pub struct App {
     /// Controls main flow (read/write/which parser to use)
-    subcommand: Subcommand,
+    git_command: Option<GitCommand>,
 
     /// The command that will be ran once all processing is complete.
     cmd: Command,
-
-    /// Numer of arguments that came before the subcommand.
-    /// Essentially these are Git's options, rather than Git's
-    /// subcommand's options.
-    argc: usize,
 
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
@@ -77,11 +48,10 @@ impl App {
         }
         cmd.current_dir(&cwd);
         App {
-            subcommand: Subcommand::Unset,
+            git_command: None,
             cache: vec![],
             cmd,
             buffer: None,
-            argc: 0,
             file_prefix: PathBuf::new(),
         }
     }
@@ -93,21 +63,9 @@ impl App {
         self.cmd.get_current_dir().unwrap()
     }
 
-    /// Sets the subcommand of the App.
-    pub fn set_subcommand(&mut self, s: Subcommand) {
-        match (&self.subcommand, &s) {
-            (Unset, _) | (Status(true), Status(false)) => self.subcommand = s,
-            _ => (),
-        }
-    }
-
-    /// Sets the pre-subcommand argument count.
-    pub fn set_argc(&mut self) {
-        let argc = self.cmd.get_args().count();
-        self.argc = match self.subcommand {
-            Unset => argc,
-            _ => argc - 1,
-        }
+    /// Sets the git_command of the App.
+    pub fn set_git_command(&mut self, git_command: GitCommand) {
+        self.git_command = Some(git_command);
     }
 
     /// Appends an argument to the final command to be ran.
@@ -118,9 +76,10 @@ impl App {
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<(), GitnuError> {
         use command::CommandOps;
-        match self.subcommand {
-            Status(is_normal) => status::status(self, is_normal),
-            Version => {
+        use GitCommand as G;
+        match self.git_command {
+            Some(G::Status(is_normal)) => status::status(self, is_normal),
+            Some(G::Version) => {
                 let result = self.cmd.run();
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
                 result
@@ -130,8 +89,8 @@ impl App {
     }
 
     #[cfg(test)]
-    pub fn subcommand(&self) -> &Subcommand {
-        &self.subcommand
+    pub fn git_command(&self) -> Option<&GitCommand> {
+        self.git_command.as_ref()
     }
 
     #[cfg(test)]

@@ -1,7 +1,7 @@
 #[macro_use]
 mod util;
 
-use crate::{parse as gitnu_parse, Subcommand};
+use crate::parse as gitnu_parse;
 use std::env;
 use std::fs;
 use std::os::unix;

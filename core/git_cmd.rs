@@ -1,4 +1,6 @@
+#[derive(Debug, PartialEq)]
 pub enum GitCommand {
+    // full list found from running `git help --all`
     Add,
     Am,
     Annotate,

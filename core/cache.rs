@@ -14,7 +14,7 @@ pub trait Cache {
     fn load_range(&mut self, start: usize, end: usize);
 
     /// Lazily loads cache file into buffer without actually reading any lines
-    /// yet. Should only be called when confirmed App's subcommand is of the
+    /// yet. Should only be called when confirmed App's git_command is of the
     /// `Number` variant.
     fn load_cache_buffer(&mut self);
 }

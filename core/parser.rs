@@ -1,6 +1,5 @@
-use crate::git;
 use crate::git_cmd::GitCommand;
-use crate::{App, Cache, Subcommand::*};
+use crate::{App, Cache};
 use std::path::PathBuf;
 
 /// Parses a string into an inclusive range.
@@ -20,22 +19,17 @@ fn parse_range(arg: &str) -> Option<[usize; 2]> {
 fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
-        use GitCommand as G;
         if let Ok(git_cmd) = GitCommand::try_from(arg) {
-            app.set_subcommand(match git_cmd {
-                G::Status(v) => Status(v),
-                _ => Number,
-            });
+            app.set_git_command(git_cmd);
             app.arg(arg);
             break;
         } else if arg.eq("--version") {
-            app.set_subcommand(Version);
+            app.set_git_command(GitCommand::Version);
             app.arg(arg);
             break;
         }
         app.arg(arg);
     }
-    app.set_argc();
 }
 
 /// parse arguments after the git command
@@ -49,7 +43,7 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
                 break;
             }
             "--short" | "-s" | "--porcelain" => {
-                app.set_subcommand(Status(false))
+                app.set_git_command(GitCommand::Status(false))
             }
             _ => (),
         }
@@ -69,8 +63,10 @@ pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
     pre_cmd(args, &mut app);
-    if app.subcommand == Number {
-        app.load_cache_buffer();
+    match app.git_command {
+        Some(GitCommand::Status(_)) => {}
+        Some(_) => app.load_cache_buffer(),
+        _ => {}
     }
     post_cmd(args, &mut app);
     app
@@ -115,7 +111,7 @@ macro_rules! assert_args {
 }
 
 test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
-    assert_eq!(app.subcommand(), &Status(true));
+    assert_eq!(app.git_command(), Some(&GitCommand::Status(true)));
 });
 
 test!(test_single, ["add", "1"], |app: App| {
