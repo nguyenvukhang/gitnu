@@ -1,4 +1,3 @@
-use crate::command::CommandOps;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -21,5 +20,12 @@ macro_rules! git {
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
 pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Option<PathBuf> {
-    git!(Some(cwd), ["rev-parse", "--git-dir"]).stdout_pathbuf()
+    let out = git!(Some(cwd), ["rev-parse", "--git-dir"]).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    match String::from_utf8_lossy(&out.stdout).trim() {
+        v if v.is_empty() => None,
+        v => Some(PathBuf::from(v)),
+    }
 }
