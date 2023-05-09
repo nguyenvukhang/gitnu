@@ -88,7 +88,6 @@ impl App {
         }
     }
 
-    #[cfg(test)]
     pub fn git_command(&self) -> Option<&GitCommand> {
         self.git_command.as_ref()
     }

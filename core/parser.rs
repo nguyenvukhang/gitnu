@@ -21,14 +21,13 @@ fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
         let arg = arg.as_str();
         if let Ok(git_cmd) = GitCommand::try_from(arg) {
             app.set_git_command(git_cmd);
-            app.arg(arg);
-            break;
         } else if arg.eq("--version") {
             app.set_git_command(GitCommand::Version);
-            app.arg(arg);
-            break;
         }
         app.arg(arg);
+        if app.git_command().is_some() {
+            break;
+        }
     }
 }
 
