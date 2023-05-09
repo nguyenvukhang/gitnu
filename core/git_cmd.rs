@@ -167,6 +167,16 @@ pub enum GitCommand {
     WriteTree,
 }
 
+impl GitCommand {
+    fn skip_next_arg(&self, arg: &str) -> bool {
+        use GitCommand as G;
+        match (self, arg) {
+            (G::Log, "-n") => true,
+            _ => false,
+        }
+    }
+}
+
 impl TryFrom<&str> for GitCommand {
     type Error = ();
     fn try_from(arg: &str) -> Result<Self, ()> {
