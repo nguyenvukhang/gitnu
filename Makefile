@@ -3,8 +3,8 @@ GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 dev:
-	cargo build --bin cache
-	./target/debug/cache
+	cargo build
+	cargo test --lib
 
 build:
 	cargo build --release
