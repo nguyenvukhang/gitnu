@@ -70,28 +70,6 @@ test!(dont_create_cache_file_without_repo, |t: &Test| {
     assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 
-// Support aliases for both `status` and non-`status` git subcommands
-// (These correspond to two different states of the `Subcommand` enum)
-test!(support_aliases, |t: &Test| {
-    sh!(t, "git init");
-    sh!(t, "git config --local alias.statusz status");
-    sh!(t, "git config --local alias.addz add");
-    println!("{:?}", sh!(t, "git config --get-regexp ^alias"));
-
-    let app = gitnu!(t, ["statusz"]);
-    assert_eq!(app.subcommand(), &Subcommand::Status(true));
-    let app = gitnu!(t, ["statusz", "--short"]);
-    assert_eq!(app.subcommand(), &Subcommand::Status(false));
-
-    sh!(t, "touch A B C");
-    gitnu!(t, status);
-    let app = gitnu!(t, ["addz", "3"]);
-    // if aliases aren't supported then gitnu will not convert
-    // the number 2 to a filename
-    assert_args!(&app, ["git", "addz", "C"]);
-    assert_eq!(app.subcommand(), &Subcommand::Number);
-});
-
 // Mainly to ensure that numbers in commands like `gitnu log -n 4` do
 // not mistaken as a numbered pathspec.
 test!(skip_short_flags, |t: &Test| {

@@ -1,4 +1,5 @@
 use crate::git;
+use crate::git_cmd::GitCommand;
 use crate::{App, Cache, Subcommand::*};
 use std::path::PathBuf;
 
@@ -17,12 +18,12 @@ fn parse_range(arg: &str) -> Option<[usize; 2]> {
 /// parse arguments before the git command
 /// for a list of all git commands, see ./git_cmd.rs
 fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
-    let cmdr = git::Commander::new(app.cwd());
     while let Some(arg) = args.next() {
         let arg = arg.as_str();
-        if let Some(subcommand) = cmdr.get_subcommand(arg) {
-            app.set_subcommand(match subcommand {
-                "status" => Status(true),
+        use GitCommand as G;
+        if let Ok(git_cmd) = GitCommand::try_from(arg) {
+            app.set_subcommand(match git_cmd {
+                G::Status(v) => Status(v),
                 _ => Number,
             });
             app.arg(arg);
