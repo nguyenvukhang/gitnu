@@ -12,7 +12,7 @@ gitnu can be installed by running `cargo install gitnu`.
 ## Usage
 
 ```bash
-$ gitnu status
+$ git nu status
 # On branch master
 # Untracked files:
 # 1       .gitignore
@@ -23,15 +23,15 @@ $ gitnu status
 # nothing added to commit but untracked files present
 ```
 
-Note the similarity of the output `gitnu status` to that of `git status`.  
+Note the similarity of the output `git nu status` to that of `git status`.  
 They are identical except for the numbers in front of filenames.
 
 After `gitnu status`, you can now use numbers in place of filenames for git
 commands:
 
 ```bash
-$ gitnu add 2
-$ gitnu status
+$ git nu add 2
+$ git nu status
 # On branch master
 # Changes to be committed:
 # 1       new file:   README.md
@@ -51,7 +51,7 @@ git <command> [filenames and arguments]
 You can now use
 
 ```
-gitnu <command> [file numbers and arguments]
+git nu <command> [file numbers and arguments]
 ```
 
 gitnu will silently replace numbers with their filenames and pass everything
@@ -60,7 +60,7 @@ else intact into git.
 gitnu accepts multiple arguments and even number ranges:
 
 ```bash
-$ gitnu add 2 5-7 # same as `gitnu add 2 5 6 7`
+$ git nu add 2 5-7 # same as `git nu add 2 5 6 7`
 ```
 
 You can even mix file names with numbers.
