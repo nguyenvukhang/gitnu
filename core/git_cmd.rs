@@ -41,7 +41,12 @@ impl GitCommand {
     pub fn should_load_cache(&self) -> bool {
         use GitCommand as G;
         match self {
-            G::Add | G::Reset | G::LsFiles | G::LsTree | G::Log => true,
+            G::Add
+            | G::Reset
+            | G::LsFiles
+            | G::LsTree
+            | G::Log
+            | G::Checkout => true,
             G::Status(_) => false,
             _ => false,
         }
