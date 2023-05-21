@@ -12,10 +12,10 @@ use util::*;
 // staging files with numbers
 test!(staging_files_with_numbers, |t: &Test| {
     sh!(t, "git init");
-    sh!(t, "touch A:: B:: C:: D:: E:: F:: G::");
+    sh!(t, "touch A B C D E F G");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-4", "6"]);
-    assert_args!(&app, ["git", "add", "B::", "C::", "D::", "F::"]);
+    assert_args!(&app, ["git", "add", "B", "C", "D", "F"]);
 });
 
 // This just tests that the cache can be read more than once.
@@ -70,18 +70,14 @@ test!(dont_create_cache_file_without_repo, |t: &Test| {
     assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 
-// Mainly to ensure that numbers in commands like `gitnu log -n 4` do
-// not mistaken as a numbered pathspec.
-test!(skip_short_flags, |t: &Test| {
+// Determined in ../git_cmd.rs
+// where it's specified if a command should be skipped because it might
+// be part of a flag value
+test!(skip_flags, |t: &Test| {
     sh!(t, "git init");
     sh!(t, "touch A B C");
     gitnu!(t, status);
     let app = gitnu!(t, ["log", "-n", "2", "--oneline", "3"]);
-    // don't parse the `2` after the -n flag because it's likely used
-    // as a value to that flag
-    //
-    // note that `3` is still parsed because the flag before it is a
-    // long flag
     assert_args!(&app, ["git", "log", "-n", "2", "--oneline", "C"]);
 });
 
@@ -241,6 +237,20 @@ test!(different_workspace, |t: &Test| {
     sh!(t, "two", "git -C ../one nu status");
     sh!(t, "two", "git -C ../one nu add 1");
 
-    let status = sh!(t, "two", "git -C ../one nu status --short");
-    assert_eq!(status.stdout, "1  A  gold\n2  ?? silver\n");
+    let status = sh!(t, "two", "git -C ../one nu status");
+    assert_eq!(
+        status.stdout,
+        "\
+On branch one
+
+No commits yet
+
+Changes to be committed:
+1	new file:   gold
+
+Untracked files:
+2	silver
+
+"
+    );
 });
