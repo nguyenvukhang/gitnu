@@ -1,5 +1,5 @@
 use crate::line::{uncolor, Line};
-use crate::{lines, App, ToGitnuError};
+use crate::{lines, App, ToGitnuError, MAX_CACHE_SIZE};
 use crate::{Cache, GitnuError};
 use std::fs::File;
 use std::io::{LineWriter, Write};
@@ -13,6 +13,10 @@ struct State {
 /// Uses the `\t` character to differentiate between lines that
 /// contain pathspecs and those that do not.
 fn normal(state: &mut State, line: String) -> Option<String> {
+    if state.count > MAX_CACHE_SIZE {
+        println!("{}", line);
+        return None;
+    }
     state.seen_untracked |= line.starts_with("Untracked files:");
     if !line.starts_with('\t') {
         println!("{}", line);

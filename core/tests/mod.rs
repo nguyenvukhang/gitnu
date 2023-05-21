@@ -67,7 +67,7 @@ test!(add_and_status_diff_dirs, |t: &Test| {
 // workspace, then do not create the cache file.
 test!(dont_create_cache_file_without_repo, |t: &Test| {
     gitnu!(t, status);
-    assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
+    assert_eq_pretty!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 
 // Determined in ../git_cmd.rs
@@ -107,8 +107,8 @@ test!(status_display, |t: &Test| {
     unix::fs::symlink(t.dir.join("A"), t.dir.join("H")).unwrap();
     // stage about half of the changes
     sh!(t, "git add A B C D E _E");
-    let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
-    assert_eq!(
+    let output = sh!(t, format!("git nu status"));
+    assert_eq_pretty!(
         output.stdout,
         "\
 On branch main
@@ -160,8 +160,8 @@ test!(merge_conflict_display, |t: &Test| {
     gitnu!(t, status);
     gitnu!(t, ["add", "2"]).run().ok();
 
-    let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
-    assert_eq!(
+    let output = sh!(t, format!("git nu status"));
+    assert_eq_pretty!(
         output.stdout,
         "\
 On branch RIGHT
@@ -186,7 +186,7 @@ test!(detached_head_display, |t: &Test| {
     let sha = sha.stdout.trim();
 
     let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
-    assert_eq!(
+    assert_eq_pretty!(
         output.stdout,
         format!(
             "\
@@ -238,7 +238,7 @@ test!(different_workspace, |t: &Test| {
     sh!(t, "two", "git -C ../one nu add 1");
 
     let status = sh!(t, "two", "git -C ../one nu status");
-    assert_eq!(
+    assert_eq_pretty!(
         status.stdout,
         "\
 On branch one
@@ -251,6 +251,52 @@ Changes to be committed:
 Untracked files:
 2	silver
 
+"
+    );
+});
+
+// staging files with numbers
+test!(max_cache_size_exceeded, |t: &Test| {
+    sh!(t, "git init");
+    let mut touch_args = "touch".to_string();
+    (1..25).for_each(|i| touch_args += &format!(" f{i:0>2}"));
+    sh!(t, &touch_args);
+    gitnu!(t, status);
+    let output = sh!(t, "git nu status");
+    assert_eq_pretty!(
+        output.stdout,
+        "\
+        On branch main
+
+No commits yet
+
+Untracked files:
+1	f01
+2	f02
+3	f03
+4	f04
+5	f05
+6	f06
+7	f07
+8	f08
+9	f09
+10	f10
+11	f11
+12	f12
+13	f13
+14	f14
+15	f15
+16	f16
+17	f17
+18	f18
+19	f19
+20	f20
+	f21
+	f22
+	f23
+	f24
+
+nothing added to commit but untracked files present
 "
     );
 });
