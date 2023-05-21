@@ -133,23 +133,3 @@ macro_rules! assert_args {
         assert_eq!(all_args, expected);
     }};
 }
-
-#[macro_export]
-macro_rules! assert_eq_pretty {
-    ($received:expr, $expected:expr) => {
-        if $received != $expected {
-            panic!(
-                "Printed outputs differ!\n
-received ↓
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-{received}
-============================================================
-{expected}
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-expected ↑\n",
-                received = $received,
-                expected = $expected
-            );
-        }
-    };
-}

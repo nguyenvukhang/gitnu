@@ -161,7 +161,7 @@ test!(merge_conflict_display, |t: &Test| {
     gitnu!(t, ["add", "2"]).run().ok();
 
     let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         "\
 On branch RIGHT
@@ -186,7 +186,7 @@ test!(detached_head_display, |t: &Test| {
     let sha = sha.stdout.trim();
 
     let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         format!(
             "\
