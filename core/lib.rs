@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::Lines;
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -13,14 +11,17 @@ mod parser;
 mod pathdiff;
 mod status;
 
-pub use error::GitnuError;
 use git_cmd::GitCommand;
-pub use parser::parse;
-
 use cache::Cache;
 use error::ToGitnuError;
 
+pub use error::GitnuError;
+pub use parser::parse;
+
+
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
+
+pub const MAX_CACHE_SIZE: usize = 20;
 
 /// Gitnu's running state.
 #[derive(Debug)]
@@ -33,7 +34,7 @@ pub struct App {
 
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
-    buffer: Option<Lines<BufReader<File>>>,
+
     /// Location that `git status` was last ran on
     file_prefix: PathBuf,
 }
@@ -48,21 +49,23 @@ impl App {
         cmd.current_dir(&cwd);
         App {
             git_command: None,
-            cache: vec![],
+            cache: Vec::with_capacity(MAX_CACHE_SIZE),
             cmd,
-            buffer: None,
             file_prefix: PathBuf::new(),
         }
     }
 
     /// Get the current directory of the app
     pub fn cwd(&self) -> &Path {
-        // Unwrap safety is guaranteed by App::new() always initializing
-        // `self.cmd` with a value
+        // Unwrap safety is guaranteed by App::new() always
+        // initializing `self.cmd` with a value.
         self.cmd.get_current_dir().unwrap()
     }
 
     /// Sets the git_command of the App.
+    ///
+    /// It is the responsibility of the programmer to ensure that this
+    /// function is only called once per invokation of gitnu.
     pub fn set_git_command(&mut self, git_command: GitCommand) {
         self.git_command = Some(git_command);
     }
@@ -70,6 +73,16 @@ impl App {
     /// Appends an argument to the final command to be ran.
     pub fn arg<S: AsRef<std::ffi::OsStr>>(&mut self, arg: S) {
         self.cmd.arg(arg);
+    }
+
+    /// Get a reference to the current git command detected.
+    pub fn git_command(&self) -> Option<&GitCommand> {
+        self.git_command.as_ref()
+    }
+
+    #[cfg(test)]
+    pub fn cmd(&self) -> &Command {
+        &self.cmd
     }
 
     /// Runs Gitnu after all parsing is complete.
@@ -84,15 +97,6 @@ impl App {
             }
             _ => self.cmd.status().gitnu_err().map(|_| ()),
         }
-    }
-
-    pub fn git_command(&self) -> Option<&GitCommand> {
-        self.git_command.as_ref()
-    }
-
-    #[cfg(test)]
-    pub fn cmd(&self) -> &Command {
-        &self.cmd
     }
 }
 

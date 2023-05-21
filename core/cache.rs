@@ -16,7 +16,7 @@ pub trait Cache {
     /// Lazily loads cache file into buffer without actually reading any lines
     /// yet. Should only be called when confirmed App's git_command is of the
     /// `Number` variant.
-    fn load_cache_buffer(&mut self);
+    fn load_cache(&mut self);
 }
 
 impl App {
@@ -27,17 +27,6 @@ impl App {
         // git.stdout returns the git-dir relative to cwd,
         // so prepend it with current dir
         git::git_dir(self.cwd()).map(|v| self.cwd().join(v).join("gitnu.txt"))
-    }
-
-    fn read_until(&mut self, n: usize) {
-        let len = self.cache.len();
-        if n < len || self.buffer.is_none() {
-            return;
-        }
-        let buffer = self.buffer.as_mut().unwrap().take(n + 1 - len);
-        self.cache.extend(
-            buffer.enumerate().map(|(i, v)| v.unwrap_or((len + i).to_string())),
-        );
     }
 }
 
@@ -50,7 +39,6 @@ impl Cache for App {
     }
 
     fn load_range(&mut self, start: usize, end: usize) {
-        self.read_until(end);
         (start..end + 1).for_each(|n| match self.cache.get(n) {
             Some(pathspec) => {
                 self.cmd.arg(self.file_prefix.join(pathspec));
@@ -61,13 +49,13 @@ impl Cache for App {
         });
     }
 
-    fn load_cache_buffer(&mut self) {
+    fn load_cache(&mut self) {
         self.cache = vec!["0".to_string()];
         if let Some(file) = self.cache_file(false) {
             let mut buffer = BufReader::new(file).lines();
             let cache_cwd = PathBuf::from(buffer.next().unwrap().unwrap());
             self.file_prefix = diff_paths(cache_cwd, self.cwd()).unwrap();
-            self.buffer = Some(buffer);
+            self.cache.extend(buffer.filter_map(|v| v.ok()));
         }
     }
 }

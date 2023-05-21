@@ -1,5 +1,4 @@
-use crate::git_cmd::GitCommand;
-use crate::{App, Cache};
+use crate::{App, Cache, GitCommand};
 use std::path::PathBuf;
 
 /// Parses a string into an inclusive range.
@@ -63,7 +62,7 @@ pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
     pre_cmd(args, &mut app);
     match app.git_command {
         Some(GitCommand::Status(_)) => {}
-        Some(_) => app.load_cache_buffer(),
+        Some(_) => app.load_cache(),
         _ => {}
     }
     post_cmd(args, &mut app);
@@ -80,11 +79,11 @@ macro_rules! test {
     ($name:ident, $cwd:expr, $args:expr, $test:expr) => {
         #[test]
         fn $name() {
-            let args = std::iter::once(&"git")
-                .chain($args.iter())
-                .map(|v| v.to_string());
+            let mut args = vec!["git"];
+            args.extend($args);
+            let args: Vec<_> = args.iter().map(|v| v.to_string()).collect();
             let cwd = PathBuf::from($cwd);
-            $test(parse(cwd, args));
+            $test(parse(cwd, args.into_iter()));
         }
     };
 }
