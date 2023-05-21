@@ -36,10 +36,6 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
     let mut skip = false;
     while let Some(arg) = args.next() {
         match arg.as_str() {
-            "--" => {
-                app.arg(arg);
-                break;
-            }
             "--short" | "-s" | "--porcelain" => {
                 app.set_git_command(GitCommand::Status(false))
             }
@@ -136,9 +132,10 @@ mod tests {
         assert_args!(app.cmd(), ["add", "3", "4", "5", "2", "3", "4"]);
     });
 
-    // anything after `--` will not be processed.
+    // anything after `--` will also be processed. This is for commands
+    // like `git reset` which requires pathspecs to appear after --.
     test!(test_double_dash, ["add", "3-5", "--", "2-4"], |app: App| {
-        assert_args!(app.cmd(), ["add", "3", "4", "5", "--", "2-4"]);
+        assert_args!(app.cmd(), ["add", "3", "4", "5", "--", "2", "3", "4"]);
     });
 
     test!(test_zeroes_1, ["add", "0"], |app: App| {
