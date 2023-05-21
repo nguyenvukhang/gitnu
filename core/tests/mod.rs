@@ -185,7 +185,7 @@ test!(detached_head_display, |t: &Test| {
     let sha = sh!(t, "git rev-parse --short HEAD");
     let sha = sha.stdout.trim();
 
-    let output = sh!(t, format!("{gitnu} status", gitnu = bin_path()));
+    let output = sh!(t, format!("git nu status"));
     assert_eq_pretty!(
         output.stdout,
         format!(
@@ -204,28 +204,24 @@ nothing added to commit but untracked files present
 // Ensure that `gitnu` exit codes match those of `git`. This means
 // that error handling bubbles up properly.
 test!(exit_codes, |t: &Test| {
-    let bin = bin_path();
     macro_rules! assert_code {
         ($cmd:expr, $code:expr) => {
-            assert_eq!(
-                sh!(t, $cmd.replace("gitnu", &bin)).exit_code,
-                Some($code)
-            );
+            assert_eq!(sh!(t, $cmd).exit_code, Some($code));
         };
     }
     assert_code!("git status", 128);
-    assert_code!("gitnu status", 128);
+    assert_code!("git nu status", 128);
 
     assert_code!("git status --bad-flag", 128);
-    assert_code!("gitnu status --bad-flag", 128);
+    assert_code!("git nu status --bad-flag", 128);
 
     assert_code!("git stat", 1);
-    assert_code!("gitnu stat", 1);
+    assert_code!("git nu stat", 1);
 
     sh!(t, "git init");
 
     assert_code!("git status", 0);
-    assert_code!("gitnu status", 0);
+    assert_code!("git nu status", 0);
 });
 
 // Run `gitnu` from a different repository using the `-C` flag.

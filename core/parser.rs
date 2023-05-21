@@ -59,86 +59,92 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
 pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
+
     pre_cmd(args, &mut app);
+
     match app.git_command {
         Some(GitCommand::Status(_)) => {}
         Some(_) => app.load_cache(),
         _ => {}
     }
+
     post_cmd(args, &mut app);
+
     app
 }
 
 #[cfg(test)]
-use std::process::Command;
+mod tests {
+    use super::*;
 
-macro_rules! test {
-    ($name:ident, $args:expr, $test:expr) => {
-        test!($name, std::env::temp_dir(), $args, $test);
-    };
-    ($name:ident, $cwd:expr, $args:expr, $test:expr) => {
-        #[test]
-        fn $name() {
-            let mut args = vec!["git"];
-            args.extend($args);
-            let args: Vec<_> = args.iter().map(|v| v.to_string()).collect();
-            let cwd = PathBuf::from($cwd);
-            $test(parse(cwd, args.into_iter()));
-        }
-    };
+    use std::path::PathBuf;
+    use std::process::Command;
+
+    macro_rules! test {
+        ($name:ident, $args:expr, $test:expr) => {
+            test!($name, env::temp_dir(), $args, $test);
+        };
+        ($name:ident, $cwd:expr, $args:expr, $test:expr) => {
+            #[test]
+            fn $name() {
+                let mut args = vec![""];
+                args.extend($args);
+                let args = args.iter().map(|v| v.to_string());
+                $test(parse(PathBuf::new(), args));
+            }
+        };
+    }
+
+    macro_rules! assert_args {
+        ($received:expr, $expected:expr) => {{
+            let expected = {
+                let mut cmd = Command::new("");
+                if atty::is(atty::Stream::Stdout) {
+                    cmd.args(["-c", "color.ui=always"]);
+                }
+                cmd.args($expected);
+                cmd
+            };
+
+            if !$received.get_args().eq(expected.get_args()) {
+                panic!(
+                    "\nreceived: {:?}\nexpected: {:?}\n",
+                    $received.get_args(),
+                    expected.get_args()
+                )
+            }
+        }};
+    }
+
+    test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
+        assert_eq!(app.git_command(), Some(&GitCommand::Status(true)));
+    });
+
+    test!(test_range, ["add", "2-4"], |app: App| {
+        assert_args!(app.cmd(), ["add", "2", "3", "4"]);
+    });
+
+    test!(test_mix, ["add", "8", "2-4"], |app: App| {
+        assert_args!(app.cmd(), ["add", "8", "2", "3", "4"]);
+    });
+
+    // Gitnu will not seek to interfere with these cases smartly.
+    test!(test_overlap, ["add", "3-5", "2-4"], |app: App| {
+        assert_args!(app.cmd(), ["add", "3", "4", "5", "2", "3", "4"]);
+    });
+
+    // anything after `--` will not be processed.
+    test!(test_double_dash, ["add", "3-5", "--", "2-4"], |app: App| {
+        assert_args!(app.cmd(), ["add", "3", "4", "5", "--", "2-4"]);
+    });
+
+    test!(test_zeroes_1, ["add", "0"], |app: App| {
+        assert_args!(app.cmd(), ["add", "0"]);
+    });
+    test!(test_zeroes_2, ["add", "0-1"], |app: App| {
+        assert_args!(app.cmd(), ["add", "0", "1"]);
+    });
+    test!(test_zeroes_3, ["add", "0-0"], |app: App| {
+        assert_args!(app.cmd(), ["add", "0"]);
+    });
 }
-
-#[cfg(test)]
-macro_rules! assert_args {
-    ($received:expr, $args:expr) => {{
-        let mut expected = Command::new("");
-        expected.current_dir(std::env::temp_dir());
-        if atty::is(atty::Stream::Stdout) {
-            expected.args(["-c", "color.ui=always"]);
-        }
-        expected.args($args);
-        if !$received.get_args().eq(expected.get_args()) {
-            panic!(
-                "\nreceived: {:?}\nexpected: {:?}\n",
-                $received.get_args(),
-                expected.get_args()
-            )
-        }
-    }};
-}
-
-test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
-    assert_eq!(app.git_command(), Some(&GitCommand::Status(true)));
-});
-
-test!(test_single, ["add", "1"], |app: App| {
-    assert_args!(app.cmd(), ["add", "1"]);
-});
-
-test!(test_range, ["add", "2-4"], |app: App| {
-    assert_args!(app.cmd(), ["add", "2", "3", "4"]);
-});
-
-test!(test_mix, ["add", "8", "2-4"], |app: App| {
-    assert_args!(app.cmd(), ["add", "8", "2", "3", "4"]);
-});
-
-// Gitnu will not seek to interfere with these cases smartly.
-test!(test_overlap, ["add", "3-5", "2-4"], |app: App| {
-    assert_args!(app.cmd(), ["add", "3", "4", "5", "2", "3", "4"]);
-});
-
-// anything after `--` will not be processed.
-test!(test_double_dash, ["add", "3-5", "--", "2-4"], |app: App| {
-    assert_args!(app.cmd(), ["add", "3", "4", "5", "--", "2-4"]);
-});
-
-test!(test_zeroes_1, ["add", "0"], |app: App| {
-    assert_args!(app.cmd(), ["add", "0"]);
-});
-test!(test_zeroes_2, ["add", "0-1"], |app: App| {
-    assert_args!(app.cmd(), ["add", "0", "1"]);
-});
-test!(test_zeroes_3, ["add", "0-0"], |app: App| {
-    assert_args!(app.cmd(), ["add", "0"]);
-});
