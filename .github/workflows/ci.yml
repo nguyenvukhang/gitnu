@@ -44,10 +44,10 @@ jobs:
           git config --global advice.statusHints false
 
       - name: Run tests
-        run: make test
+        run: make ci-test
 
       - name: Build binary
-        run: make build
+        run: make ci-build
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 

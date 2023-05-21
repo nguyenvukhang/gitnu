@@ -40,4 +40,11 @@ load_bin:
 	@rm -f $(BIN)/git-nu
 	@cp ./target/release/git-nu $(BIN)
 
+ci-build:
+	cargo build --bin git-nu --release
+
+ci-test:
+	cargo build
+	cargo test --lib
+
 .PHONY: test size quick load_bin bench
