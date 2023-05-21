@@ -62,13 +62,12 @@ pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
 
     pre_cmd(args, &mut app);
 
-    match app.git_command {
-        Some(GitCommand::Status(_)) => {}
-        Some(_) => app.load_cache(),
-        _ => {}
+    if app.git_command().map_or(false, |v| v.should_load_cache()) {
+        app.load_cache();
+        post_cmd(args, &mut app);
+    } else {
+        args.for_each(|v| app.arg(v));
     }
-
-    post_cmd(args, &mut app);
 
     app
 }
@@ -118,6 +117,10 @@ mod tests {
 
     test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
         assert_eq!(app.git_command(), Some(&GitCommand::Status(true)));
+    });
+
+    test!(test_single, ["add", "1"], |app: App| {
+        assert_args!(app.cmd(), ["add", "1"]);
     });
 
     test!(test_range, ["add", "2-4"], |app: App| {
