@@ -13,7 +13,7 @@ pub trait Cache {
     /// Loads files indexed [start, end] (inclusive)
     fn load_range(&mut self, start: usize, end: usize);
 
-    /// Lazily loads cache file into buffer without actually reading any lines
+    /// Eagerly loads cache file into buffer without actually reading any lines
     /// yet. Should only be called when confirmed App's git_command is of the
     /// `Number` variant.
     fn load_cache(&mut self);
@@ -40,12 +40,8 @@ impl Cache for App {
 
     fn load_range(&mut self, start: usize, end: usize) {
         (start..end + 1).for_each(|n| match self.cache.get(n) {
-            Some(pathspec) => {
-                self.cmd.arg(self.file_prefix.join(pathspec));
-            }
-            None => {
-                self.cmd.arg(n.to_string());
-            }
+            Some(pathspec) => self.arg(self.file_prefix.join(pathspec)),
+            None => self.arg(n.to_string()),
         });
     }
 
