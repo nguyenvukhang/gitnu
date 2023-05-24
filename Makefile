@@ -13,14 +13,6 @@ build:
 size:
 	du -sh target/*/git-nu
 
-bench:
-	cargo build --release
-	cargo bench --quiet
-
-bench-wrap:
-	cargo build --release
-	cargo bench-wrap --quiet
-
 test:
 	cargo build
 	cargo test --lib
@@ -47,4 +39,4 @@ ci-test:
 	cargo build
 	cargo test --lib
 
-.PHONY: test size quick load_bin bench
+.PHONY: test size load_bin

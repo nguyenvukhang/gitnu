@@ -1,12 +1,8 @@
 #[macro_use]
 mod util;
+mod status_parse;
 
-use crate::parse as gitnu_parse;
-use std::env;
-use std::fs;
 use std::os::unix;
-use std::path::PathBuf;
-use std::process::Command;
 use util::*;
 
 // staging files with numbers

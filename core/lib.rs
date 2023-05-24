@@ -6,7 +6,6 @@ mod cache;
 mod error;
 mod git;
 mod git_cmd;
-mod line;
 mod parser;
 mod pathdiff;
 mod status;

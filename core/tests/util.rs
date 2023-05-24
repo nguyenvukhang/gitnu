@@ -37,6 +37,11 @@ macro_rules! test {
     ($name:ident, $fun:expr) => {
         #[test]
         fn $name() {
+            #[allow(unused)]
+            use crate::parse as gitnu_parse;
+            #[allow(unused)]
+            use std::{env, fs, path::PathBuf, process::Command};
+
             fn f() {}
             fn type_name_of<'a, T>(_: T) -> &'a str {
                 std::any::type_name::<T>()
@@ -97,9 +102,14 @@ macro_rules! sh {
                 let stdout = String::from_utf8_lossy(&v.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&v.stderr).to_string();
                 let dir = &$t.dir.join($cwd);
-                println!("[{}] {}", dir.to_string_lossy(), $cmd);
-                println!("[stdout] ({})", stdout);
-                println!("[stderr] ({})", stderr);
+                let dir = dir.to_string_lossy();
+                println!("[{}] {}", &dir[dir.len() - 30..], $cmd);
+                if !stdout.is_empty() {
+                    println!("[stdout]\n{}", stdout);
+                }
+                if !stderr.is_empty() {
+                    println!("[stderr]\n({})", stderr);
+                }
                 Output { stdout, exit_code: v.status.code() }
             })
             .unwrap()

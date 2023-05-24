@@ -17,9 +17,6 @@ edition = "2021"
 [dependencies]
 atty = "0.2.14"
 
-[dev-dependencies]
-criterion = "0.4"
-
 [[bin]]
 bench = false
 test = false
@@ -29,8 +26,3 @@ name = "git-nu"
 [lib]
 path = "core/lib.rs"
 doctest = false
-
-[[bench]]
-name = "bench"
-path = "bench/main.rs"
-harness = false

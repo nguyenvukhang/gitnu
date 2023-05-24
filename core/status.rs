@@ -1,9 +1,28 @@
-use crate::line::{uncolor, Line};
 use crate::{lines, App, ToGitnuError, MAX_CACHE_SIZE};
 use crate::{Cache, GitnuError};
 use std::fs::File;
 use std::io::{LineWriter, Write};
 use std::process::Stdio;
+
+/// Removes all ANSI color codes
+pub fn uncolor(src: &str) -> Vec<u8> {
+    let (mut src, mut dst) = (src.as_bytes(), vec![]);
+    while !src.is_empty() {
+        match src.iter().position(|v| v == &b'\x1b') {
+            None => break,
+            Some(i) => {
+                dst.extend(&src[..i]);
+                src = &src[i..];
+            }
+        }
+        match src.iter().position(|v| v == &b'm') {
+            None => break,
+            Some(i) => src = &src[i + 1..],
+        }
+    }
+    dst.extend(src);
+    dst
+}
 
 struct State {
     seen_untracked: bool,
@@ -22,24 +41,47 @@ fn normal(state: &mut State, line: String) -> Option<String> {
         println!("{}", line);
         return None;
     }
+
     println!("{}{}", state.count, line);
     state.count += 1;
-    let mut line: &[u8] = &uncolor(&line);
-    let line = &mut line;
-    line.after_last(b'\t');
-    let is_rename = line.starts_with(b"renamed:");
-    if !state.seen_untracked {
-        line.after_first(b':');
-    }
-    line.trim_left_while(|v| v.is_ascii_whitespace());
-    if is_rename {
-        line.after_first_sequence(b"->");
-        line.trim_left_while(|v| v.is_ascii_whitespace());
-    }
+
+    let line = &uncolor(&line);
+    let line: &str = std::str::from_utf8(line).unwrap();
+    let line = line.rsplit_once('\t')?.1;
+
+    // Example:
+    // ```
+    // Changes not staged for commit:
+    // 1       modified:   core/status.rs
+    //
+    // Untracked files:
+    // 2       core/line.rs
+    // ```
+    let (delta, line) = match state.seen_untracked {
+        true => ("", line),
+        false => line.split_once(':')?,
+    };
+
+    let line = line.trim_start_matches(|v: char| v.is_ascii_whitespace());
+
+    let line = match delta {
+        // Example:
+        // ```
+        // Changes to be committed:
+        // 1       renamed:    README.md -> BUILD.md
+        // ```
+        "rename" => line
+            .split_once("->")?
+            .1
+            .trim_start_matches(|v: char| v.is_ascii_whitespace()),
+        _ => line,
+    };
+
     if line.is_empty() {
         return None;
     }
-    std::str::from_utf8(line).map(|v| v.to_string()).ok()
+
+    Some(line.to_string())
 }
 
 fn short(state: &mut State, line: String) -> String {
