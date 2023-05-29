@@ -292,3 +292,16 @@ nothing added to commit but untracked files present
 "
     );
 });
+
+// git reset --hard
+test!(reset_hard_on_numeric_sha, |t: &Test| {
+    sh!(t, "git init");
+    sh!(t, "git branch -m 1234567");
+    sh!(t, "touch A && git add A && git commit -m 'first'");
+    sh!(t, "git checkout -b main");
+    sh!(t, "touch B && git add B && git commit -m 'second'");
+    sh!(t, "git branch");
+    sh!(t, "git nu reset --hard 1234567");
+    let app = gitnu!(t, ["reset", "--hard", "1234567"]);
+    assert_args!(&app, ["git", "reset", "--hard", "1234567"]);
+});
