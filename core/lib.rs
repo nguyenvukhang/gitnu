@@ -10,13 +10,12 @@ mod parser;
 mod pathdiff;
 mod status;
 
-use git_cmd::GitCommand;
 use cache::Cache;
 use error::ToGitnuError;
+use git_cmd::GitCommand;
 
 pub use error::GitnuError;
 pub use parser::parse;
-
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
@@ -86,6 +85,10 @@ impl App {
 
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<(), GitnuError> {
+        // print command preview if GITNU_DEBUG environment variable is set
+        if std::env::var("GITNU_DEBUG").is_ok() {
+            eprintln!("\x1b[0;30m{}\x1b[0m", self.preview());
+        }
         use GitCommand as G;
         match self.git_command {
             Some(G::Status(is_normal)) => status::status(self, is_normal),
@@ -96,6 +99,15 @@ impl App {
             }
             _ => self.cmd.status().gitnu_err().map(|_| ()),
         }
+    }
+
+    pub fn preview(&self) -> String {
+        let mut preview = String::from("git");
+        self.cmd.get_args().filter_map(|v| v.to_str()).for_each(|arg| {
+            preview.push(' ');
+            preview.push_str(arg)
+        });
+        preview.replace(" -c color.ui=always", "")
     }
 }
 

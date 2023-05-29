@@ -2,6 +2,10 @@ BIN=$(HOME)/dots/personal/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
+install:
+	make build
+	make load-bin
+
 dev:
 	cargo build
 	cargo test --lib
@@ -28,7 +32,7 @@ publish:
 	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/publish.sh
 
 # copies built binary to a path specified by $BIN
-load_bin:
+load-bin:
 	@rm -f $(BIN)/git-nu
 	@cp ./target/release/git-nu $(BIN)
 
@@ -39,4 +43,4 @@ ci-test:
 	cargo build
 	cargo test --lib
 
-.PHONY: test size load_bin
+.PHONY: test size load-bin
