@@ -46,6 +46,7 @@ impl GitCommand {
             | G::LsFiles
             | G::LsTree
             | G::Log
+            | G::Diff
             | G::Checkout => true,
             G::Status(_) => false,
             _ => false,
