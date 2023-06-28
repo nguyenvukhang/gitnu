@@ -24,13 +24,11 @@ jobs:
 
       # Sets the increment: how much to push the version number
       - run: |
-          if [[ ${{ github.ref_name }} == 'main' ]]; then
-            echo "increment=patch" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref_name }} == 'dev' ]]; then
-            echo "increment=prerelease" >> $GITHUB_OUTPUT
-          else
-            echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
+          case ${{ github.ref_name }} in
+            main) echo "increment=patch" >> $GITHUB_OUTPUT;;
+            dev) echo "increment=prerelease" >> $GITHUB_OUTPUT;;
+            *) echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT;;
+          esac
         id: increment
 
       # Obtains the matrix strategy from `./matrix.json` to use for
