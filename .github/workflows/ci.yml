@@ -20,7 +20,7 @@ jobs:
       increment: ${{ steps.increment.outputs.increment }}
     steps:
       - uses: actions/checkout@v3
-      - run: git fetch --tags origin
+      - run: git fetch --tags
 
       # Sets the increment: how much to push the version number
       - run: |
@@ -40,9 +40,6 @@ jobs:
       # tag, and sets the `version` variable to the next version.
       - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
         id: version
-
-      - name: DEBUG
-        run: echo ${{ steps.version.outputs.version }}
 
   build-and-test:
     name: Build & Test
@@ -68,8 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get git tags
-        run: git fetch --tags origin
+      - run: git fetch --tags
 
       - run: make ci-git-user
 
@@ -79,6 +75,7 @@ jobs:
           ARG: increment-${{ needs.pre.outputs.increment }}
 
       - uses: katyo/publish-crates@v2
+        if: needs.pre.outputs.increment != 'prerelease'
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
