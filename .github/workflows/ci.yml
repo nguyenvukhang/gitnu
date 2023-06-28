@@ -15,17 +15,18 @@ jobs:
     name: Preprocessing
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.m.outputs.matrix }}
-      version: ${{ steps.v.outputs.version }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+      increment: ${{ steps.increment.outputs.increment }}
     steps:
       - uses: actions/checkout@v3
       - run: git fetch --tags origin
 
       # Sets the increment: how much to push the version number
       - run: |
-          if [[ ${{ github.ref_name }} == 'main' ]];
+          if [[ ${{ github.ref_name }} == 'main' ]]; then
             echo "increment=patch" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref_name }} == 'dev' ]];
+          elif [[ ${{ github.ref_name }} == 'dev' ]]; then
             echo "increment=prerelease" >> $GITHUB_OUTPUT
           else
             echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -37,8 +38,8 @@ jobs:
       - run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
         id: matrix
 
-      # Checks that the version on Cargo.toml matches the latest git tag,
-      # and sets the `version` output variable to the next version.
+      # Checks that the version on Cargo.toml matches the latest git
+      # tag, and sets the `version` variable to the next version.
       - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
         id: version
 
@@ -82,6 +83,8 @@ jobs:
 
   release:
     name: Release on GitHub
+    # has to wait for `crates-io-publish` because that job creates the
+    # new tag
     needs: [pre, build-and-test, crates-io-publish]
     runs-on: ${{ matrix.os }}
     strategy:
