@@ -39,7 +39,8 @@ def get_semver_tags():
             return None
 
     versions = list(map(version_or_none, semver_tags))
-    versions.sort(key=lambda v: v.prerelease_val())
+    versions.sort(key=lambda v: v.prerelease_number())
+    versions.sort(key=lambda v: v.prerelease_name())
     versions.sort(key=lambda v: v.patch)
     versions.sort(key=lambda v: v.minor)
     versions.sort(key=lambda v: v.major)
@@ -96,7 +97,12 @@ class Version:
             and a.prerelease == b.prerelease
         )
 
-    def prerelease_val(self):
+    def prerelease_name(self):
+        if self.prerelease == None:
+            return ""
+        return split_trailing_number(self.prerelease)[0]
+
+    def prerelease_number(self):
         if self.prerelease == None:
             return 0
         return split_trailing_number(self.prerelease)[1]
