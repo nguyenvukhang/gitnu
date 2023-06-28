@@ -58,15 +58,13 @@ jobs:
       - name: Run tests
         run: make ci-test
 
-  crates-io-publish:
-    name: Publish to Crates.io
+  increment:
+    name: Increment ${{ needs.pre.outputs.increment }} version
     needs: [pre, build-and-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - run: git fetch --tags
-
       - run: make ci-git-user
 
       - name: Increment ${{ needs.pre.outputs.increment }} version
@@ -74,16 +72,24 @@ jobs:
         env:
           ARG: increment-${{ needs.pre.outputs.increment }}
 
+  # publish patch-level updates and above only
+  publish-crates-io:
+    name: Publish to Crates.io
+    if: needs.pre.outputs.increment != 'prerelease'
+    needs: [pre, increment]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ needs.pre.outputs.version }}
+
       - uses: katyo/publish-crates@v2
-        if: needs.pre.outputs.increment != 'prerelease'
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  release:
+  release-github:
     name: Release on GitHub
-    # has to wait for `crates-io-publish` because that job creates the
-    # new tag
-    needs: [pre, build-and-test, crates-io-publish]
+    needs: [pre, increment]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -91,6 +97,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: v${{ needs.pre.outputs.version }}
 
       - run: |
           TARGET_DIR=./target/${{ matrix.target }}
