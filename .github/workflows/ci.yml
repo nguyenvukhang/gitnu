@@ -11,38 +11,33 @@ on:
       - prerelease
 
 jobs:
-  # Obtains the matrix strategy from `./matrix.json` to use for
-  # building, testing, and releasing artifacts on GitHub Releases
-  matrix:
-    name: Create Matrix
+  pre:
+    name: Preprocessing
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.x.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v3
-      - id: x
-        run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
-
-  # Checks that the version on Cargo.toml matches the latest git tag,
-  # and sets the `version` output variable to the next version.
-  version:
-    name: Check Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.x.outputs.version }}
+      matrix: ${{ steps.m.outputs.matrix }}
+      version: ${{ steps.v.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - run: git fetch --tags origin
-      - id: x
+
+      # Obtains the matrix strategy from `./matrix.json` to use for
+      # building, testing, and releasing artifacts on GitHub Releases
+      - id: m
+        run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
+
+      # Checks that the version on Cargo.toml matches the latest git tag,
+      # and sets the `version` output variable to the next version.
+      - id: v
         run: echo "version=$(ARG=next-${{ github.ref_name }}-version make py)" >> $GITHUB_OUTPUT
 
   build-and-test:
     name: Build & Test
-    needs: [matrix]
+    needs: [pre]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +50,7 @@ jobs:
 
   crates-io-publish:
     name: Publish to Crates.io
-    needs: [build-and-test, version]
+    needs: [pre, build-and-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -76,11 +71,11 @@ jobs:
 
   release:
     name: Release on GitHub
-    needs: [matrix, build-and-test, version, crates-io-publish]
+    needs: [pre, build-and-test, crates-io-publish]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v3
@@ -102,7 +97,7 @@ jobs:
 
       - name: Build archive
         run: |
-          STAGING="git-nu-v${{ needs.version.outputs.version }}-${{ matrix.target }}"
+          STAGING="git-nu-v${{ needs.pre.outputs.version }}-${{ matrix.target }}"
           mkdir -p "$STAGING"
           cp ${{ env.BINFILE }} "$STAGING"
           tar czf "$STAGING.tar.gz" "$STAGING"
@@ -111,5 +106,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ needs.version.outputs.version }}
+          tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
