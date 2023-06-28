@@ -217,19 +217,19 @@ class App:
         increment_prerelease()
 
     def current_version():
-        print(current_version())
+        print("%s" % (current_version()))
 
     def next_prerelease_version():
-        print(current_version().next_prerelease())
+        print("%s" % current_version().next_prerelease())
 
 
 def main():
     if len(sys.argv) == 0:
         return
     app = {}
-    app["increment-prerelease"] = increment_prerelease
-    app["current-version"] = current_version
-    app["next-prerelease-version"] = current_version
+    app["increment-prerelease"] = App.increment_prerelease
+    app["current-version"] = App.current_version
+    app["next-prerelease-version"] = App.next_prerelease_version
 
     run = lambda: ()
     try:

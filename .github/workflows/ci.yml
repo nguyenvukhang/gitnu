@@ -79,7 +79,7 @@ jobs:
 
       - name: Build archive
         run: |
-          STAGING="git-nu-${{ env.SEMVER }}-${{ matrix.target }}"
+          STAGING="git-nu-v${{ needs.version.outputs.version }}-${{ matrix.target }}"
           mkdir -p "$STAGING"
           cp ${{ env.BINFILE }} "$STAGING"
           tar czf "$STAGING.tar.gz" "$STAGING"
