@@ -51,9 +51,28 @@ jobs:
       - name: Run tests
         run: make ci-test
 
+  crates-io-publish:
+    name: Publish to Crates.io
+    needs: [build-and-test, version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get git tags
+        run: git fetch --tags origin
+
+      - run: make ci-git-user
+
+      - name: Increment prerelease version number
+        run: make ci-increment-prerelease
+
+      - uses: katyo/publish-crates@v2
+        with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
   release:
     name: Release on GitHub
-    needs: [matrix, build-and-test, version]
+    needs: [matrix, build-and-test, version, crates-io-publish]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -90,22 +109,3 @@ jobs:
         with:
           tag_name: v${{ needs.version.outputs.version }}
           files: ${{ env.ASSET }}
-
-  crates-io-publish:
-    name: Publish to Crates.io
-    needs: [build-and-test, version]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get git tags
-        run: git fetch --tags origin
-
-      - run: make ci-git-user
-
-      - name: Increment prerelease version number
-        run: make ci-increment-prerelease
-
-      - uses: katyo/publish-crates@v2
-        with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
