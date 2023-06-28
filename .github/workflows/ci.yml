@@ -21,6 +21,19 @@ jobs:
           MATRIX=$(jq -rc '.' .github/workflows/matrix.json)
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
+  version:
+    name: Check Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.x.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: git fetch --tags origin
+      - id: x
+        run: |
+          VERSION=$(make version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   build-and-test:
     name: Build & Test
     needs: [matrix]
@@ -40,7 +53,7 @@ jobs:
 
   release:
     name: Release on GitHub
-    needs: [matrix, build-and-test]
+    needs: [matrix, build-and-test, version]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,7 +72,6 @@ jobs:
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
-
       - name: Strip release binary
         if: >-
           (matrix.build == 'linux' || matrix.build == 'linux-arm' || matrix.build == 'macos')
@@ -72,19 +84,16 @@ jobs:
           cp ${{ env.BINFILE }} "$STAGING"
           tar czf "$STAGING.tar.gz" "$STAGING"
           echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
-          echo "TAG=v$(make version)" >> $GITHUB_ENV
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: github.ref_type == 'tag'
         with:
-          tag_name: ${{ env.TAG }}
+          tag_name: v${{ needs.version.outputs.version }}
           files: ${{ env.ASSET }}
 
   crates-io-publish:
     name: Publish to Crates.io
-    if: github.ref_type != 'tag'
-    needs: [build-and-test]
+    needs: [build-and-test, version]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
