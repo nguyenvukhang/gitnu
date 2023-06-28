@@ -109,7 +109,7 @@ impl<I: Iterator<Item = String>> Writer for I {
 /// Runs `git status` then parses its output, enumerates it, and
 /// prints it out to stdout.
 pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
-    let mut git = app.cmd.stdout(Stdio::piped()).spawn().gitnu_err()?;
+    let mut git = app.cmd.stdout(Stdio::piped()).spawn()?;
 
     let lines = match git.stdout.take() {
         Some(v) => lines(v),
