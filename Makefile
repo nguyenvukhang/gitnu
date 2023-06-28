@@ -36,14 +36,8 @@ ci-git-user:
 	git config --global user.name gitnu-ci
 	git config --global user.email ci@gitnu.com
 
-ci-increment-prerelease:
-	$(PY_UTILS) increment-prerelease
-
-current-version:
-	@$(PY_UTILS) current-version
-
-next-prerelease-version:
-	@$(PY_UTILS) next-prerelease-version
+py:
+	@$(PY_UTILS) $(ARG)
 
 ci-build:
 	cargo build --bin git-nu --release

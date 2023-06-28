@@ -171,7 +171,7 @@ def current_version():
     return v_cargo
 
 
-def increment_prerelease():
+def increment(inc_fn):
     cargo_toml = get_cargo_toml()
 
     # get latest version
@@ -182,7 +182,7 @@ def increment_prerelease():
     assert_version_match(v_cargo, v_git_tag)
 
     # increment
-    v_next = v_cargo.next_prerelease()
+    v_next = inc_fn(v_cargo)
 
     print("Current version: %s" % (v_cargo))
     print("Next prerelease: %s" % (v_next))
@@ -214,7 +214,16 @@ class Git:
 
 class App:
     def increment_prerelease():
-        increment_prerelease()
+        increment(lambda x: x.next_prerelease())
+
+    def increment_patch():
+        increment(lambda x: x.next_patch())
+
+    def increment_minor():
+        increment(lambda x: x.next_minor())
+
+    def increment_major():
+        increment(lambda x: x.next_major())
 
     def current_version():
         print("%s" % (current_version()))
@@ -222,14 +231,32 @@ class App:
     def next_prerelease_version():
         print("%s" % current_version().next_prerelease())
 
+    def next_patch_version():
+        print("%s" % current_version().next_patch())
+
+    def next_minor_version():
+        print("%s" % current_version().next_minor())
+
+    def next_major_version():
+        print("%s" % current_version().next_major())
+
 
 def main():
     if len(sys.argv) == 0:
         return
+
     app = {}
+
     app["increment-prerelease"] = App.increment_prerelease
+    app["increment-patch"] = App.increment_patch
+    app["increment-minor"] = App.increment_minor
+    app["increment-major"] = App.increment_major
+
     app["current-version"] = App.current_version
     app["next-prerelease-version"] = App.next_prerelease_version
+    app["next-patch-version"] = App.next_patch_version
+    app["next-minor-version"] = App.next_minor_version
+    app["next-major-version"] = App.next_major_version
 
     run = lambda: ()
     try:
