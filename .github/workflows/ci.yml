@@ -56,6 +56,9 @@ jobs:
 
       - name: Build binary
         run: make ci-build
+        env:
+          CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
+
 
       - name: Strip release binary
         if: >-
