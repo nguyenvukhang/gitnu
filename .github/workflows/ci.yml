@@ -43,13 +43,16 @@ jobs:
       - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
         id: version
 
+      - name: DEBUG
+        run: echo ${{ steps.version.outputs.version }}
+
   build-and-test:
     name: Build & Test
     needs: [pre]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.pre.ouputs.matrix) }}
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v3
