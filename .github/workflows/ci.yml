@@ -21,15 +21,26 @@ jobs:
       - uses: actions/checkout@v3
       - run: git fetch --tags origin
 
+      # Sets the increment: how much to push the version number
+      - run: |
+          if [[ ${{ github.ref_name }} == 'main' ]];
+            echo "increment=patch" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref_name }} == 'dev' ]];
+            echo "increment=prerelease" >> $GITHUB_OUTPUT
+          else
+            echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+        id: increment
+
       # Obtains the matrix strategy from `./matrix.json` to use for
       # building, testing, and releasing artifacts on GitHub Releases
-      - id: m
-        run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
+      - run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
+        id: matrix
 
       # Checks that the version on Cargo.toml matches the latest git tag,
       # and sets the `version` output variable to the next version.
-      - id: v
-        run: echo "version=$(ARG=next-${{ github.ref_name }}-version make py)" >> $GITHUB_OUTPUT
+      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
+        id: version
 
   build-and-test:
     name: Build & Test
@@ -37,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.pre.ouputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v3
@@ -63,7 +74,7 @@ jobs:
       - name: Increment prerelease version number
         run: make py
         env:
-          ARG: increment-${{ github.ref_name }}
+          ARG: increment-${{ needs.pre.outputs.increment }}
 
       - uses: katyo/publish-crates@v2
         with:
