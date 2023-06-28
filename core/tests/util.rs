@@ -96,7 +96,7 @@ macro_rules! sh {
         Command::new("sh")
             .current_dir(&$t.dir.join($cwd))
             .arg("-c")
-            .arg($cmd)
+            .arg($cmd.replace("git", "git -c advice.statusHints=false"))
             .output()
             .map(|v| {
                 let stdout = String::from_utf8_lossy(&v.stdout).to_string();
