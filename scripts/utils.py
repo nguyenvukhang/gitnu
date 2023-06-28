@@ -31,7 +31,19 @@ def run_sh(*cmd):
 def get_semver_tags():
     all_tags = run_sh("git", "tag")
     semver_tags = filter(lambda x: SEMVER_REGEX.match(x), all_tags)
-    return list(semver_tags)
+
+    def version_or_none(text):
+        try:
+            return Version.from_text(text)
+        except Exception:
+            return None
+
+    versions = list(map(version_or_none, semver_tags))
+    versions.sort(key=lambda v: v.prerelease_val())
+    versions.sort(key=lambda v: v.patch)
+    versions.sort(key=lambda v: v.minor)
+    versions.sort(key=lambda v: v.major)
+    return versions
 
 
 def get_cargo_toml():
@@ -84,6 +96,11 @@ class Version:
             and a.prerelease == b.prerelease
         )
 
+    def prerelease_val(self):
+        if self.prerelease == None:
+            return 0
+        return split_trailing_number(self.prerelease)[1]
+
     def from_text(text):
         if text == None:
             raise ValueError("Version: tried to init with None")
@@ -114,7 +131,7 @@ class Version:
         return map(on_each, toml_lines)
 
     def from_latest_tag():
-        return Version.from_text(get_semver_tags()[-1])
+        return get_semver_tags()[-1]
 
     def fmt(self):
         if self.prerelease == None:
@@ -240,6 +257,9 @@ class App:
     def next_major_version():
         print("%s" % current_version().next_major())
 
+    def latest_tag():
+        print("%s" % Version.from_latest_tag())
+
 
 def main():
     if len(sys.argv) == 0:
@@ -257,6 +277,8 @@ def main():
     app["next-patch-version"] = App.next_patch_version
     app["next-minor-version"] = App.next_minor_version
     app["next-major-version"] = App.next_major_version
+
+    app["latest-tag"] = App.latest_tag
 
     run = lambda: ()
     try:
