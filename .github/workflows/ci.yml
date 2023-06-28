@@ -15,9 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: x
-        run: |
-          MATRIX=$(jq -rc '.' .github/workflows/matrix.json)
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
 
   version:
     name: Check Version
@@ -28,9 +26,7 @@ jobs:
       - uses: actions/checkout@v3
       - run: git fetch --tags origin
       - id: x
-        run: |
-          VERSION=$(make next-prerelease-version)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        run: echo "version=$(make next-prerelease-version)" >> $GITHUB_OUTPUT
 
   build-and-test:
     name: Build & Test
