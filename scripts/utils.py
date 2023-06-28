@@ -168,7 +168,7 @@ def current_version():
     # assert match
     assert_version_match(v_cargo, v_git_tag)
 
-    print("%s" % v_cargo)
+    return v_cargo
 
 
 def increment_prerelease():
@@ -212,12 +212,24 @@ class Git:
         subprocess.run(["git", "push", "--tags"])
 
 
+class App:
+    def increment_prerelease():
+        increment_prerelease()
+
+    def current_version():
+        print(current_version())
+
+    def next_prerelease_version():
+        print(current_version().next_prerelease())
+
+
 def main():
     if len(sys.argv) == 0:
         return
     app = {}
     app["increment-prerelease"] = increment_prerelease
     app["current-version"] = current_version
+    app["next-prerelease-version"] = current_version
 
     run = lambda: ()
     try:

@@ -31,7 +31,7 @@ jobs:
       - run: git fetch --tags origin
       - id: x
         run: |
-          VERSION=$(make version)
+          VERSION=$(make next-prerelease-version)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   build-and-test:

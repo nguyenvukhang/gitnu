@@ -39,8 +39,11 @@ ci-git-user:
 ci-increment-prerelease:
 	$(PY_UTILS) increment-prerelease
 
-version:
+current-version:
 	@$(PY_UTILS) current-version
+
+next-prerelease-version:
+	@$(PY_UTILS) next-prerelease-version
 
 ci-build:
 	cargo build --bin git-nu --release
