@@ -9,7 +9,7 @@ fn parse_range(arg: &str) -> Option<[usize; 2]> {
     arg.parse().map(|v| Some([v, v])).unwrap_or_else(|_| {
         let (a, b) = arg.split_once("-")?;
         let a: usize = a.parse().ok()?;
-        Some(b.parse().map(|b| [a.min(b), a.max(b)]).unwrap_or([a, a]))
+        b.parse().map(|b| [a.min(b), a.max(b)]).ok()
     })
 }
 
@@ -146,5 +146,10 @@ mod tests {
     });
     test!(test_zeroes_3, ["add", "0-0"], |app: App| {
         assert_args!(app.cmd(), ["add", "0"]);
+    });
+
+    // Filenames containing dashed dates
+    test!(test_date_filename, ["add", "2021-01-31"], |app: App| {
+        assert_args!(app.cmd(), ["add", "2021-01-31"]);
     });
 }
