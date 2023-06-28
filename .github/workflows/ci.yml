@@ -73,7 +73,7 @@ jobs:
 
       - run: make ci-git-user
 
-      - name: Increment prerelease version number
+      - name: Increment ${{ needs.pre.outputs.increment }} version
         run: make py
         env:
           ARG: increment-${{ needs.pre.outputs.increment }}
