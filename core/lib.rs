@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -87,7 +88,7 @@ impl App {
     pub fn run(&mut self) -> Result<(), GitnuError> {
         // print command preview if GITNU_DEBUG environment variable is set
         if std::env::var("GITNU_DEBUG").is_ok() {
-            eprintln!("\x1b[0;30m{}\x1b[0m", self.preview());
+            eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
         }
         use GitCommand as G;
         match self.git_command {
@@ -101,13 +102,34 @@ impl App {
         }
     }
 
-    pub fn preview(&self) -> String {
-        let mut preview = String::from("git");
-        self.cmd.get_args().filter_map(|v| v.to_str()).for_each(|arg| {
-            preview.push(' ');
-            preview.push_str(arg)
-        });
-        preview.replace(" -c color.ui=always", "")
+    /// Returns a complete list of arguments
+    pub fn preview_args(&self) -> Vec<&str> {
+        let args: Vec<_> =
+            self.cmd.get_args().filter_map(|v| v.to_str()).collect();
+
+        let mut ignore = vec![];
+
+        // remove `-c color.ui=always` flag
+        let flag_rm = args.iter().position(|&v| v == "color.ui=always");
+        if let Some(v) = flag_rm {
+            ignore.extend_from_slice(&[v - 1, v]);
+        }
+
+        ignore.sort();
+        ignore.reverse();
+
+        let mut preview = Vec::with_capacity(args.len() + 1);
+        preview.push("git");
+
+        for i in 0..args.len() {
+            if ignore.last() == Some(&i) {
+                ignore.pop();
+                continue;
+            }
+            preview.push(args[i])
+        }
+
+        preview
     }
 }
 
