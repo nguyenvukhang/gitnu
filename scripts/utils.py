@@ -165,8 +165,7 @@ class Version:
         return clone
 
     def next_patch(self):
-        clone = self.clone()
-        clone.patch += 1
+        clone = self.next_prerelease()
         clone.prerelease = None
         return clone
 
