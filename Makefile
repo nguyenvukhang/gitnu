@@ -1,6 +1,11 @@
-BIN=$(HOME)/dots/personal/.local/bin
+LOCAL_BIN=$(HOME)/dots/personal/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
+
+PY_UTILS := python3 scripts/utils.py
+
+current:
+	make ci-test
 
 install:
 	make build
@@ -14,27 +19,25 @@ build:
 	cargo build --release
 	@echo "Release build complete."
 
-size:
-	du -sh target/*/git-nu
-
 test:
 	cargo build
 	cargo test --lib
 
-# step 1 of 2 in publishing a new version to crates.io
-# this bumps the version in Cargo.toml and creates a new commit and tags it
-version:
-	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/version.sh
-
-# step 1 of 2 in publishing a new version to crates.io
-# after running this step, the latest version will be available on Crates.io
-publish:
-	@CARGO_MANIFEST_DIR=$(PWD) bash scripts/publish.sh
-
 # copies built binary to a path specified by $BIN
 load-bin:
-	@rm -f $(BIN)/git-nu
-	@cp ./target/release/git-nu $(BIN)
+	@rm -f $(LOCAL_BIN)/git-nu
+	@cp $(GITNU_RELEASE_BIN) $(LOCAL_BIN)
+
+
+# ────────────────────────────────────────────────────────────────────
+# MARK: - CI 
+
+ci-git-user:
+	git config --global user.name gitnu-ci
+	git config --global user.email ci@gitnu.com
+
+py:
+	@$(PY_UTILS) $(ARG)
 
 ci-build:
 	cargo build --bin git-nu --release
@@ -43,4 +46,4 @@ ci-test:
 	cargo build
 	cargo test --lib
 
-.PHONY: test size load-bin
+.PHONY: test load-bin

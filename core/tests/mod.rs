@@ -7,7 +7,7 @@ use util::*;
 
 // staging files with numbers
 test!(staging_files_with_numbers, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A B C D E F G");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-4", "6"]);
@@ -18,7 +18,7 @@ test!(staging_files_with_numbers, |t: &Test| {
 // Possible idea: make the cache readable only once.
 // (If a number is called again, just insert nothing.)
 test!(range_overlap, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A B C D E F");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-4", "3-5"]);
@@ -28,7 +28,7 @@ test!(range_overlap, |t: &Test| {
 // Unindexed numbers will appear as the number itself, since it does
 // not correspond to any file.
 test!(add_unindexed_number, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A B C");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-5"]);
@@ -38,7 +38,7 @@ test!(add_unindexed_number, |t: &Test| {
 // Both `gitnu status` and `gitnu add <files>` are ran from the same
 // directory, but that directory is not the workspace root
 test!(not_at_workspace_root, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "mkdir src");
     sh!(t, "touch A B src/C src/D");
     gitnu!(t, "src", ["status"]).run().ok();
@@ -51,7 +51,7 @@ test!(not_at_workspace_root, |t: &Test| {
 test!(add_and_status_diff_dirs, |t: &Test| {
     // `gitnu status` will be ran from <root>, and
     // `gitnu add` will be ran from <root>/src
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "mkdir src");
     sh!(t, "touch A B src/C src/D");
     gitnu!(t, status);
@@ -70,7 +70,7 @@ test!(dont_create_cache_file_without_repo, |t: &Test| {
 // where it's specified if a command should be skipped because it might
 // be part of a flag value
 test!(skip_flags, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A B C");
     gitnu!(t, status);
     let app = gitnu!(t, ["log", "-n", "2", "--oneline", "3"]);
@@ -82,7 +82,7 @@ test!(skip_flags, |t: &Test| {
 //   1. merge conflict status
 //   2. detached head status
 test!(status_display, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     for file in "A B C D E F G H I".split(' ') {
         write(t, file, &format!("contents::{file}"));
     }
@@ -131,7 +131,7 @@ Untracked files:
 // Special display case 1 of 2: Merge conflict
 test!(merge_conflict_display, |t: &Test| {
     // create base commit
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch base");
     sh!(t, "git add --all");
     sh!(t, "git commit -m 'base commit'");
@@ -173,7 +173,7 @@ Changes to be committed:
 
 // Special display case 2 of 2: Detached Head
 test!(detached_head_display, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A && git add A && git commit -m 'A'");
     sh!(t, "touch B && git add B && git commit -m 'B'");
     sh!(t, "git checkout HEAD~1");
@@ -214,7 +214,7 @@ test!(exit_codes, |t: &Test| {
     assert_code!("git stat", 1);
     assert_code!("git nu stat", 1);
 
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
 
     assert_code!("git status", 0);
     assert_code!("git nu status", 0);
@@ -223,8 +223,8 @@ test!(exit_codes, |t: &Test| {
 // Run `gitnu` from a different repository using the `-C` flag.
 test!(different_workspace, |t: &Test| {
     sh!(t, "mkdir one two");
-    sh!(t, "one", "git init && git branch -m one");
-    sh!(t, "two", "git init && git branch -m two");
+    sh!(t, "one", "git init -b one");
+    sh!(t, "two", "git init -b two");
     sh!(t, "one", "touch gold silver");
     sh!(t, "two", "git -C ../one nu status");
     sh!(t, "two", "git -C ../one nu add 1");
@@ -249,7 +249,7 @@ Untracked files:
 
 // staging files with numbers
 test!(max_cache_size_exceeded, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     let mut touch_args = "touch".to_string();
     (1..25).for_each(|i| touch_args += &format!(" f{i:0>2}"));
     sh!(t, &touch_args);
@@ -295,8 +295,7 @@ nothing added to commit but untracked files present
 
 // git reset --hard
 test!(reset_hard_on_numeric_sha, |t: &Test| {
-    sh!(t, "git init");
-    sh!(t, "git branch -m 1234567");
+    sh!(t, "git init -b 1234567");
     sh!(t, "touch A && git add A && git commit -m 'first'");
     sh!(t, "git checkout -b main");
     sh!(t, "touch B && git add B && git commit -m 'second'");

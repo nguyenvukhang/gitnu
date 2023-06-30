@@ -1,22 +1,22 @@
-use std::io::Error;
-use std::process::{Child, ExitStatus};
+use std::io;
+use std::process::ExitStatus;
 
 pub enum GitnuError {
     ProcessError(ExitStatus),
-    IoError(Error),
+    IoError(io::Error),
 }
 
 pub trait ToGitnuError<T> {
     fn gitnu_err(self) -> Result<T, GitnuError>;
 }
 
-impl ToGitnuError<Child> for Result<Child, Error> {
-    fn gitnu_err(self) -> Result<Child, GitnuError> {
-        self.map_err(GitnuError::IoError)
+impl From<io::Error> for GitnuError {
+    fn from(err: io::Error) -> GitnuError {
+        GitnuError::IoError(err)
     }
 }
 
-impl ToGitnuError<ExitStatus> for Result<ExitStatus, Error> {
+impl ToGitnuError<ExitStatus> for Result<ExitStatus, io::Error> {
     fn gitnu_err(self) -> Result<ExitStatus, GitnuError> {
         match self {
             Err(e) => Err(GitnuError::IoError(e)),

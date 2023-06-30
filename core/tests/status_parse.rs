@@ -9,7 +9,7 @@ macro_rules! check {
 }
 
 test!(git_add_untracked, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A");
 
     // status appearance
@@ -29,7 +29,7 @@ nothing added to commit but untracked files present\n"
 });
 
 test!(git_add_modified, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A");
     sh!(t, "git add --all && git commit -m 'first'");
     fs::write(t.dir.join("A"), b"content").unwrap();
@@ -50,7 +50,7 @@ no changes added to commit\n"
 });
 
 test!(git_add_deleted, |t: &Test| {
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch A");
     sh!(t, "git add --all && git commit -m 'first'");
     sh!(t, "rm A");
@@ -72,7 +72,7 @@ no changes added to commit\n"
 
 test!(git_add_both_modified, |t: &Test| {
     // create base commit
-    sh!(t, "git init");
+    sh!(t, "git init -b main");
     sh!(t, "touch base");
     sh!(t, "git add --all");
     sh!(t, "git commit -m 'base commit'");

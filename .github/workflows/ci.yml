@@ -3,48 +3,107 @@ name: ci
 on:
   push:
     branches:
-      - "main"
-      - "dev"
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+**"
+      - main
+      - dev
+      - major
+      - minor
+      - patch
+      - prerelease
+
 jobs:
-  main:
-    name: build-release
+  pre:
+    name: Preprocessing
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+      increment: ${{ steps.increment.outputs.increment }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: git fetch --tags
+
+      # Sets the increment: how much to push the version number
+      - run: |
+          case ${{ github.ref_name }} in
+            main) echo "increment=patch" >> $GITHUB_OUTPUT;;
+            dev) echo "increment=prerelease" >> $GITHUB_OUTPUT;;
+            *) echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT;;
+          esac
+        id: increment
+
+      # Obtains the matrix strategy from `./matrix.json` to use for
+      # building, testing, and releasing artifacts on GitHub Releases
+      - run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
+        id: matrix
+
+      # Checks that the version on Cargo.toml matches the latest git
+      # tag, and sets the `version` variable to the next version.
+      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
+        id: version
+
+  build-and-test:
+    name: Build & Test
+    needs: [pre]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        build: [linux, linux-arm, macos]
-        include:
-          - build: linux
-            os: ubuntu-22.04
-            rust: nightly
-            target: x86_64-unknown-linux-musl
-          - build: linux-arm
-            os: ubuntu-22.04
-            rust: nightly
-            target: arm-unknown-linux-gnueabihf
-          - build: macos
-            os: macos-12
-            rust: nightly
-            target: x86_64-apple-darwin
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          T=./target/${{ matrix.target }}
-          echo "SEMVER=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "TARGET_DIR=$T" >> $GITHUB_ENV
-          echo "BINFILE=$T/release/git-nu" >> $GITHUB_ENV
 
-      - run: |
-          git config --global user.name bot
-          git config --global user.email bot@gitnu.co
-          git config --global init.defaultBranch main
-          git config --global advice.statusHints false
+      # required for tests
+      - run: make ci-git-user
 
       - name: Run tests
         run: make ci-test
+
+  increment:
+    name: Increment ${{ needs.pre.outputs.increment }} version
+    needs: [pre, build-and-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: git fetch --tags
+      - run: make ci-git-user
+
+      - name: Increment ${{ needs.pre.outputs.increment }} version
+        run: make py
+        env:
+          ARG: increment-${{ needs.pre.outputs.increment }}
+
+  # publish patch-level updates and above only
+  publish-crates-io:
+    name: Publish to Crates.io
+    if: needs.pre.outputs.increment != 'prerelease'
+    needs: [pre, increment]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ needs.pre.outputs.version }}
+
+      - uses: katyo/publish-crates@v2
+        with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  release-github:
+    name: Release on GitHub
+    needs: [pre, increment]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ needs.pre.outputs.version }}
+
+      - run: |
+          TARGET_DIR=./target/${{ matrix.target }}
+          echo "TARGET_DIR=$TARGET_DIR" >> $GITHUB_ENV
+          echo "BINFILE=$TARGET_DIR/release/git-nu" >> $GITHUB_ENV
 
       - name: Build binary
         run: make ci-build
@@ -52,21 +111,20 @@ jobs:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
       - name: Strip release binary
-        if: startsWith(github.ref, 'refs/tags/') && (matrix.build == 'linux' || matrix.build == 'macos')
+        if: >-
+          (matrix.build == 'linux' || matrix.build == 'linux-arm' || matrix.build == 'macos')
         run: strip ${{ env.BINFILE }}
 
       - name: Build archive
-        if: github.ref_type == 'tag'
-        shell: bash
         run: |
-          staging="git-nu-${{ env.SEMVER }}-${{ matrix.target }}"
-          mkdir -p "$staging"
-          cp ${{ env.BINFILE }} "$staging"
-          tar czf "$staging.tar.gz" "$staging"
-          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+          STAGING="git-nu-v${{ needs.pre.outputs.version }}-${{ matrix.target }}"
+          mkdir -p "$STAGING"
+          cp ${{ env.BINFILE }} "$STAGING"
+          tar czf "$STAGING.tar.gz" "$STAGING"
+          echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
