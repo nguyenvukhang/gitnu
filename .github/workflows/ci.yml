@@ -128,3 +128,4 @@ jobs:
         with:
           tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
+          prerelease: needs.pre.outputs.increment == 'prerelease'
