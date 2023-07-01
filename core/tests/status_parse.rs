@@ -25,7 +25,7 @@ nothing added to commit but untracked files present\n"
     );
 
     // status add check
-    check!(t, ["add", "1"], ["git", "add", "A"]);
+    check!(t, ["add", "1"], ["add", "A"]);
 });
 
 test!(git_add_modified, |t: &Test| {
@@ -46,7 +46,7 @@ no changes added to commit\n"
     );
 
     // status add check
-    check!(t, ["add", "1"], ["git", "add", "A"]);
+    check!(t, ["add", "1"], ["add", "A"]);
 });
 
 test!(git_add_deleted, |t: &Test| {
@@ -67,7 +67,7 @@ no changes added to commit\n"
     );
 
     // status add check
-    check!(t, ["add", "1"], ["git", "add", "A"]);
+    check!(t, ["add", "1"], ["add", "A"]);
 });
 
 test!(git_add_both_modified, |t: &Test| {
@@ -106,5 +106,5 @@ no changes added to commit\n"
     );
 
     // status add check
-    check!(t, ["add", "1"], ["git", "add", "conflict_file"]);
+    check!(t, ["add", "1"], ["add", "conflict_file"]);
 });

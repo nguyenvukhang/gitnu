@@ -123,25 +123,11 @@ macro_rules! sh {
 macro_rules! assert_args {
     ($received_app:expr, $expected:expr) => {{
         // extract arguments into a list
-        let cmd = $received_app.cmd();
-        let args = cmd.get_args();
-        let mut all_args: Vec<String> =
-            Vec::with_capacity(cmd.get_args().len() + 1);
-        all_args.push(cmd.get_program().to_string_lossy().to_string());
-        all_args.extend(args.map(|v| v.to_string_lossy().to_string()));
-
-        // remove the sub-sequence ["-c", "color.ui=always"]
-        let remove_index = (0..all_args.len() - 1).find(|i| {
-            all_args[*i].eq("-c") && all_args[i + 1].eq("color.ui=always")
-        });
-        if let Some(i) = remove_index {
-            all_args.remove(i);
-            all_args.remove(i);
-        }
+        let args = $received_app.cmd2.get_string_args();
 
         let expected: Vec<String> =
             $expected.iter().map(|v| v.to_string()).collect();
-        assert_eq!(all_args, expected);
+        assert_eq!(args, expected);
     }};
 }
 

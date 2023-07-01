@@ -11,7 +11,7 @@ test!(staging_files_with_numbers, |t: &Test| {
     sh!(t, "touch A B C D E F G");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-4", "6"]);
-    assert_args!(&app, ["git", "add", "B", "C", "D", "F"]);
+    assert_args!(&app, ["add", "B", "C", "D", "F"]);
 });
 
 // This just tests that the cache can be read more than once.
@@ -22,7 +22,7 @@ test!(range_overlap, |t: &Test| {
     sh!(t, "touch A B C D E F");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-4", "3-5"]);
-    assert_args!(&app, ["git", "add", "B", "C", "D", "C", "D", "E"]);
+    assert_args!(&app, ["add", "B", "C", "D", "C", "D", "E"]);
 });
 
 // Unindexed numbers will appear as the number itself, since it does
@@ -32,7 +32,7 @@ test!(add_unindexed_number, |t: &Test| {
     sh!(t, "touch A B C");
     gitnu!(t, status);
     let app = gitnu!(t, ["add", "2-5"]);
-    assert_args!(&app, ["git", "add", "B", "C", "4", "5"]);
+    assert_args!(&app, ["add", "B", "C", "4", "5"]);
 });
 
 // Both `gitnu status` and `gitnu add <files>` are ran from the same
@@ -43,7 +43,7 @@ test!(not_at_workspace_root, |t: &Test| {
     sh!(t, "touch A B src/C src/D");
     gitnu!(t, "src", ["status"]).run().ok();
     let app = gitnu!(t, "src", ["add", "2", "3"]);
-    assert_args!(&app, ["git", "add", "../B", "./"]);
+    assert_args!(&app, ["add", "../B", "./"]);
 });
 
 // `gitnu status` is ran from a different directory than
@@ -56,7 +56,7 @@ test!(add_and_status_diff_dirs, |t: &Test| {
     sh!(t, "touch A B src/C src/D");
     gitnu!(t, status);
     let app = gitnu!(t, "src", ["add", "2", "3"]);
-    assert_args!(&app, ["git", "add", "../B", "../src/"]);
+    assert_args!(&app, ["add", "../B", "../src/"]);
 });
 
 // If `gitnu status` is ran in a directory that is not in a git
@@ -74,7 +74,7 @@ test!(skip_flags, |t: &Test| {
     sh!(t, "touch A B C");
     gitnu!(t, status);
     let app = gitnu!(t, ["log", "-n", "2", "--oneline", "3"]);
-    assert_args!(&app, ["git", "log", "-n", "2", "--oneline", "C"]);
+    assert_args!(&app, ["log", "-n", "2", "--oneline", "C"]);
 });
 
 // This aims to cover every reachable case in one `gitnu status`
@@ -302,5 +302,5 @@ test!(reset_hard_on_numeric_sha, |t: &Test| {
     sh!(t, "git branch");
     sh!(t, "git nu reset --hard 1234567");
     let app = gitnu!(t, ["reset", "--hard", "1234567"]);
-    assert_args!(&app, ["git", "reset", "--hard", "1234567"]);
+    assert_args!(&app, ["reset", "--hard", "1234567"]);
 });

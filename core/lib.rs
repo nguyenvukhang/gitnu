@@ -3,6 +3,7 @@ use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+mod command;
 mod git;
 mod git_cmd;
 mod parser;
@@ -12,6 +13,7 @@ mod status;
 
 use prelude::*;
 
+use command::Git;
 use git_cmd::GitCommand;
 use pathdiff::diff_paths;
 
@@ -24,11 +26,7 @@ pub const MAX_CACHE_SIZE: usize = 20;
 /// Gitnu's running state.
 #[derive(Debug)]
 pub struct App {
-    /// Controls main flow (read/write/which parser to use)
-    git_command: Option<GitCommand>,
-
-    /// The command that will be ran once all processing is complete.
-    cmd: Command,
+    cmd2: Git,
 
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
@@ -41,14 +39,13 @@ impl App {
     /// Creates a new App instance.
     pub fn new(cwd: PathBuf) -> App {
         let mut cmd = Command::new("git");
-        if atty::is(atty::Stream::Stdout) {
-            cmd.args(["-c", "color.ui=always"]);
-        }
         cmd.current_dir(&cwd);
+        let mut cmd2 = Git::new();
+        cmd2.current_dir(&cwd);
+
         App {
-            git_command: None,
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
-            cmd,
+            cmd2,
             file_prefix: PathBuf::new(),
         }
     }
@@ -57,7 +54,7 @@ impl App {
     pub fn cwd(&self) -> &Path {
         // Unwrap safety is guaranteed by App::new() always
         // initializing `self.cmd` with a value.
-        self.cmd.get_current_dir().unwrap()
+        self.cmd2.get_current_dir().unwrap()
     }
 
     /// Sets the git_command of the App.
@@ -65,22 +62,19 @@ impl App {
     /// It is the responsibility of the programmer to ensure that this
     /// function is only called once per invokation of gitnu.
     pub fn set_git_command(&mut self, git_command: GitCommand) {
-        self.git_command = Some(git_command);
+        self.cmd2.set_subcommand(git_command);
     }
 
     /// Appends an argument to the final command to be ran.
     pub fn arg<S: AsRef<std::ffi::OsStr>>(&mut self, arg: S) {
-        self.cmd.arg(arg);
+        let arg = arg.as_ref();
+        // TODO: fix this unwrap
+        self.cmd2.arg(arg.to_str().unwrap());
     }
 
     /// Get a reference to the current git command detected.
     pub fn git_command(&self) -> Option<&GitCommand> {
-        self.git_command.as_ref()
-    }
-
-    #[cfg(test)]
-    pub fn cmd(&self) -> &Command {
-        &self.cmd
+        self.cmd2.subcommand()
     }
 
     /// Runs Gitnu after all parsing is complete.
@@ -90,45 +84,20 @@ impl App {
             eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
         }
         use GitCommand as G;
-        match self.git_command {
-            Some(G::Status(is_normal)) => status::status(self, is_normal),
+        match self.cmd2.subcommand() {
+            Some(G::Status(is_normal)) => status::status(self, *is_normal),
             Some(G::Version) => {
-                let result = self.cmd.status().to_err().map(|_| ());
+                let result = self.cmd2.status();
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
                 result
             }
-            _ => self.cmd.status().to_err().map(|_| ()),
+            _ => self.cmd2.status(),
         }
     }
 
     /// Returns a complete list of arguments
-    pub fn preview_args(&self) -> Vec<&str> {
-        let args: Vec<_> =
-            self.cmd.get_args().filter_map(|v| v.to_str()).collect();
-
-        let mut ignore = vec![];
-
-        // remove `-c color.ui=always` flag
-        let flag_rm = args.iter().position(|&v| v == "color.ui=always");
-        if let Some(v) = flag_rm {
-            ignore.extend_from_slice(&[v - 1, v]);
-        }
-
-        ignore.sort();
-        ignore.reverse();
-
-        let mut preview = Vec::with_capacity(args.len() + 1);
-        preview.push("git");
-
-        for i in 0..args.len() {
-            if ignore.last() == Some(&i) {
-                ignore.pop();
-                continue;
-            }
-            preview.push(args[i])
-        }
-
-        preview
+    pub fn preview_args(&self) -> Vec<String> {
+        self.cmd2.get_string_args()
     }
 
     /// use the path obtained from `git rev-parse --git-dir` to store the cache.

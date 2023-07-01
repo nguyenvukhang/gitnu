@@ -48,7 +48,7 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
         }
         skip = app.git_command().map_or(false, |v| v.skip_next_arg(&arg));
     }
-    app.cmd.args(args);
+    app.cmd2.args(args);
 }
 
 /// Parses all command-line arguments and returns an App instance that is ready
@@ -103,18 +103,17 @@ mod tests {
         ($received:expr, $expected:expr) => {{
             let expected = {
                 let mut cmd = Command::new("");
-                if atty::is(atty::Stream::Stdout) {
-                    cmd.args(["-c", "color.ui=always"]);
-                }
                 cmd.args($expected);
-                cmd
+                cmd.get_args()
+                    .filter_map(|v| v.to_str())
+                    .map(|v| v.to_string())
+                    .collect::<Vec<_>>()
             };
 
-            if !$received.get_args().eq(expected.get_args()) {
+            if !$received.cmd2.get_string_args().eq(&expected) {
                 panic!(
                     "\nreceived: {:?}\nexpected: {:?}\n",
-                    $received.get_args(),
-                    expected.get_args()
+                    $received, expected
                 )
             }
         }};
@@ -125,40 +124,40 @@ mod tests {
     });
 
     test!(test_single, ["add", "1"], |app: App| {
-        assert_args!(app.cmd(), ["add", "1"]);
+        assert_args!(app, ["add", "1"]);
     });
 
     test!(test_range, ["add", "2-4"], |app: App| {
-        assert_args!(app.cmd(), ["add", "2", "3", "4"]);
+        assert_args!(app, ["add", "2", "3", "4"]);
     });
 
     test!(test_mix, ["add", "8", "2-4"], |app: App| {
-        assert_args!(app.cmd(), ["add", "8", "2", "3", "4"]);
+        assert_args!(app, ["add", "8", "2", "3", "4"]);
     });
 
     // Gitnu will not seek to interfere with these cases smartly.
     test!(test_overlap, ["add", "3-5", "2-4"], |app: App| {
-        assert_args!(app.cmd(), ["add", "3", "4", "5", "2", "3", "4"]);
+        assert_args!(app, ["add", "3", "4", "5", "2", "3", "4"]);
     });
 
     // anything after `--` will also be processed. This is for commands
     // like `git reset` which requires pathspecs to appear after --.
     test!(test_double_dash, ["add", "3-5", "--", "2-4"], |app: App| {
-        assert_args!(app.cmd(), ["add", "3", "4", "5", "--", "2", "3", "4"]);
+        assert_args!(app, ["add", "3", "4", "5", "--", "2", "3", "4"]);
     });
 
     test!(test_zeroes_1, ["add", "0"], |app: App| {
-        assert_args!(app.cmd(), ["add", "0"]);
+        assert_args!(app, ["add", "0"]);
     });
     test!(test_zeroes_2, ["add", "0-1"], |app: App| {
-        assert_args!(app.cmd(), ["add", "0", "1"]);
+        assert_args!(app, ["add", "0", "1"]);
     });
     test!(test_zeroes_3, ["add", "0-0"], |app: App| {
-        assert_args!(app.cmd(), ["add", "0"]);
+        assert_args!(app, ["add", "0"]);
     });
 
     // Filenames containing dashed dates
     test!(test_date_filename, ["add", "2021-01-31"], |app: App| {
-        assert_args!(app.cmd(), ["add", "2021-01-31"]);
+        assert_args!(app, ["add", "2021-01-31"]);
     });
 }
