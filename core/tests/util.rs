@@ -82,7 +82,8 @@ macro_rules! gitnu {
     ($t:expr, $current_dir:expr, $args:expr) => {{
         let git = std::iter::once("git");
         let args = git.chain($args).map(|v| v.to_string());
-        gitnu_parse((&$t.dir).join($current_dir), args)
+        // TODO: remove this unwrap
+        gitnu_parse((&$t.dir).join($current_dir), args).unwrap()
     }};
 }
 

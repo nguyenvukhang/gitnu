@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -14,13 +16,13 @@ fn git<P: AsRef<Path>>(cwd: Option<P>, args: &[&str]) -> Command {
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
-pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Option<PathBuf> {
-    let out = git(Some(cwd), &["rev-parse", "--git-dir"]).output().ok()?;
+pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
+    let out = git(Some(cwd), &["rev-parse", "--git-dir"]).output()?;
     if !out.status.success() {
-        return None;
+        return Err(Error::ProcessError(out.status));
     }
     match String::from_utf8_lossy(&out.stdout).trim() {
-        v if v.is_empty() => None,
-        v => Some(PathBuf::from(v)),
+        v if v.is_empty() => Err(Error::NotFound),
+        v => Ok(PathBuf::from(v)),
     }
 }

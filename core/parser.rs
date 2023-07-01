@@ -1,4 +1,5 @@
-use crate::{App, Cache, GitCommand};
+use crate::prelude::*;
+use crate::{App, GitCommand};
 use std::path::PathBuf;
 
 /// Parses a string into an inclusive range.
@@ -52,20 +53,28 @@ fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
 
 /// Parses all command-line arguments and returns an App instance that is ready
 /// to be ran.
-pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> App {
+pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> Result<App> {
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
 
     pre_cmd(args, &mut app);
 
     if app.git_command().map_or(false, |v| v.should_load_cache()) {
-        app.load_cache();
+        // Fail silently when load_cache returns an Error
+        //
+        // Should probably deal with this but if loading cache fails,
+        // git-nu defaults back to regular git behaviour so there's no
+        // immediate impact.
+        //
+        // TODO: add a user-facing way for git-nu to show git-nu
+        // related errors
+        drop(app.load_cache());
         post_cmd(args, &mut app);
     } else {
         args.for_each(|v| app.arg(v));
     }
 
-    app
+    Ok(app)
 }
 
 #[cfg(test)]
@@ -85,7 +94,7 @@ mod tests {
                 let mut args = vec![""];
                 args.extend($args);
                 let args = args.iter().map(|v| v.to_string());
-                $test(parse(PathBuf::new(), args));
+                $test(parse(PathBuf::new(), args).unwrap());
             }
         };
     }

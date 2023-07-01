@@ -1,21 +1,20 @@
-use std::ffi::OsStr;
+use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-mod cache;
-mod error;
 mod git;
 mod git_cmd;
 mod parser;
 mod pathdiff;
+mod prelude;
 mod status;
 
-use cache::Cache;
-use error::ToGitnuError;
-use git_cmd::GitCommand;
+use prelude::*;
 
-pub use error::GitnuError;
+use git_cmd::GitCommand;
+use pathdiff::diff_paths;
+
 pub use parser::parse;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
@@ -85,7 +84,7 @@ impl App {
     }
 
     /// Runs Gitnu after all parsing is complete.
-    pub fn run(&mut self) -> Result<(), GitnuError> {
+    pub fn run(&mut self) -> Result<()> {
         // print command preview if GITNU_DEBUG environment variable is set
         if std::env::var("GITNU_DEBUG").is_ok() {
             eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
@@ -94,11 +93,11 @@ impl App {
         match self.git_command {
             Some(G::Status(is_normal)) => status::status(self, is_normal),
             Some(G::Version) => {
-                let result = self.cmd.status().gitnu_err().map(|_| ());
+                let result = self.cmd.status().to_err().map(|_| ());
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
                 result
             }
-            _ => self.cmd.status().gitnu_err().map(|_| ()),
+            _ => self.cmd.status().to_err().map(|_| ()),
         }
     }
 
@@ -130,6 +129,45 @@ impl App {
         }
 
         preview
+    }
+
+    /// use the path obtained from `git rev-parse --git-dir` to store the cache.
+    /// this is usually the .git folder of regular repositories, and somewhere
+    /// deeper for worktrees.
+    fn cache_path(&self) -> Result<PathBuf> {
+        let cwd = self.cwd();
+        let git_dir = git::git_dir(&cwd)?;
+        // git.stdout returns the git-dir relative to cwd,
+        // so prepend it with current dir
+        let mut path = cwd.join(git_dir);
+        path.push("gitnu.txt");
+        Ok(path)
+    }
+
+    /// Adds a range of files by index as arguments to the `Command` that will
+    /// eventually be run.
+    ///
+    /// Loads files indexed [start, end] (inclusive)
+    fn load_range(&mut self, start: usize, end: usize) {
+        (start..end + 1).for_each(|n| match self.cache.get(n) {
+            Some(pathspec) => self.arg(self.file_prefix.join(pathspec)),
+            None => self.arg(n.to_string()),
+        });
+    }
+
+    /// Eagerly loads cache file into buffer without actually reading any lines
+    /// yet. Should only be called when confirmed App's git_command is of the
+    /// `Number` variant.
+    fn load_cache(&mut self) -> Result<()> {
+        self.cache = vec!["0".to_string()];
+        // TODO: rewrite cache operaitions to all return Result
+        if let Ok(file) = File::open(self.cache_path()?) {
+            let mut buffer = BufReader::new(file).lines();
+            let cache_cwd = PathBuf::from(buffer.next().unwrap().unwrap());
+            self.file_prefix = diff_paths(cache_cwd, self.cwd()).unwrap();
+            self.cache.extend(buffer.filter_map(|v| v.ok()));
+        }
+        Ok(())
     }
 }
 
