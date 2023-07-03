@@ -1,5 +1,5 @@
 #[rustfmt::skip]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum GitCommand {
     // full list found from running `git help --all`
     Status(bool),

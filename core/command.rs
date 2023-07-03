@@ -19,7 +19,7 @@ impl Git {
         let mut git = Self {
             cmd: Command::new("git"),
             subcommand: None,
-            hidden_args: vec![],
+            hidden_args: Vec::with_capacity(2),
         };
         if atty::is(atty::Stream::Stdout) {
             git.hidden_args(["-c", "color.ui=always"]);
@@ -72,28 +72,34 @@ impl Git {
     /// Appends an argument to the underlying command, and updates the
     /// `subcommand` field if it's blank and the new arg is a git
     /// command.
-    pub fn arg(&mut self, arg: &str) {
+    ///
+    /// Returns Some() if a git command is found (None if not a git command)
+    /// and Some(true) only if the git command requires cache to be loaded
+    pub fn arg(&mut self, arg: &str) -> Option<bool> {
         if let None = self.subcommand {
             if let Ok(sub) = GitCommand::try_from(arg) {
-                self.subcommand = Some(sub)
+                let needs_cache = sub.should_load_cache();
+                self.subcommand = Some(sub);
+                self.cmd.arg(arg);
+                return Some(needs_cache);
             }
         }
         self.cmd.arg(arg);
+        None
     }
 
-    pub fn args<I, S>(&mut self, args: I)
+    /// Append arg to self without checking if it's a git command or not
+    pub fn arg_unchecked<S: AsRef<OsStr>>(&mut self, arg: S) {
+        self.cmd.arg(arg);
+    }
+
+    /// Append args to self without checking if it's a git command or not
+    pub fn args_unchecked<I, S>(&mut self, args: I)
     where
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
     {
         self.cmd.args(args);
-    }
-
-    /// Appends an argument to the underlying command, and updates the
-    /// `subcommand` field if it's blank and the new arg is a git
-    /// command.
-    pub fn arg_pathspec<S: AsRef<OsStr>>(&mut self, arg: S) {
-        self.cmd.arg(arg);
     }
 
     pub fn current_dir<P: AsRef<Path>>(&mut self, dir: P) {

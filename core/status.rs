@@ -1,9 +1,8 @@
 use crate::prelude::*;
-use crate::{lines, App, ToError, MAX_CACHE_SIZE};
+use crate::{App, ToError, MAX_CACHE_SIZE};
 
 use std::fs::File;
-use std::io::{LineWriter, Write};
-use std::process::Stdio;
+use std::io::{BufRead, BufReader, LineWriter, Write};
 
 /// Removes all ANSI color codes
 pub fn uncolor(src: &str) -> Vec<u8> {
@@ -108,10 +107,10 @@ impl<I: Iterator<Item = String>> Writer for I {
 /// Runs `git status` then parses its output, enumerates it, and
 /// prints it out to stdout.
 pub fn status(app: &mut App, is_normal: bool) -> Result<()> {
-    let mut git = app.cmd2.spawn_piped()?;
+    let mut git = app.git.spawn_piped()?;
 
     let lines = match git.stdout.take() {
-        Some(v) => lines(v),
+        Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
         None => return git.wait().to_err().map(|_| ()),
     };
     let writer = &mut LineWriter::new(File::create(app.cache_path()?)?);

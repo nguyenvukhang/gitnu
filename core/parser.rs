@@ -14,65 +14,51 @@ fn parse_range(arg: &str) -> Option<[usize; 2]> {
     })
 }
 
-/// parse arguments before the git command
-/// for a list of all git commands, see ./git_cmd.rs
-fn pre_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
-    while let Some(arg) = args.next() {
-        let arg = arg.as_str();
-        if let Ok(git_cmd) = GitCommand::try_from(arg) {
-            app.set_git_command(git_cmd);
-        } else if arg.eq("--version") {
-            app.set_git_command(GitCommand::Version);
-        }
-        app.arg(arg);
-        if app.git_command().is_some() {
-            break;
-        }
-    }
-}
-
-/// parse arguments after the git command
-/// for a list of all git commands, see ./git_cmd.rs
-fn post_cmd<I: Iterator<Item = String>>(args: &mut I, app: &mut App) {
-    let mut skip = false;
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--short" | "-s" | "--porcelain" => {
-                app.set_git_command(GitCommand::Status(false))
-            }
-            _ => (),
-        }
-        match (skip, parse_range(&arg)) {
-            (false, Some([s, e])) => app.load_range(s, e),
-            _ => app.arg(&arg),
-        }
-        skip = app.git_command().map_or(false, |v| v.skip_next_arg(&arg));
-    }
-    app.cmd2.args(args);
-}
-
 /// Parses all command-line arguments and returns an App instance that is ready
 /// to be ran.
 pub fn parse<I: Iterator<Item = String>>(cwd: PathBuf, args: I) -> Result<App> {
     let mut app = App::new(cwd);
     let args = &mut args.skip(1);
 
-    pre_cmd(args, &mut app);
-
-    if app.git_command().map_or(false, |v| v.should_load_cache()) {
-        // Fail silently when load_cache returns an Error
-        //
-        // Should probably deal with this but if loading cache fails,
-        // git-nu defaults back to regular git behaviour so there's no
-        // immediate impact.
-        //
-        // TODO: add a user-facing way for git-nu to show git-nu
-        // related errors
-        drop(app.load_cache());
-        post_cmd(args, &mut app);
-    } else {
-        args.for_each(|v| app.arg(v));
+    while let Some(arg) = args.next() {
+        if arg.eq("--version") {
+            app.git.set_subcommand(GitCommand::Version);
+            break;
+        }
+        if let Some(true) = app.git.arg(&arg) {
+            // Fail silently when load_cache returns an Error
+            //
+            // Should probably deal with this but if loading cache fails,
+            // git-nu defaults back to regular git behaviour so there's no
+            // immediate impact.
+            //
+            // TODO: add a user-facing way for git-nu to show git-nu
+            // related errors
+            drop(app.load_cache());
+            break;
+        }
     }
+
+    let git_command = match app.git.subcommand().map(|v| v.clone()) {
+        None => return Ok(app),
+        Some(v) => v,
+    };
+
+    let mut skip = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--short" | "-s" | "--porcelain" => {
+                app.git.set_subcommand(GitCommand::Status(false))
+            }
+            _ => (),
+        }
+        match (skip, parse_range(&arg)) {
+            (false, Some([s, e])) => app.load_range(s, e),
+            _ => app.git.arg_unchecked(&arg),
+        }
+        skip = git_command.skip_next_arg(&arg);
+    }
+    app.git.args_unchecked(args);
 
     Ok(app)
 }
@@ -110,17 +96,15 @@ mod tests {
                     .collect::<Vec<_>>()
             };
 
-            if !$received.cmd2.get_string_args().eq(&expected) {
-                panic!(
-                    "\nreceived: {:?}\nexpected: {:?}\n",
-                    $received, expected
-                )
+            let received = $received.git.get_string_args();
+            if !received.eq(&expected) {
+                panic!("\nreceived: {:?}\nexpected: {:?}\n", received, expected)
             }
         }};
     }
 
     test!(test_status, "/home", ["-C", "/tmp", "status"], |app: App| {
-        assert_eq!(app.git_command(), Some(&GitCommand::Status(true)));
+        assert_eq!(app.git.subcommand(), Some(&GitCommand::Status(true)));
     });
 
     test!(test_single, ["add", "1"], |app: App| {

@@ -123,7 +123,7 @@ macro_rules! sh {
 macro_rules! assert_args {
     ($received_app:expr, $expected:expr) => {{
         // extract arguments into a list
-        let args = $received_app.cmd2.get_string_args();
+        let args = $received_app.git.get_string_args();
 
         let expected: Vec<String> =
             $expected.iter().map(|v| v.to_string()).collect();

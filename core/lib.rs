@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -26,7 +26,7 @@ pub const MAX_CACHE_SIZE: usize = 20;
 /// Gitnu's running state.
 #[derive(Debug)]
 pub struct App {
-    cmd2: Git,
+    git: Git,
 
     /// Cache that came from latest run of `gitnu status`
     cache: Vec<String>,
@@ -40,12 +40,12 @@ impl App {
     pub fn new(cwd: PathBuf) -> App {
         let mut cmd = Command::new("git");
         cmd.current_dir(&cwd);
-        let mut cmd2 = Git::new();
-        cmd2.current_dir(&cwd);
+        let mut git = Git::new();
+        git.current_dir(&cwd);
 
         App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
-            cmd2,
+            git,
             file_prefix: PathBuf::new(),
         }
     }
@@ -54,27 +54,7 @@ impl App {
     pub fn cwd(&self) -> &Path {
         // Unwrap safety is guaranteed by App::new() always
         // initializing `self.cmd` with a value.
-        self.cmd2.get_current_dir().unwrap()
-    }
-
-    /// Sets the git_command of the App.
-    ///
-    /// It is the responsibility of the programmer to ensure that this
-    /// function is only called once per invokation of gitnu.
-    pub fn set_git_command(&mut self, git_command: GitCommand) {
-        self.cmd2.set_subcommand(git_command);
-    }
-
-    /// Appends an argument to the final command to be ran.
-    pub fn arg<S: AsRef<std::ffi::OsStr>>(&mut self, arg: S) {
-        let arg = arg.as_ref();
-        // TODO: fix this unwrap
-        self.cmd2.arg(arg.to_str().unwrap());
-    }
-
-    /// Get a reference to the current git command detected.
-    pub fn git_command(&self) -> Option<&GitCommand> {
-        self.cmd2.subcommand()
+        self.git.get_current_dir().unwrap()
     }
 
     /// Runs Gitnu after all parsing is complete.
@@ -84,20 +64,20 @@ impl App {
             eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
         }
         use GitCommand as G;
-        match self.cmd2.subcommand() {
+        match self.git.subcommand() {
             Some(G::Status(is_normal)) => status::status(self, *is_normal),
             Some(G::Version) => {
-                let result = self.cmd2.status();
+                let result = self.git.status();
                 println!("gitnu version {}", VERSION.unwrap_or("unknown"));
                 result
             }
-            _ => self.cmd2.status(),
+            _ => self.git.status(),
         }
     }
 
     /// Returns a complete list of arguments
     pub fn preview_args(&self) -> Vec<String> {
-        self.cmd2.get_string_args()
+        self.git.get_string_args()
     }
 
     /// use the path obtained from `git rev-parse --git-dir` to store the cache.
@@ -119,8 +99,10 @@ impl App {
     /// Loads files indexed [start, end] (inclusive)
     fn load_range(&mut self, start: usize, end: usize) {
         (start..end + 1).for_each(|n| match self.cache.get(n) {
-            Some(pathspec) => self.arg(self.file_prefix.join(pathspec)),
-            None => self.arg(n.to_string()),
+            Some(pathspec) => {
+                self.git.arg_unchecked(self.file_prefix.join(pathspec));
+            }
+            None => self.git.arg_unchecked(n.to_string()),
         });
     }
 
@@ -129,21 +111,15 @@ impl App {
     /// `Number` variant.
     fn load_cache(&mut self) -> Result<()> {
         self.cache = vec!["0".to_string()];
-        // TODO: rewrite cache operaitions to all return Result
         if let Ok(file) = File::open(self.cache_path()?) {
-            let mut buffer = BufReader::new(file).lines();
-            let cache_cwd = PathBuf::from(buffer.next().unwrap().unwrap());
-            self.file_prefix = diff_paths(cache_cwd, self.cwd()).unwrap();
-            self.cache.extend(buffer.filter_map(|v| v.ok()));
+            let mut buf = BufReader::new(file).lines().filter_map(|v| v.ok());
+            let cache_cwd = PathBuf::from(buf.next().unwrap());
+            self.file_prefix =
+                diff_paths(cache_cwd, self.cwd()).unwrap_or_default();
+            self.cache.extend(buf);
         }
         Ok(())
     }
-}
-
-/// Conveniently converts either a `File` or `Output` into an iterator of
-/// `String`s, dropping the invalid ones.
-fn lines<R: Read>(src: R) -> impl Iterator<Item = String> {
-    BufReader::new(src).lines().filter_map(|v| v.ok())
 }
 
 #[cfg(test)]
