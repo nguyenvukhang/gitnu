@@ -59,8 +59,6 @@ impl App {
 
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<()> {
-        git::git_aliases(self.cwd()).ok();
-        return Ok(());
         // print command preview if GITNU_DEBUG environment variable is set
         if std::env::var("GITNU_DEBUG").is_ok() {
             eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
@@ -120,6 +118,11 @@ impl App {
                 diff_paths(cache_cwd, self.cwd()).unwrap_or_default();
             self.cache.extend(buf);
         }
+        Ok(())
+    }
+
+    pub fn debug(&self) -> Result<()> {
+        git::git_aliases(self.cwd()).ok();
         Ok(())
     }
 }
