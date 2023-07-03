@@ -54,6 +54,10 @@ impl GitCommand {
             _ => false,
         }
     }
+
+    pub fn is_command(text: &str) -> bool {
+        GitCommand::try_from(text).is_ok()
+    }
 }
 
 impl TryFrom<&str> for GitCommand {

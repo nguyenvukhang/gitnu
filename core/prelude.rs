@@ -4,6 +4,7 @@ use std::process::ExitStatus;
 #[derive(Debug)]
 pub enum Error {
     NotFound,
+    Empty,
     ProcessError(ExitStatus),
     IoError(io::Error),
 }
