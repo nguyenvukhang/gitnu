@@ -124,6 +124,6 @@ impl Git {
     }
 
     pub fn spawn_piped(&mut self) -> Result<Child> {
-        Ok(self.cmd.stdout(Stdio::piped()).spawn()?)
+        Ok(self.cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?)
     }
 }
