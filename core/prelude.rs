@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::io;
 use std::process::ExitStatus;
 
@@ -8,15 +9,23 @@ pub enum Error {
     Empty,
     ProcessError(ExitStatus),
     IoError(io::Error),
+    ThreadError(Box<dyn Any + Send + 'static>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IoError(err)
-    }
+macro_rules! from {
+    ($from:ty, $variant:ident, $parent:ident) => {
+        impl From<$from> for $parent {
+            fn from(err: $from) -> $parent {
+                $parent::$variant(err)
+            }
+        }
+    };
 }
+
+from!(io::Error, IoError, Error);
+from!(Box<dyn Any + Send + 'static>, ThreadError, Error);
 
 impl Error {
     pub fn code(&self) -> u8 {

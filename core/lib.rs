@@ -58,14 +58,14 @@ impl App {
         let mut git = Git::new();
         git.current_dir(&cwd);
 
-        let git_dir = h_git_dir.join();
-        let git_aliases = h_git_aliases.join();
+        let git_dir = h_git_dir.join()?;
+        let git_aliases = h_git_aliases.join()??;
 
         let mut app = App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
             git,
             file_prefix: None,
-            git_dir: PathBuf::new(),
+            git_dir: git_dir.unwrap_or_default(),
         };
 
         match app.load_cache() {
