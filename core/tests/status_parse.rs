@@ -13,7 +13,7 @@ test!(git_add_untracked, |t: &Test| {
     sh!(t, "touch A");
 
     // status appearance
-    assert_eq_pretty!(
+    assert_eq!(
         sh!(t, "git status").stdout,
         "\
 On branch main\n
@@ -35,7 +35,7 @@ test!(git_add_modified, |t: &Test| {
     fs::write(t.dir.join("A"), b"content").unwrap();
 
     // status appearance
-    assert_eq_pretty!(
+    assert_eq!(
         sh!(t, "git status").stdout,
         "\
 On branch main
@@ -56,7 +56,7 @@ test!(git_add_deleted, |t: &Test| {
     sh!(t, "rm A");
 
     // status appearance
-    assert_eq_pretty!(
+    assert_eq!(
         sh!(t, "git status").stdout,
         "\
 On branch main
@@ -94,7 +94,7 @@ test!(git_add_both_modified, |t: &Test| {
     sh!(t, "git merge LEFT");
 
     // status appearance
-    assert_eq_pretty!(
+    assert_eq!(
         sh!(t, "git status").stdout,
         "\
 On branch RIGHT

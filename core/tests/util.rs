@@ -32,7 +32,6 @@ pub fn write(t: &Test, file: &str, contents: &str) {
 }
 
 /// Runs the test in an isolated directory.
-#[macro_export]
 macro_rules! test {
     ($name:ident, $fun:expr) => {
         #[test]
@@ -70,7 +69,6 @@ macro_rules! test {
 }
 
 /// Quickly mock up a gitnu app instance with an optional cwd.
-#[macro_export]
 macro_rules! gitnu {
     ($t:expr, status) => {{
         gitnu!($t, ["status"]).run().ok()
@@ -89,7 +87,6 @@ macro_rules! gitnu {
 }
 
 // Run a shell command and extract its stdout and exit code
-#[macro_export]
 macro_rules! sh {
     ($t:expr, $cmd:expr) => {
         sh!($t, "", $cmd)
@@ -130,7 +127,6 @@ macro_rules! sh {
 
 /// Makes an assertion of the list of command line arguments that
 /// `gitnu` will pass back to the terminal after processing.
-#[macro_export]
 macro_rules! assert_args {
     ($received_app:expr, $expected:expr) => {{
         // extract arguments into a list
@@ -140,23 +136,4 @@ macro_rules! assert_args {
             $expected.iter().map(|v| v.to_string()).collect();
         assert_eq!(args, expected);
     }};
-}
-
-#[macro_export]
-macro_rules! assert_eq_pretty {
-    ($received:expr, $expected:expr) => {
-        if $received != $expected {
-            panic!(
-                "
-\x1b[0;31mReceived:\x1b[0m
-{received:?}
-─────────────────────────────────────────────────────────────
-\x1b[0;32mExpected:\x1b[0m
-{expected:?}
-",
-                received = $received,
-                expected = $expected
-            );
-        }
-    };
 }

@@ -1,17 +1,18 @@
+#[macro_use]
+mod prelude;
+
+#[cfg(test)]
+mod tests;
+
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
-
-#[cfg(test)]
-#[macro_use]
-mod tests;
 
 mod command;
 mod git;
 mod git_cmd;
 mod parser;
 mod pathdiff;
-mod prelude;
 mod status;
 
 use prelude::*;

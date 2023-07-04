@@ -82,7 +82,7 @@ mod tests {
             let expected =
                 $expected.iter().map(|v| v.to_string()).collect::<Vec<_>>();
             let received = $received.git.get_string_args();
-            assert_eq_pretty!(received, expected);
+            assert_eq!(received, expected);
         }};
     }
 

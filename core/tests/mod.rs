@@ -66,7 +66,7 @@ test!(add_and_status_diff_dirs, |t| {
 // workspace, then do not create the cache file.
 test!(dont_create_cache_file_without_repo, |t| {
     gitnu!(t, status);
-    assert_eq_pretty!(sh!(t, "ls -lA").stdout.trim(), "total 0");
+    assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 
 // Determined in ../git_cmd.rs
@@ -107,7 +107,7 @@ test!(status_display, |t| {
     // stage about half of the changes
     sh!(t, "git add A B C D E _E");
     let output = sh!(t, format!("git nu status"));
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         "\
 On branch main
@@ -160,7 +160,7 @@ test!(merge_conflict_display, |t| {
     gitnu!(t, ["add", "2"]).run().ok();
 
     let output = sh!(t, format!("git nu status"));
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         "\
 On branch RIGHT
@@ -185,7 +185,7 @@ test!(detached_head_display, |t| {
     let sha = sha.stdout.trim();
 
     let output = sh!(t, format!("git nu status"));
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         format!(
             "\
@@ -235,7 +235,7 @@ test!(different_workspace, |t| {
     sh!(t, "two", "git -C ../one nu add 1");
 
     let status = sh!(t, "two", "git -C ../one nu status");
-    assert_eq_pretty!(
+    assert_eq!(
         status.stdout,
         "\
 On branch one
@@ -260,7 +260,7 @@ test!(max_cache_size_exceeded, |t| {
     sh!(t, &touch_args);
     gitnu!(t, status);
     let output = sh!(t, "git nu status");
-    assert_eq_pretty!(
+    assert_eq!(
         output.stdout,
         "\
         On branch main
