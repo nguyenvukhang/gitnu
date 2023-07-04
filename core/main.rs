@@ -5,7 +5,8 @@ const DEBUG_MODE: bool = false;
 
 fn main() -> ExitCode {
     let cwd = current_dir().unwrap_or_default();
-    let app = gitnu::parse(cwd, args());
+    let app = gitnu::App::new(cwd);
+    let app = app.parse(args());
     match app.and_then(|mut v| match DEBUG_MODE {
         true => v.debug(),
         false => v.run(),

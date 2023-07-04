@@ -4,7 +4,7 @@ macro_rules! check {
     ($test:expr, $received:expr, $expected:expr) => {
         gitnu!($test, status);
         let app = gitnu!($test, $received);
-        assert_args!(&app, $expected);
+        assert_args!(app, $expected);
     };
 }
 

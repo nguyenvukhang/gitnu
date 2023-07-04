@@ -3,6 +3,7 @@ use std::process::ExitStatus;
 
 #[derive(Debug)]
 pub enum Error {
+    NotGitRepository,
     NotFound,
     Empty,
     ProcessError(ExitStatus),
@@ -21,6 +22,7 @@ impl Error {
     pub fn code(&self) -> u8 {
         match self {
             Error::ProcessError(e) => e.code().unwrap_or(1) as u8,
+            Error::NotGitRepository => 128,
             _ => 1,
         }
     }

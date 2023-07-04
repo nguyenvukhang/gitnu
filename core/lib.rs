@@ -1,6 +1,10 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
+
+#[cfg(test)]
+#[macro_use]
+mod tests;
 
 mod command;
 mod git;
@@ -15,8 +19,6 @@ use prelude::*;
 use command::Git;
 use git_cmd::GitCommand;
 use pathdiff::diff_paths;
-
-pub use parser::parse;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
@@ -45,11 +47,21 @@ impl App {
         let mut git = Git::new();
         git.current_dir(&cwd);
 
-        App {
+        let mut app = App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
             git,
             file_prefix: None,
+        };
+
+        match app.load_cache() {
+            Ok(_) => {}
+            Err(e) => match e {
+                Error::NotGitRepository => {}
+                _ => Err(e).unwrap(),
+            },
         }
+
+        app
     }
 
     /// Get the current directory of the app
@@ -62,9 +74,13 @@ impl App {
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<()> {
         // print command preview if GITNU_DEBUG environment variable is set
-        if std::env::var("GITNU_DEBUG").is_ok() {
-            eprintln!("\x1b[0;30m{}\x1b[0m", self.preview_args().join(" "));
-        }
+        let _ = std::env::var("GITNU_DEBUG").map(|v| match v.as_str() {
+            "1" => {
+                let output_args = self.git.get_string_args();
+                eprintln!("\x1b[0;30m{}\x1b[0m", output_args.join(" "))
+            }
+            _ => {}
+        });
         use GitCommand as G;
         match self.git.subcommand() {
             Some(G::Status(is_normal)) => status::status(self, *is_normal),
@@ -116,13 +132,19 @@ impl App {
 
     fn load_cache(&mut self) -> Result<()> {
         debug_assert!(self.cache.is_empty());
+        let cache_path = self.cache_path()?;
         self.cache.push(0.to_string());
-        if let Ok(file) = File::open(self.cache_path()?) {
-            let mut buf = BufReader::new(file).lines().filter_map(|v| v.ok());
-            let cache_cwd = PathBuf::from(buf.next().unwrap());
-            self.file_prefix = diff_paths(cache_cwd, self.cwd());
-            self.cache.extend(buf);
-        }
+        let file = match File::open(cache_path) {
+            Ok(v) => v,
+            Err(e) => match e.kind() {
+                io::ErrorKind::NotFound => return Ok(()),
+                _ => Err(e)?,
+            },
+        };
+        let mut buf = BufReader::new(file).lines().filter_map(|v| v.ok());
+        let cache_cwd = PathBuf::from(buf.next().unwrap());
+        self.file_prefix = diff_paths(cache_cwd, self.cwd());
+        self.cache.extend(buf);
         Ok(())
     }
 
@@ -131,6 +153,3 @@ impl App {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests;

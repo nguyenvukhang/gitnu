@@ -6,10 +6,12 @@ use std::os::unix;
 use util::*;
 
 // staging files with numbers
-test!(staging_files_with_numbers, |t: &Test| {
+test!(staging_files_with_numbers, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A B C D E F G");
     gitnu!(t, status);
+    let output = sh!(t, "ls -A .git");
+    println!("output: {output:?}");
     let app = gitnu!(t, ["add", "2-4", "6"]);
     assert_args!(&app, ["add", "B", "C", "D", "F"]);
 });
@@ -17,7 +19,7 @@ test!(staging_files_with_numbers, |t: &Test| {
 // This just tests that the cache can be read more than once.
 // Possible idea: make the cache readable only once.
 // (If a number is called again, just insert nothing.)
-test!(range_overlap, |t: &Test| {
+test!(range_overlap, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A B C D E F");
     gitnu!(t, status);
@@ -27,7 +29,7 @@ test!(range_overlap, |t: &Test| {
 
 // Unindexed numbers will appear as the number itself, since it does
 // not correspond to any file.
-test!(add_unindexed_number, |t: &Test| {
+test!(add_unindexed_number, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A B C");
     gitnu!(t, status);
@@ -37,18 +39,19 @@ test!(add_unindexed_number, |t: &Test| {
 
 // Both `gitnu status` and `gitnu add <files>` are ran from the same
 // directory, but that directory is not the workspace root
-test!(not_at_workspace_root, |t: &Test| {
+test!(not_at_workspace_root, |t| {
     sh!(t, "git init -b main");
     sh!(t, "mkdir src");
     sh!(t, "touch A B src/C src/D");
     gitnu!(t, "src", ["status"]).run().ok();
     let app = gitnu!(t, "src", ["add", "2", "3"]);
+    sh!(t, "cat .git/gitnu.txt");
     assert_args!(&app, ["add", "../B", "./"]);
 });
 
 // `gitnu status` is ran from a different directory than
 // `gitnu add <files>`
-test!(add_and_status_diff_dirs, |t: &Test| {
+test!(add_and_status_diff_dirs, |t| {
     // `gitnu status` will be ran from <root>, and
     // `gitnu add` will be ran from <root>/src
     sh!(t, "git init -b main");
@@ -61,7 +64,7 @@ test!(add_and_status_diff_dirs, |t: &Test| {
 
 // If `gitnu status` is ran in a directory that is not in a git
 // workspace, then do not create the cache file.
-test!(dont_create_cache_file_without_repo, |t: &Test| {
+test!(dont_create_cache_file_without_repo, |t| {
     gitnu!(t, status);
     assert_eq_pretty!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
@@ -69,7 +72,7 @@ test!(dont_create_cache_file_without_repo, |t: &Test| {
 // Determined in ../git_cmd.rs
 // where it's specified if a command should be skipped because it might
 // be part of a flag value
-test!(skip_flags, |t: &Test| {
+test!(skip_flags, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A B C");
     gitnu!(t, status);
@@ -81,7 +84,7 @@ test!(skip_flags, |t: &Test| {
 // Note that this doesn't cover:
 //   1. merge conflict status
 //   2. detached head status
-test!(status_display, |t: &Test| {
+test!(status_display, |t| {
     sh!(t, "git init -b main");
     for file in "A B C D E F G H I".split(' ') {
         write(t, file, &format!("contents::{file}"));
@@ -129,7 +132,7 @@ Untracked files:
 });
 
 // Special display case 1 of 2: Merge conflict
-test!(merge_conflict_display, |t: &Test| {
+test!(merge_conflict_display, |t| {
     // create base commit
     sh!(t, "git init -b main");
     sh!(t, "touch base");
@@ -172,7 +175,7 @@ Changes to be committed:
 });
 
 // Special display case 2 of 2: Detached Head
-test!(detached_head_display, |t: &Test| {
+test!(detached_head_display, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A && git add A && git commit -m 'A'");
     sh!(t, "touch B && git add B && git commit -m 'B'");
@@ -199,12 +202,13 @@ nothing added to commit but untracked files present
 
 // Ensure that `gitnu` exit codes match those of `git`. This means
 // that error handling bubbles up properly.
-test!(exit_codes, |t: &Test| {
+test!(exit_codes, |t| {
     macro_rules! assert_code {
         ($cmd:expr, $code:expr) => {
             assert_eq!(sh!(t, $cmd).exit_code, Some($code));
         };
     }
+    // ran outside of a repository
     assert_code!("git status", 128);
     assert_code!("git nu status", 128);
 
@@ -214,6 +218,7 @@ test!(exit_codes, |t: &Test| {
     assert_code!("git stat", 1);
     assert_code!("git nu stat", 1);
 
+    // ran inside of a repository
     sh!(t, "git init -b main");
 
     assert_code!("git status", 0);
@@ -221,7 +226,7 @@ test!(exit_codes, |t: &Test| {
 });
 
 // Run `gitnu` from a different repository using the `-C` flag.
-test!(different_workspace, |t: &Test| {
+test!(different_workspace, |t| {
     sh!(t, "mkdir one two");
     sh!(t, "one", "git init -b one");
     sh!(t, "two", "git init -b two");
@@ -248,7 +253,7 @@ Untracked files:
 });
 
 // staging files with numbers
-test!(max_cache_size_exceeded, |t: &Test| {
+test!(max_cache_size_exceeded, |t| {
     sh!(t, "git init -b main");
     let mut touch_args = "touch".to_string();
     (1..25).for_each(|i| touch_args += &format!(" f{i:0>2}"));
@@ -294,7 +299,7 @@ nothing added to commit but untracked files present
 });
 
 // git reset --hard
-test!(reset_hard_on_numeric_sha, |t: &Test| {
+test!(reset_hard_on_numeric_sha, |t| {
     sh!(t, "git init -b 1234567");
     sh!(t, "touch A && git add A && git commit -m 'first'");
     sh!(t, "git checkout -b main");

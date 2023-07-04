@@ -3,9 +3,10 @@ GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 PY_UTILS := python3 scripts/utils.py
+ONE_TEST := parser::tests::test_date_filename
 
 current:
-	make ci-test
+	make test
 
 install:
 	make build
@@ -16,12 +17,16 @@ dev:
 	cargo test --lib
 
 build:
-	cargo build --release
+	cargo build --bin git-nu --release
 	@echo "Release build complete."
 
 test:
 	cargo build
-	cargo test --lib
+	GITNU_DEBUG=0 cargo test --lib
+
+test-one:
+	cargo build
+	GITNU_DEBUG=0 cargo test $(ONE_TEST)
 
 # copies built binary to a path specified by $BIN
 load-bin:
@@ -38,12 +43,5 @@ ci-git-user:
 
 py:
 	@$(PY_UTILS) $(ARG)
-
-ci-build:
-	cargo build --bin git-nu --release
-
-ci-test:
-	cargo build
-	cargo test --lib
 
 .PHONY: test load-bin

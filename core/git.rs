@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output, Stdio};
+use std::process::{Command, Stdio};
 
 fn git<P: AsRef<Path>>(cwd: Option<P>, args: &[&str]) -> Command {
     let mut git = Command::new("git");
@@ -17,20 +17,21 @@ fn git<P: AsRef<Path>>(cwd: Option<P>, args: &[&str]) -> Command {
     git
 }
 
-fn git_output<P: AsRef<Path>>(cwd: Option<P>, args: &[&str]) -> Result<Output> {
-    let out = git(cwd, args).output()?;
-    if !out.status.success() {
-        return Err(Error::ProcessError(out.status));
-    }
-    Ok(out)
-}
-
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
 pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
-    let out = git_output(Some(cwd), &["rev-parse", "--git-dir"])?;
-    Ok(PathBuf::from(String::from_utf8_lossy(&out.stdout).trim()))
+    let mut command = git(Some(cwd), &["rev-parse", "--git-dir"]);
+    let output = match command.output() {
+        Ok(v)
+            if String::from_utf8_lossy(&v.stderr)
+                .contains("fatal: not a git repository") =>
+        {
+            return Err(Error::NotGitRepository);
+        }
+        v => v?,
+    };
+    Ok(PathBuf::from(String::from_utf8_lossy(&output.stdout).trim()))
 }
 
 /// Get a HashMap of git aliases for git commands

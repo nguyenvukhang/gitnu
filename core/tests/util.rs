@@ -38,8 +38,6 @@ macro_rules! test {
         #[test]
         fn $name() {
             #[allow(unused)]
-            use crate::parse as gitnu_parse;
-            #[allow(unused)]
             use std::{env, fs, path::PathBuf, process::Command};
 
             fn f() {}
@@ -65,7 +63,8 @@ macro_rules! test {
             env::set_var("PATH", format!("{}:{path}", bin.to_string_lossy()));
 
             // run the test
-            $fun(&Test { dir: test_dir });
+            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
+            fun(&Test { dir: test_dir });
         }
     };
 }
@@ -79,11 +78,13 @@ macro_rules! gitnu {
     ($t:expr, $args:expr) => {{
         gitnu!($t, "", $args)
     }};
-    ($t:expr, $current_dir:expr, $args:expr) => {{
+    ($t:expr, $relative_dir:expr, $args:expr) => {{
         let git = std::iter::once("git");
         let args = git.chain($args).map(|v| v.to_string());
+        println!("{:?}", args.clone().collect::<Vec<_>>());
+        let app = $crate::App::new((&$t.dir).join($relative_dir));
         // TODO: remove this unwrap
-        gitnu_parse((&$t.dir).join($current_dir), args).unwrap()
+        app.parse(args).unwrap()
     }};
 }
 
@@ -97,20 +98,30 @@ macro_rules! sh {
         Command::new("sh")
             .current_dir(&$t.dir.join($cwd))
             .arg("-c")
-            .arg($cmd.replace("git", "git -c advice.statusHints=false"))
+            .arg({
+                if $cmd.starts_with("git") {
+                    $cmd.replace("git", "git -c advice.statusHints=false")
+                } else {
+                    $cmd.to_string()
+                }
+            })
             .output()
             .map(|v| {
+
+                let line = "─────────────────────────";
                 let stdout = String::from_utf8_lossy(&v.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&v.stderr).to_string();
                 let dir = &$t.dir.join($cwd);
-                let dir = dir.to_string_lossy();
-                println!("[{}] {}", &dir[dir.len() - 30..], $cmd);
+                println!("╭{line} RUN SH {line}╮");
+                println!("dir: {}", dir.to_string_lossy());
+                println!("cmd: \x1b[0;32m{}\x1b[0m", $cmd);
                 if !stdout.is_empty() {
-                    println!("[stdout]\n{}", stdout);
+                    println!(" {line} STDOUT {line}\n{}", stdout);
                 }
                 if !stderr.is_empty() {
-                    println!("[stderr]\n({})", stderr);
+                    println!(" {line} STDERR {line}\n{}", stderr);
                 }
+                println!("╰{line}────────{line}╯");
                 Output { stdout, exit_code: v.status.code() }
             })
             .unwrap()
@@ -136,14 +147,13 @@ macro_rules! assert_eq_pretty {
     ($received:expr, $expected:expr) => {
         if $received != $expected {
             panic!(
-                "Printed outputs differ!\n
-received ↓
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-{received}
-============================================================
-{expected}
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-expected ↑\n",
+                "
+\x1b[0;31mReceived:\x1b[0m
+{received:?}
+─────────────────────────────────────────────────────────────
+\x1b[0;32mExpected:\x1b[0m
+{expected:?}
+",
                 received = $received,
                 expected = $expected
             );

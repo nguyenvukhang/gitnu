@@ -56,7 +56,7 @@ jobs:
       - run: make ci-git-user
 
       - name: Run tests
-        run: make ci-test
+        run: make test
 
   increment:
     name: Increment ${{ needs.pre.outputs.increment }} version
@@ -106,7 +106,7 @@ jobs:
           echo "BINFILE=$TARGET_DIR/release/git-nu" >> $GITHUB_ENV
 
       - name: Build binary
-        run: make ci-build
+        run: make build
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
