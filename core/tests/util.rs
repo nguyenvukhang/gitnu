@@ -36,7 +36,6 @@ macro_rules! test {
     ($name:ident, $fun:expr) => {
         #[test]
         fn $name() {
-            #[allow(unused)]
             use std::{env, fs, path::PathBuf, process::Command};
 
             fn f() {}
@@ -65,6 +64,14 @@ macro_rules! test {
             let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
             fun(&Test { dir: test_dir });
         }
+    };
+    ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
+        test!($name, |t| {
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(t);
+            gitnu!(t, status);
+            assert_args!(gitnu!(t, $input_args), $output_args);
+        });
     };
 }
 
@@ -134,5 +141,14 @@ macro_rules! assert_args {
         let expected: Vec<String> =
             $expected.iter().map(|v| v.to_string()).collect();
         assert_eq!(args, expected);
+    }};
+    ($test:expr, $received:expr, $expected:expr) => {{
+        let app = gitnu!($test, $received);
+        let received = app.git.get_string_args();
+
+        let expected: Vec<String> =
+            $expected.iter().map(|v| v.to_string()).collect();
+
+        assert_eq!(received, expected);
     }};
 }
