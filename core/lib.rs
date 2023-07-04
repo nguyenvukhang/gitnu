@@ -31,11 +31,16 @@ pub struct App {
     cache: Vec<String>,
 
     /// Location that `git status` was last ran on
-    file_prefix: PathBuf,
+    file_prefix: Option<PathBuf>,
 }
 
 impl App {
     /// Creates a new App instance.
+    ///
+    /// Preprocessing done in parallel:
+    /// 1. git-dir
+    /// 2. git aliases
+    /// 3. read cache file
     pub fn new(cwd: PathBuf) -> App {
         let mut git = Git::new();
         git.current_dir(&cwd);
@@ -43,7 +48,7 @@ impl App {
         App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
             git,
-            file_prefix: PathBuf::new(),
+            file_prefix: None,
         }
     }
 
@@ -95,24 +100,27 @@ impl App {
     ///
     /// Loads files indexed [start, end] (inclusive)
     fn load_range(&mut self, start: usize, end: usize) {
-        (start..end + 1).for_each(|n| match self.cache.get(n) {
-            Some(pathspec) => {
-                self.git.arg_unchecked(self.file_prefix.join(pathspec));
+        for i in start..end + 1 {
+            match (&self.file_prefix, self.cache.get(i)) {
+                (Some(pre), Some(pathspec)) => {
+                    self.git.arg_unchecked(pre.join(pathspec))
+                }
+                // TODO: design a test for this match branch.
+                //
+                // Probably needs a repo rooted in /var and the command ran from /home
+                (None, Some(pathspec)) => self.git.arg_unchecked(pathspec),
+                _ => self.git.arg_unchecked(i.to_string()),
             }
-            None => self.git.arg_unchecked(n.to_string()),
-        });
+        }
     }
 
-    /// Eagerly loads cache file into buffer without actually reading any lines
-    /// yet. Should only be called when confirmed App's git_command is of the
-    /// `Number` variant.
     fn load_cache(&mut self) -> Result<()> {
-        self.cache = vec!["0".to_string()];
+        debug_assert!(self.cache.is_empty());
+        self.cache.push(0.to_string());
         if let Ok(file) = File::open(self.cache_path()?) {
             let mut buf = BufReader::new(file).lines().filter_map(|v| v.ok());
             let cache_cwd = PathBuf::from(buf.next().unwrap());
-            self.file_prefix =
-                diff_paths(cache_cwd, self.cwd()).unwrap_or_default();
+            self.file_prefix = diff_paths(cache_cwd, self.cwd());
             self.cache.extend(buf);
         }
         Ok(())
