@@ -39,7 +39,7 @@ impl App {
         while let Some(arg) = args.next() {
             match arg.as_str() {
                 "--short" | "-s" | "--porcelain" => {
-                    self.git.set_subcommand(GitCommand::Status(false))
+                    self.git.set_subcommand(GitCommand::Status(false));
                 }
                 _ => (),
             }

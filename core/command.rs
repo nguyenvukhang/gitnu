@@ -81,14 +81,27 @@ impl Git {
     pub fn arg(&mut self, arg: &str) -> Option<bool> {
         if let None = self.subcommand {
             if let Ok(sub) = GitCommand::try_from(arg) {
-                let needs_cache = sub.should_load_cache();
-                self.subcommand = Some(sub);
                 self.cmd.arg(arg);
-                return Some(needs_cache);
+                return Some(self.set_subcommand(sub));
+            }
+            if let Some(sub) = self
+                .aliases
+                .get(arg)
+                .and_then(|v| GitCommand::try_from(v.as_str()).ok())
+            {
+                self.cmd.arg(arg);
+                return Some(self.set_subcommand(sub));
             }
         }
         self.cmd.arg(arg);
         None
+    }
+
+    /// returns true when the git command requires cache to be loaded
+    pub fn set_subcommand(&mut self, sc: GitCommand) -> bool {
+        let b = sc.should_load_cache();
+        self.subcommand = Some(sc);
+        b
     }
 
     /// Append arg to self without checking if it's a git command or not
@@ -116,10 +129,6 @@ impl Git {
     /// Get the git subcommand. (e.g. 'status', 'diff', 'add')
     pub fn subcommand(&self) -> Option<&GitCommand> {
         self.subcommand.as_ref()
-    }
-
-    pub fn set_subcommand(&mut self, sc: GitCommand) {
-        self.subcommand = Some(sc)
     }
 
     pub fn status(&mut self) -> Result<()> {

@@ -141,13 +141,16 @@ Untracked files:
 });
 
 // git reset --hard
-test!(reset_hard_on_numeric_sha, |t| {
-    sh!(t, "git init -b 1234567");
-    sh!(t, "touch A && git add A && git commit -m 'first'");
-    sh!(t, "git checkout -b main");
-    sh!(t, "touch B && git add B && git commit -m 'second'");
-    sh!(t, "git branch");
-    sh!(t, "git nu reset --hard 1234567");
-    let app = gitnu!(t, ["reset", "--hard", "1234567"]);
-    assert_args!(&app, ["reset", "--hard", "1234567"]);
-});
+test!(
+    reset_hard_on_numeric_sha,
+    |t| {
+        sh!(t, "git init -b 1234567");
+        sh!(t, "touch A && git add A && git commit -m 'first'");
+        sh!(t, "git checkout -b main");
+        sh!(t, "touch B && git add B && git commit -m 'second'");
+        sh!(t, "git branch");
+        sh!(t, "git nu reset --hard 1234567");
+    },
+    ["reset", "--hard", "1234567"],
+    ["reset", "--hard", "1234567"]
+);
