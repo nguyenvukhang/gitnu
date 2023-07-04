@@ -7,6 +7,7 @@ mod tests;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use std::thread;
 
 mod command;
 mod git;
@@ -35,6 +36,10 @@ pub struct App {
 
     /// Location that `git status` was last ran on
     file_prefix: Option<PathBuf>,
+
+    /// Location of the git REPOSITORY, not the workspace.
+    /// TODO: make this not an Option
+    git_dir: PathBuf,
 }
 
 impl App {
@@ -44,14 +49,23 @@ impl App {
     /// 1. git-dir
     /// 2. git aliases
     /// 3. read cache file
-    pub fn new(cwd: PathBuf) -> App {
+    pub fn new(cwd: PathBuf) -> Result<App> {
+        let cwd_clone = cwd.clone();
+        let h_git_dir = thread::spawn(|| git::git_dir(cwd_clone));
+        let cwd_clone = cwd.clone();
+        let h_git_aliases = thread::spawn(|| git::git_aliases(cwd_clone));
+
         let mut git = Git::new();
         git.current_dir(&cwd);
+
+        let git_dir = h_git_dir.join();
+        let git_aliases = h_git_aliases.join();
 
         let mut app = App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
             git,
             file_prefix: None,
+            git_dir: PathBuf::new(),
         };
 
         match app.load_cache() {
@@ -62,7 +76,7 @@ impl App {
             },
         }
 
-        app
+        Ok(app)
     }
 
     /// Get the current directory of the app

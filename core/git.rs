@@ -58,6 +58,5 @@ pub fn git_aliases<P: AsRef<Path>>(cwd: P) -> Result<HashMap<String, String>> {
         })
         .collect();
 
-    println!("OUTPUT -> {ht:?}");
     Ok(ht)
 }

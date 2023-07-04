@@ -70,7 +70,7 @@ mod tests {
                 let mut args = vec![""];
                 args.extend($args);
                 let args = args.iter().map(|v| v.to_string());
-                let app = App::new(PathBuf::from($cwd));
+                let app = App::new(PathBuf::from($cwd)).unwrap();
                 let test_fn: Box<dyn Fn(App) -> ()> = Box::new($test_fn);
                 test_fn(app.parse(args).unwrap());
             }
