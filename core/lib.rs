@@ -38,8 +38,7 @@ pub struct App {
     file_prefix: Option<PathBuf>,
 
     /// Location of the git REPOSITORY, not the workspace.
-    /// TODO: make this not an Option
-    git_dir: PathBuf,
+    git_dir: Option<PathBuf>,
 }
 
 impl App {
@@ -55,7 +54,7 @@ impl App {
         let cwd_clone = cwd.clone();
         let h_git_aliases = thread::spawn(|| git::git_aliases(cwd_clone));
 
-        let git_dir = h_git_dir.join()?;
+        let git_dir = h_git_dir.join()?.ok();
         let aliases = h_git_aliases.join()??;
 
         let mut git = Git::new(aliases);
@@ -65,7 +64,7 @@ impl App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
             git,
             file_prefix: None,
-            git_dir: git_dir.unwrap_or_default(),
+            git_dir,
         };
 
         match app.load_cache() {

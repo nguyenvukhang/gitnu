@@ -154,3 +154,18 @@ test!(
     ["reset", "--hard", "1234567"],
     ["reset", "--hard", "1234567"]
 );
+
+// git aliases
+test!(aliases, |t| {
+    sh!(t, "git init -b main");
+    sh!(t, "touch A && git add A && git commit -m 'first'");
+    sh!(t, "git config --global alias.teststatus status");
+    let status = sh!(t, "git teststatus");
+    sh!(t, "git config --global --unset alias.teststatus");
+    assert_eq!(
+        status.stdout,
+        "\
+On branch main
+nothing to commit, working tree clean\n"
+    );
+});
