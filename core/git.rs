@@ -3,7 +3,7 @@ use crate::prelude::*;
 
 use std::collections::HashMap;
 use std::io;
-use std::io::{BufRead, BufReader, BufWriter};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 

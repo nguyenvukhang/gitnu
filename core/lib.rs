@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 mod command;
 mod git;
@@ -38,8 +37,6 @@ pub struct App {
 impl App {
     /// Creates a new App instance.
     pub fn new(cwd: PathBuf) -> App {
-        let mut cmd = Command::new("git");
-        cmd.current_dir(&cwd);
         let mut git = Git::new();
         git.current_dir(&cwd);
 
