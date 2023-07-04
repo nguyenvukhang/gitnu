@@ -67,10 +67,15 @@ test!(add_and_status_diff_dirs, |t| {
     assert_args!(&app, ["add", "../B", "../src/"]);
 });
 
-// If `gitnu status` is ran in a directory that is not in a git
+// If `git-nu` is ran in a directory that is not in a git
 // workspace, then do not create the cache file.
 test!(dont_create_cache_file_without_repo, |t| {
-    gitnu!(t, status);
+    use crate::prelude::*;
+    use crate::App;
+
+    let app = App::new(t.dir.clone());
+    assert!(app.is_err());
+    assert_eq!(app.as_ref().err().unwrap(), &Error::NotGitRepository);
     assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 

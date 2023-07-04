@@ -87,7 +87,6 @@ macro_rules! gitnu {
         let git = std::iter::once("git");
         let args = git.chain($args).map(|v| v.to_string());
         let app = $crate::App::new((&$t.dir).join($relative_dir)).unwrap();
-        // TODO: remove this unwrap
         app.parse(args).unwrap()
     }};
 }

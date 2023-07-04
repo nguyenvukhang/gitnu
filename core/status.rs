@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::{App, ToError, MAX_CACHE_SIZE};
+use crate::{App, MAX_CACHE_SIZE};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, LineWriter, Write};

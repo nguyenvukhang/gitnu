@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::fmt::Debug;
 use std::io;
 use std::process::ExitStatus;
 
@@ -10,6 +11,22 @@ pub enum Error {
     ProcessError(ExitStatus),
     IoError(io::Error),
     ThreadError(Box<dyn Any + Send + 'static>),
+}
+
+impl PartialEq for Error {
+    fn eq(&self, rhs: &Error) -> bool {
+        let lhs = self;
+        use Error::*;
+        match (lhs, rhs) {
+            (NotGitRepository, NotGitRepository) => true,
+            (NotFound, NotFound) => true,
+            (Empty, Empty) => true,
+            (ProcessError(lhs), ProcessError(rhs)) => lhs == rhs,
+            (IoError(lhs), IoError(rhs)) => lhs.kind() == rhs.kind(),
+            (ThreadError(_), ThreadError(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -40,7 +57,6 @@ impl Error {
 pub trait ToError<T> {
     fn to_err(self) -> Result<T>;
 }
-
 impl ToError<ExitStatus> for std::result::Result<ExitStatus, io::Error> {
     fn to_err(self) -> Result<ExitStatus> {
         match self {
@@ -51,21 +67,16 @@ impl ToError<ExitStatus> for std::result::Result<ExitStatus, io::Error> {
     }
 }
 
-#[macro_export]
-macro_rules! assert_eq {
-    ($received:expr, $expected:expr) => {
-        if $received != $expected {
-            panic!(
-                "
-\x1b[0;31mReceived:\x1b[0m
-{received:?}
-─────────────────────────────────────────────────────────────
-\x1b[0;32mExpected:\x1b[0m
-{expected:?}
-",
-                received = $received,
-                expected = $expected
-            );
+pub trait ToExitCode<T, E> {
+    fn to_exit_code(self) -> std::process::ExitCode;
+}
+
+impl<T, E: Into<Error>> ToExitCode<T, E> for std::result::Result<T, E> {
+    fn to_exit_code(self) -> std::process::ExitCode {
+        use std::process::ExitCode;
+        match self {
+            Ok(_) => ExitCode::SUCCESS,
+            Err(e) => ExitCode::from(e.into().code()),
         }
-    };
+    }
 }

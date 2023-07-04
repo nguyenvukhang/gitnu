@@ -1,9 +1,10 @@
 #[macro_use]
-mod prelude;
+mod macros;
 
 #[cfg(test)]
 mod tests;
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -14,6 +15,7 @@ mod git;
 mod git_cmd;
 mod parser;
 mod pathdiff;
+pub mod prelude;
 mod status;
 
 use prelude::*;
@@ -38,7 +40,18 @@ pub struct App {
     file_prefix: Option<PathBuf>,
 
     /// Location of the git REPOSITORY, not the workspace.
-    git_dir: Option<PathBuf>,
+    git_dir: PathBuf,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            git: Git::new(HashMap::new()),
+            cache: vec![],
+            file_prefix: None,
+            git_dir: PathBuf::new(),
+        }
+    }
 }
 
 impl App {
@@ -54,7 +67,7 @@ impl App {
         let cwd_clone = cwd.clone();
         let h_git_aliases = thread::spawn(|| git::git_aliases(cwd_clone));
 
-        let git_dir = h_git_dir.join()?.ok();
+        let git_dir = h_git_dir.join()??;
         let aliases = h_git_aliases.join()??;
 
         let mut git = Git::new(aliases);
@@ -87,14 +100,12 @@ impl App {
 
     /// Runs Gitnu after all parsing is complete.
     pub fn run(&mut self) -> Result<()> {
-        // print command preview if GITNU_DEBUG environment variable is set
-        let _ = std::env::var("GITNU_DEBUG").map(|v| match v.as_str() {
-            "1" => {
-                let output_args = self.git.get_string_args();
-                eprintln!("\x1b[0;30m{}\x1b[0m", output_args.join(" "))
-            }
-            _ => {}
-        });
+        // print command preview if GITNU_DEBUG environment variable is "1"
+        if std::env::var("GITNU_DEBUG").map_or(false, |v| v == "1") {
+            let output_args = self.git.get_string_args();
+            eprintln!("\x1b[0;30m{}\x1b[0m", output_args.join(" "))
+        }
+
         use GitCommand as G;
         match self.git.subcommand() {
             Some(G::Status(is_normal)) => status::status(self, *is_normal),

@@ -58,19 +58,15 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     macro_rules! test {
         ($name:ident, $args:expr, $test_fn:expr) => {
-            test!($name, std::env::temp_dir(), $args, $test_fn);
-        };
-        ($name:ident, $cwd:expr, $args:expr, $test_fn:expr) => {
             #[test]
             fn $name() {
-                let mut args = vec![""];
+                let mut args = vec!["git"];
                 args.extend($args);
                 let args = args.iter().map(|v| v.to_string());
-                let app = App::new(PathBuf::from($cwd)).unwrap();
+                let app = App::default();
                 let test_fn: Box<dyn Fn(App) -> ()> = Box::new($test_fn);
                 test_fn(app.parse(args).unwrap());
             }
@@ -86,7 +82,7 @@ mod tests {
         }};
     }
 
-    test!(test_status, "/home", ["-C", "/tmp", "status"], |app| {
+    test!(test_status, ["status"], |app| {
         assert_eq!(app.git.subcommand(), Some(&GitCommand::Status(true)));
     });
 
