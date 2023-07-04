@@ -22,7 +22,7 @@ use command::Git;
 use git_cmd::GitCommand;
 use pathdiff::diff_paths;
 
-const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
+const CARGO_PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const MAX_CACHE_SIZE: usize = 20;
 
@@ -100,7 +100,7 @@ impl App {
             Some(G::Status(is_normal)) => status::status(self, *is_normal),
             Some(G::Version) => {
                 let result = self.git.status();
-                println!("gitnu version {}", VERSION.unwrap_or("unknown"));
+                println!("gitnu version {CARGO_PKG_VERSION}");
                 result
             }
             _ => self.git.status(),
@@ -157,7 +157,10 @@ impl App {
         };
         let mut buf = BufReader::new(file).lines().filter_map(|v| v.ok());
         let cache_cwd = PathBuf::from(buf.next().unwrap());
-        self.file_prefix = diff_paths(cache_cwd, self.cwd());
+        self.file_prefix = match diff_paths(cache_cwd, self.cwd()) {
+            Some(v) if v.as_os_str().is_empty() => None,
+            v => v,
+        };
         self.cache.extend(buf);
         Ok(())
     }
