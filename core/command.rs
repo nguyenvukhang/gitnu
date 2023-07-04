@@ -1,6 +1,7 @@
 use crate::git_cmd::GitCommand;
 use crate::prelude::*;
 
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Child;
@@ -12,14 +13,16 @@ pub struct Git {
     cmd: Command,
     subcommand: Option<GitCommand>,
     hidden_args: Vec<usize>,
+    aliases: HashMap<String, String>,
 }
 
 impl Git {
-    pub fn new() -> Self {
+    pub fn new(aliases: HashMap<String, String>) -> Self {
         let mut git = Self {
             cmd: Command::new("git"),
             subcommand: None,
             hidden_args: Vec::with_capacity(2),
+            aliases,
         };
         if atty::is(atty::Stream::Stdout) {
             git.hidden_args(["-c", "color.ui=always"]);

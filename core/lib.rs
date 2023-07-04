@@ -55,11 +55,11 @@ impl App {
         let cwd_clone = cwd.clone();
         let h_git_aliases = thread::spawn(|| git::git_aliases(cwd_clone));
 
-        let mut git = Git::new();
-        git.current_dir(&cwd);
-
         let git_dir = h_git_dir.join()?;
-        let git_aliases = h_git_aliases.join()??;
+        let aliases = h_git_aliases.join()??;
+
+        let mut git = Git::new(aliases);
+        git.current_dir(&cwd);
 
         let mut app = App {
             cache: Vec::with_capacity(MAX_CACHE_SIZE),
