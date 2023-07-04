@@ -1,110 +1,102 @@
-use crate::tests::util::*;
+use super::util::*;
 
-macro_rules! check {
-    ($test:expr, $received:expr, $expected:expr) => {
-        gitnu!($test, status);
-        let app = gitnu!($test, $received);
-        assert_args!(app, $expected);
+macro_rules! status_test {
+    ($name:ident, $setup:expr, $inout:expr, $status:expr) => {
+        test!($name, |t| {
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(t);
+            assert_eq!(sh!(t, "git status").stdout, $status);
+            gitnu!(t, status);
+            let (input, output) = $inout;
+            assert_args!(gitnu!(t, input), output);
+        });
     };
 }
 
-test!(git_add_untracked, |t: &Test| {
-    sh!(t, "git init -b main");
-    sh!(t, "touch A");
-
-    // status appearance
-    assert_eq!(
-        sh!(t, "git status").stdout,
-        "\
+status_test!(
+    git_add_untracked,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "touch A");
+    },
+    (["add", "1"], ["add", "A"]),
+    "\
 On branch main\n
 No commits yet\n
 Untracked files:
 	A
 
 nothing added to commit but untracked files present\n"
-    );
+);
 
-    // status add check
-    check!(t, ["add", "1"], ["add", "A"]);
-});
-
-test!(git_add_modified, |t: &Test| {
-    sh!(t, "git init -b main");
-    sh!(t, "touch A");
-    sh!(t, "git add --all && git commit -m 'first'");
-    fs::write(t.dir.join("A"), b"content").unwrap();
-
-    // status appearance
-    assert_eq!(
-        sh!(t, "git status").stdout,
-        "\
+status_test!(
+    git_add_modified,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "touch A");
+        sh!(t, "git add A && git commit -m x");
+        fs::write(t.dir.join("A"), b"content").unwrap();
+    },
+    (["add", "1"], ["add", "A"]),
+    "\
 On branch main
 Changes not staged for commit:
 	modified:   A
 
 no changes added to commit\n"
-    );
+);
 
-    // status add check
-    check!(t, ["add", "1"], ["add", "A"]);
-});
-
-test!(git_add_deleted, |t: &Test| {
-    sh!(t, "git init -b main");
-    sh!(t, "touch A");
-    sh!(t, "git add --all && git commit -m 'first'");
-    sh!(t, "rm A");
-
-    // status appearance
-    assert_eq!(
-        sh!(t, "git status").stdout,
-        "\
+status_test!(
+    git_add_deleted,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "touch A");
+        sh!(t, "git add A && git commit -m x");
+        sh!(t, "rm A");
+    },
+    (["add", "1"], ["add", "A"]),
+    "\
 On branch main
 Changes not staged for commit:
 	deleted:    A
 
 no changes added to commit\n"
-    );
+);
 
-    // status add check
-    check!(t, ["add", "1"], ["add", "A"]);
-});
+status_test!(
+    git_add_both_modified,
+    |t| {
+        // create base commit
+        sh!(t, "git init -b main");
+        sh!(t, "touch A && git add A && git commit -m x");
 
-test!(git_add_both_modified, |t: &Test| {
-    // create base commit
-    sh!(t, "git init -b main");
-    sh!(t, "touch base");
-    sh!(t, "git add --all");
-    sh!(t, "git commit -m 'base commit'");
+        // the conflict file
+        let basename = "conflict_file";
+        let filepath = t.dir.join(basename);
 
-    // left branch
-    sh!(t, "git branch -m LEFT");
-    fs::write(t.dir.join("conflict_file"), b"left").unwrap();
-    sh!(t, "git add conflict_file");
-    sh!(t, "git commit -m 'left commit'");
+        // left branch
+        sh!(t, "git branch -m LEFT");
+        fs::write(&filepath, b"LEFT").unwrap();
+        sh!(t, format!("git add {basename}"));
+        sh!(t, "git commit -m x");
 
-    // right branch
-    sh!(t, "git checkout -b RIGHT");
-    sh!(t, "git reset --hard HEAD~1");
-    fs::write(t.dir.join("conflict_file"), b"right").unwrap();
-    sh!(t, "git add conflict_file");
-    sh!(t, "git commit -m 'right commit'");
+        // right branch
+        sh!(t, "git checkout -b RIGHT");
+        sh!(t, "git reset --hard HEAD~1");
+        fs::write(&filepath, b"RIGHT").unwrap();
+        sh!(t, format!("git add {basename}"));
+        sh!(t, "git commit -m x");
 
-    // merge
-    sh!(t, "git merge LEFT");
-
-    // status appearance
-    assert_eq!(
-        sh!(t, "git status").stdout,
-        "\
+        // merge and create the conflict
+        sh!(t, "git merge LEFT");
+    },
+    (["add", "1"], ["add", "conflict_file"]),
+    "\
 On branch RIGHT
-You have unmerged paths.\n
+You have unmerged paths.
+
 Unmerged paths:
 	both added:      conflict_file
 
 no changes added to commit\n"
-    );
-
-    // status add check
-    check!(t, ["add", "1"], ["add", "conflict_file"]);
-});
+);

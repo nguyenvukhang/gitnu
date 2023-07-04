@@ -79,7 +79,6 @@ macro_rules! gitnu {
     ($t:expr, $relative_dir:expr, $args:expr) => {{
         let git = std::iter::once("git");
         let args = git.chain($args).map(|v| v.to_string());
-        println!("{:?}", args.clone().collect::<Vec<_>>());
         let app = $crate::App::new((&$t.dir).join($relative_dir));
         // TODO: remove this unwrap
         app.parse(args).unwrap()

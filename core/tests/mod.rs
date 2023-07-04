@@ -10,8 +10,6 @@ test!(staging_files_with_numbers, |t| {
     sh!(t, "git init -b main");
     sh!(t, "touch A B C D E F G");
     gitnu!(t, status);
-    let output = sh!(t, "ls -A .git");
-    println!("output: {output:?}");
     let app = gitnu!(t, ["add", "2-4", "6"]);
     assert_args!(&app, ["add", "B", "C", "D", "F"]);
 });
