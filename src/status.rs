@@ -92,18 +92,6 @@ fn short(state: &mut State, line: String) -> String {
     String::from_utf8_lossy(&uncolor(&line))[3..].to_string()
 }
 
-trait Writer {
-    fn write(self, writer: &mut LineWriter<File>);
-}
-
-impl<I: Iterator<Item = String>> Writer for I {
-    fn write(self, writer: &mut LineWriter<File>) {
-        self.for_each(|v| {
-            writeln!(writer, "{v}").unwrap();
-        });
-    }
-}
-
 impl App {
     /// Endpoint function for everything git-status related.
     ///
