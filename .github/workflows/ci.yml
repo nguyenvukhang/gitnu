@@ -8,7 +8,6 @@ on:
       - major
       - minor
       - patch
-      - prerelease
 
 jobs:
   pre:
@@ -25,9 +24,9 @@ jobs:
       # Sets the increment: how much to push the version number
       - run: |
           case ${{ github.ref_name }} in
-            main) echo "increment=patch" >> $GITHUB_OUTPUT;;
-            dev) echo "increment=prerelease" >> $GITHUB_OUTPUT;;
-            *) echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT;;
+            main) echo "increment=release" >> $GITHUB_OUTPUT;;
+            dev) echo "increment=patch-pre" >> $GITHUB_OUTPUT;;
+            *) echo "increment=${{ github.ref_name }}-pre" >> $GITHUB_OUTPUT;;
           esac
         id: increment
 
@@ -38,7 +37,7 @@ jobs:
 
       # Checks that the version on Cargo.toml matches the latest git
       # tag, and sets the `version` variable to the next version.
-      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
+      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }} make py)" >> $GITHUB_OUTPUT
         id: version
 
       - name: Enumerate outputs
@@ -81,7 +80,7 @@ jobs:
   # publish patch-level updates and above only
   publish-crates-io:
     name: Publish to Crates.io
-    if: needs.pre.outputs.increment != 'prerelease'
+    if: needs.pre.outputs.increment == 'release'
     needs: [pre, increment]
     runs-on: ubuntu-latest
     steps:
@@ -104,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: v${{ needs.pre.outputs.version }}
+          ref: ${{ needs.pre.outputs.increment == 'release' && format('v{0}', needs.pre.outputs.version) || github.ref }}
 
       - run: |
           TARGET_DIR=./target/${{ matrix.target }}
@@ -131,7 +130,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
+        if: ${{ needs.pre.outputs.increment == 'release' }}
         with:
           tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
-          prerelease: ${{ needs.pre.outputs.increment == 'prerelease' }}
