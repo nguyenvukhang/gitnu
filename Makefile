@@ -3,7 +3,7 @@ GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 PY_UTILS := python3 scripts/utils.py
-ONE_TEST := 'tests::add_and_status_diff_dirs'
+ONE_TEST := 'tests::renames'
 
 current:
 	make test

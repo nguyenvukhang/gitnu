@@ -102,6 +102,33 @@ test!(
     ["log", "-n", "2", "--oneline", "C"]
 );
 
+// Running git reset with a number will make git-nu take the one on
+// the right.
+//
+// ```
+//   On branch main
+//   Changes to be committed:
+//   1       renamed:    A -> C
+// ```
+//
+// `C` is chosen to replace `1` because the file C actually exists.
+//
+// Moreover, running `git reset A` (and not git nu reset A) will give
+// the error "fatal: ambiguous argument 'A': unknown revision or..."
+// anyway
+test!(
+    renames,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "touch A && git add A && git commit -m x");
+        sh!(t, "mv A B && git add --all");
+        sh!(t, "git nu status");
+        gitnu!(t, status).unwrap();
+    },
+    ["add", "1"],
+    ["add", "B"]
+);
+
 // Ensure that `gitnu` exit codes match those of `git`. This means
 // that error handling bubbles up properly.
 test!(exit_codes, |t| {

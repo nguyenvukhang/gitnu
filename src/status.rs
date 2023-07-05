@@ -33,6 +33,8 @@ struct State {
 
 /// Uses the `\t` character to differentiate between lines that
 /// contain pathspecs and those that do not.
+///
+/// if None is returned, the line will not be added to cache.
 fn normal(state: &mut State, line: String) -> Option<String> {
     if state.count > MAX_CACHE_SIZE {
         println!("{}", line);
@@ -49,7 +51,7 @@ fn normal(state: &mut State, line: String) -> Option<String> {
 
     let line = &uncolor(&line);
     let line: &str = std::str::from_utf8(line).unwrap();
-    let line = line.rsplit_once('\t')?.1;
+    let line = line.rsplit_once('\t').unwrap().1;
 
     // Example:
     // ```
@@ -59,31 +61,31 @@ fn normal(state: &mut State, line: String) -> Option<String> {
     // Untracked files:
     // 2       core/line.rs
     // ```
-    let (delta, line) = match state.seen_untracked {
+    let (delta, pathspec) = match state.seen_untracked {
+        false => line
+            .split_once(':')
+            .expect("There should be a `:` character in the line"),
         true => ("", line),
-        false => line.split_once(':')?,
     };
 
-    let line = line.trim_start_matches(|v: char| v.is_ascii_whitespace());
+    let pathspec =
+        pathspec.trim_start_matches(|v: char| v.is_ascii_whitespace());
 
-    let line = match delta {
+    let pathspec = match delta {
         // Example:
         // ```
         // Changes to be committed:
         // 1       renamed:    README.md -> BUILD.md
         // ```
-        "rename" => line
-            .split_once("->")?
+        "renamed" => pathspec
+            .split_once("->")
+            .expect("There should be a `->` in the line with a rename")
             .1
             .trim_start_matches(|v: char| v.is_ascii_whitespace()),
-        _ => line,
+        _ => pathspec,
     };
 
-    if line.is_empty() {
-        return None;
-    }
-
-    Some(line.to_string())
+    Some(pathspec.to_string())
 }
 
 fn short(state: &mut State, line: String) -> String {
