@@ -1,10 +1,22 @@
-use crate::prelude::*;
+use crate::{Error, Result};
+
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) enum GitStatus {
+    Short,
+    Normal,
+}
+
+impl GitStatus {
+    pub fn short(&mut self) {
+        *self = GitStatus::Short;
+    }
+}
 
 #[rustfmt::skip]
 #[derive(Debug, PartialEq, Clone)]
-pub enum GitCommand {
+pub (crate)enum GitCommand {
     // full list found from running `git help --all`
-    Status(bool),
+    Status(GitStatus),
     Add, Am, Annotate, Apply, Archimport, Archive, Attributes, Bisect, Blame,
     Branch, Bugreport, Bundle, CatFile, CheckAttr, CheckIgnore, CheckMailmap,
     CheckRefFormat, Checkout, CheckoutIndex, Cherry, CherryPick, Citool, Clean,
@@ -39,24 +51,12 @@ impl GitCommand {
             _ => false,
         }
     }
+}
 
-    pub fn should_load_cache(&self) -> bool {
-        use GitCommand as G;
-        match self {
-            G::Add
-            | G::Reset
-            | G::LsFiles
-            | G::LsTree
-            | G::Log
-            | G::Diff
-            | G::Checkout => true,
-            G::Status(_) => false,
-            _ => false,
-        }
-    }
-
-    pub fn is_command(text: &str) -> bool {
-        GitCommand::try_from(text).is_ok()
+impl TryFrom<&String> for GitCommand {
+    type Error = Error;
+    fn try_from(arg: &String) -> Result<Self> {
+        GitCommand::try_from(arg.as_str())
     }
 }
 
@@ -65,7 +65,7 @@ impl TryFrom<&str> for GitCommand {
     fn try_from(arg: &str) -> Result<Self> {
         use GitCommand::*;
         let command = match arg {
-            "status" => Status(true),
+            "status" => Status(GitStatus::Normal),
             "add" => Add,
             "am" => Am,
             "annotate" => Annotate,
@@ -229,7 +229,7 @@ impl TryFrom<&str> for GitCommand {
             "whatchanged" => WhatChanged,
             "worktree" => Worktree,
             "write-tree" => WriteTree,
-            _ => return Err(Error::NotFound),
+            _ => return Err(Error::NotGitCommand),
         };
         Ok(command)
     }

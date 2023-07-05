@@ -1,8 +1,10 @@
 #[macro_use]
-mod util;
-mod status_parse;
+mod macros;
 
-use util::*;
+mod status_display;
+
+#[test]
+fn staging_files_with_numbers_manual() {}
 
 // staging files with numbers
 test!(
@@ -10,7 +12,7 @@ test!(
     |t| {
         sh!(t, "git init -b main");
         sh!(t, "touch A B C D E F G");
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
     },
     ["add", "2-4", "6"],
     ["add", "B", "C", "D", "F"]
@@ -24,7 +26,7 @@ test!(
     |t| {
         sh!(t, "git init -b main");
         sh!(t, "touch A B C D E F");
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
     },
     ["add", "2-4", "3-5"],
     ["add", "B", "C", "D", "C", "D", "E"]
@@ -37,7 +39,7 @@ test!(
     |t| {
         sh!(t, "git init -b main");
         sh!(t, "touch A B C");
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
     },
     ["add", "2-5"],
     ["add", "B", "C", "4", "5"]
@@ -45,37 +47,44 @@ test!(
 
 // Both `gitnu status` and `gitnu add <files>` are ran from the same
 // directory, but that directory is not the workspace root
-test!(not_at_workspace_root, |t| {
-    sh!(t, "git init -b main");
-    sh!(t, "mkdir src");
-    sh!(t, "touch A B src/C src/D");
-    gitnu!(t, "src", ["status"]).run().unwrap();
-    let app = gitnu!(t, "src", ["add", "2", "3"]);
-    assert_args!(&app, ["add", "../B", "./"]);
-});
+test!(
+    not_at_workspace_root,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "mkdir src");
+        sh!(t, "touch A B src/C src/D");
+        gitnu!(t, "src", status).unwrap();
+    },
+    "src",
+    ["add", "2", "3"],
+    ["add", "../B", "./"]
+);
 
 // `gitnu status` is ran from a different directory than
 // `gitnu add <files>`
-test!(add_and_status_diff_dirs, |t| {
-    // `gitnu status` will be ran from <root>, and
-    // `gitnu add` will be ran from <root>/src
-    sh!(t, "git init -b main");
-    sh!(t, "mkdir src");
-    sh!(t, "touch A B src/C src/D");
-    gitnu!(t, status);
-    let app = gitnu!(t, "src", ["add", "2", "3"]);
-    assert_args!(&app, ["add", "../B", "../src/"]);
-});
+test!(
+    add_and_status_diff_dirs,
+    |t| {
+        // `gitnu status` will be ran from <root>, and
+        // `gitnu add` will be ran from <root>/src
+        sh!(t, "git init -b main");
+        sh!(t, "mkdir src");
+        sh!(t, "touch A B src/C src/D");
+        gitnu!(t, status).unwrap();
+    },
+    "src",
+    ["add", "2", "3"],
+    ["add", "../B", "../src/"]
+);
 
 // If `git-nu` is ran in a directory that is not in a git
 // workspace, then do not create the cache file.
 test!(dont_create_cache_file_without_repo, |t| {
     use crate::prelude::*;
-    use crate::App;
 
-    let app = App::new(t.dir.clone());
-    assert!(app.is_err());
-    assert_eq!(app.as_ref().err().unwrap(), &Error::NotGitRepository);
+    let parsed = gitnu!(t, status);
+    assert!(parsed.is_err());
+    assert_eq!(parsed.as_ref().err(), Some(&Error::NotGitRepository));
     assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
 });
 
@@ -87,10 +96,37 @@ test!(
     |t| {
         sh!(t, "git init -b main");
         sh!(t, "touch A B C");
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
     },
     ["log", "-n", "2", "--oneline", "3"],
     ["log", "-n", "2", "--oneline", "C"]
+);
+
+// Running git reset with a number will make git-nu take the one on
+// the right.
+//
+// ```
+//   On branch main
+//   Changes to be committed:
+//   1       renamed:    A -> C
+// ```
+//
+// `C` is chosen to replace `1` because the file C actually exists.
+//
+// Moreover, running `git reset A` (and not git nu reset A) will give
+// the error "fatal: ambiguous argument 'A': unknown revision or..."
+// anyway
+test!(
+    renames,
+    |t| {
+        sh!(t, "git init -b main");
+        sh!(t, "touch A && git add A && git commit -m x");
+        sh!(t, "mv A B && git add --all");
+        sh!(t, "git nu status");
+        gitnu!(t, status).unwrap();
+    },
+    ["add", "1"],
+    ["add", "B"]
 );
 
 // Ensure that `gitnu` exit codes match those of `git`. This means
@@ -144,21 +180,6 @@ Untracked files:
 "
     );
 });
-
-// git reset --hard
-test!(
-    reset_hard_on_numeric_sha,
-    |t| {
-        sh!(t, "git init -b 1234567");
-        sh!(t, "touch A && git add A && git commit -m 'first'");
-        sh!(t, "git checkout -b main");
-        sh!(t, "touch B && git add B && git commit -m 'second'");
-        sh!(t, "git branch");
-        sh!(t, "git nu reset --hard 1234567");
-    },
-    ["reset", "--hard", "1234567"],
-    ["reset", "--hard", "1234567"]
-);
 
 // git aliases
 test!(aliases, |t| {

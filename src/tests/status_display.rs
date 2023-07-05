@@ -1,5 +1,3 @@
-use super::util::*;
-
 macro_rules! status_test {
     ($name:ident, $setup:expr, $inout:expr, $status:expr) => {
         test!($name, |t| {
@@ -16,9 +14,11 @@ macro_rules! status_test {
 
             assert_eq!(sh!(t, "git nu status").stdout, status);
 
-            gitnu!(t, status);
+            gitnu!(t, status).unwrap();
+
             let (input, output) = $inout;
-            assert_args!(gitnu!(t, input), output);
+            let app = gitnu!(t, input).unwrap();
+            assert_args!(app, output);
         });
     };
     ($name:ident, $setup:expr, $status:expr) => {
@@ -195,9 +195,9 @@ status_test!(
         sh!(t, "git merge LEFT");
         sh!(t, "touch fresh");
         sh!(t, "git add fresh");
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
 
-        gitnu!(t, ["add", "2"]).run().unwrap();
+        gitnu!(t, ["add", "2"]).and_then(|v| v.run()).unwrap();
     },
     "\
 On branch RIGHT
@@ -238,7 +238,7 @@ status_test!(
             args
         });
 
-        gitnu!(t, status);
+        gitnu!(t, status).unwrap();
     },
     "\
 On branch main

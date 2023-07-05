@@ -3,7 +3,7 @@ GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 PY_UTILS := python3 scripts/utils.py
-ONE_TEST := tests::exit_codes
+ONE_TEST := 'tests::renames'
 
 current:
 	make test
@@ -39,8 +39,8 @@ load-bin:
 # MARK: - CI 
 
 ci-git-user:
-	git config --global user.name gitnu-ci
-	git config --global user.email ci@gitnu.com
+	git config --global user.name 'github-actions[bot]'
+	git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
 py:
 	@$(PY_UTILS) $(ARG)
