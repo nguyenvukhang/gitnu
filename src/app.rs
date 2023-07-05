@@ -148,7 +148,7 @@ impl App {
         let mut skip = false;
 
         if let None = self.git_cmd {
-            self.final_command.inner_mut().args(args);
+            self.final_command.inner.args(args);
             return self;
         }
 
@@ -164,7 +164,7 @@ impl App {
             };
             match (skip, parse_range(&arg)) {
                 (false, Some((start, end))) => {
-                    let cmd = self.final_command.inner_mut();
+                    let cmd = &mut self.final_command.inner;
                     for i in start..end + 1 {
                         self.cache.load(i, cmd)
                     }

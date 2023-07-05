@@ -47,7 +47,7 @@ impl Cache {
             }
         };
 
-        let mut files: Vec<String> = Vec::with_capacity(MAX_CACHE_SIZE);
+        let mut files = Vec::with_capacity(MAX_CACHE_SIZE);
         files.push(0.to_string());
         files.extend(lines.take(MAX_CACHE_SIZE - 1));
 
@@ -145,10 +145,9 @@ impl Command2 {
         }
     }
 
-    pub fn hidden_args<I, S>(&mut self, args: I)
+    pub fn hidden_args<'a, I>(&mut self, args: I)
     where
-        I: IntoIterator<Item = S>,
-        S: AsRef<OsStr>,
+        I: IntoIterator<Item = &'a str>,
     {
         let mut n = self.inner.get_args().len();
         for arg in args {
@@ -160,10 +159,6 @@ impl Command2 {
 
     pub fn arg<S: AsRef<OsStr>>(&mut self, arg: S) {
         self.inner.arg(arg);
-    }
-
-    pub fn inner_mut(&mut self) -> &mut Command {
-        &mut self.inner
     }
 
     #[cfg(test)]
