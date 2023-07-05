@@ -1,3 +1,9 @@
+use crate::git_cmd::GitCommand;
+use crate::prelude::*;
+
+use std::collections::HashMap;
+use std::io;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -14,13 +20,43 @@ fn git<P: AsRef<Path>>(cwd: Option<P>, args: &[&str]) -> Command {
 /// Path to git's repository (not workspace)
 ///   * .git/
 ///   * .git/worktrees/<branch-name>/
-pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Option<PathBuf> {
-    let out = git(Some(cwd), &["rev-parse", "--git-dir"]).output().ok()?;
-    if !out.status.success() {
-        return None;
-    }
-    match String::from_utf8_lossy(&out.stdout).trim() {
-        v if v.is_empty() => None,
-        v => Some(PathBuf::from(v)),
-    }
+pub fn git_dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
+    let mut command = git(Some(cwd), &["rev-parse", "--git-dir"]);
+    let output = match command.output() {
+        Ok(v)
+            if String::from_utf8_lossy(&v.stderr)
+                .contains("fatal: not a git repository") =>
+        {
+            return Err(Error::NotGitRepository);
+        }
+        v => v?,
+    };
+    Ok(PathBuf::from(String::from_utf8_lossy(&output.stdout).trim()))
+}
+
+/// Get a HashMap of git aliases for git commands
+pub fn git_aliases<P: AsRef<Path>>(cwd: P) -> Result<HashMap<String, String>> {
+    let mut git = git(Some(cwd), &["config", "--get-regexp", "^alias."]);
+    let mut git = git.spawn()?;
+
+    let lines = match git.stdout.take() {
+        Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
+        None => Err(Error::IoError(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Can't get a handle to child stdout",
+        )))?,
+    };
+
+    let ht = lines
+        .filter_map(|v| {
+            let (k, v) = v[6..].split_once(' ')?;
+            if GitCommand::is_command(v) {
+                Some((k.to_string(), v.to_string()))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Ok(ht)
 }

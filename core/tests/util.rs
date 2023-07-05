@@ -32,14 +32,10 @@ pub fn write(t: &Test, file: &str, contents: &str) {
 }
 
 /// Runs the test in an isolated directory.
-#[macro_export]
 macro_rules! test {
     ($name:ident, $fun:expr) => {
         #[test]
         fn $name() {
-            #[allow(unused)]
-            use crate::parse as gitnu_parse;
-            #[allow(unused)]
             use std::{env, fs, path::PathBuf, process::Command};
 
             fn f() {}
@@ -65,13 +61,21 @@ macro_rules! test {
             env::set_var("PATH", format!("{}:{path}", bin.to_string_lossy()));
 
             // run the test
-            $fun(&Test { dir: test_dir });
+            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
+            fun(&Test { dir: test_dir });
         }
+    };
+    ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
+        test!($name, |t| {
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(t);
+            gitnu!(t, status);
+            assert_args!(gitnu!(t, $input_args), $output_args);
+        });
     };
 }
 
 /// Quickly mock up a gitnu app instance with an optional cwd.
-#[macro_export]
 macro_rules! gitnu {
     ($t:expr, status) => {{
         gitnu!($t, ["status"]).run().ok()
@@ -79,15 +83,15 @@ macro_rules! gitnu {
     ($t:expr, $args:expr) => {{
         gitnu!($t, "", $args)
     }};
-    ($t:expr, $current_dir:expr, $args:expr) => {{
+    ($t:expr, $relative_dir:expr, $args:expr) => {{
         let git = std::iter::once("git");
         let args = git.chain($args).map(|v| v.to_string());
-        gitnu_parse((&$t.dir).join($current_dir), args)
+        let app = $crate::App::new((&$t.dir).join($relative_dir)).unwrap();
+        app.parse(args).unwrap()
     }};
 }
 
 // Run a shell command and extract its stdout and exit code
-#[macro_export]
 macro_rules! sh {
     ($t:expr, $cmd:expr) => {
         sh!($t, "", $cmd)
@@ -96,20 +100,30 @@ macro_rules! sh {
         Command::new("sh")
             .current_dir(&$t.dir.join($cwd))
             .arg("-c")
-            .arg($cmd.replace("git", "git -c advice.statusHints=false"))
+            .arg({
+                if $cmd.starts_with("git") {
+                    $cmd.replace("git", "git -c advice.statusHints=false")
+                } else {
+                    $cmd.to_string()
+                }
+            })
             .output()
             .map(|v| {
+
+                let line = "─────────────────────────";
                 let stdout = String::from_utf8_lossy(&v.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&v.stderr).to_string();
                 let dir = &$t.dir.join($cwd);
-                let dir = dir.to_string_lossy();
-                println!("[{}] {}", &dir[dir.len() - 30..], $cmd);
+                println!("╭{line} RUN SH {line}╮");
+                println!("dir: {}", dir.to_string_lossy());
+                println!("cmd: \x1b[0;32m{}\x1b[0m", $cmd);
                 if !stdout.is_empty() {
-                    println!("[stdout]\n{}", stdout);
+                    println!(" {line} STDOUT {line}\n{}", stdout);
                 }
                 if !stderr.is_empty() {
-                    println!("[stderr]\n({})", stderr);
+                    println!(" {line} STDERR {line}\n{}", stderr);
                 }
+                println!("╰{line}────────{line}╯");
                 Output { stdout, exit_code: v.status.code() }
             })
             .unwrap()
@@ -118,48 +132,22 @@ macro_rules! sh {
 
 /// Makes an assertion of the list of command line arguments that
 /// `gitnu` will pass back to the terminal after processing.
-#[macro_export]
 macro_rules! assert_args {
     ($received_app:expr, $expected:expr) => {{
         // extract arguments into a list
-        let cmd = $received_app.cmd();
-        let args = cmd.get_args();
-        let mut all_args: Vec<String> =
-            Vec::with_capacity(cmd.get_args().len() + 1);
-        all_args.push(cmd.get_program().to_string_lossy().to_string());
-        all_args.extend(args.map(|v| v.to_string_lossy().to_string()));
-
-        // remove the sub-sequence ["-c", "color.ui=always"]
-        let remove_index = (0..all_args.len() - 1).find(|i| {
-            all_args[*i].eq("-c") && all_args[i + 1].eq("color.ui=always")
-        });
-        if let Some(i) = remove_index {
-            all_args.remove(i);
-            all_args.remove(i);
-        }
+        let args = $received_app.git.get_string_args();
 
         let expected: Vec<String> =
             $expected.iter().map(|v| v.to_string()).collect();
-        assert_eq!(all_args, expected);
+        assert_eq!(args, expected);
     }};
-}
+    ($test:expr, $received:expr, $expected:expr) => {{
+        let app = gitnu!($test, $received);
+        let received = app.git.get_string_args();
 
-#[macro_export]
-macro_rules! assert_eq_pretty {
-    ($received:expr, $expected:expr) => {
-        if $received != $expected {
-            panic!(
-                "Printed outputs differ!\n
-received ↓
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-{received}
-============================================================
-{expected}
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-expected ↑\n",
-                received = $received,
-                expected = $expected
-            );
-        }
-    };
+        let expected: Vec<String> =
+            $expected.iter().map(|v| v.to_string()).collect();
+
+        assert_eq!(received, expected);
+    }};
 }

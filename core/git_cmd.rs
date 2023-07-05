@@ -1,5 +1,7 @@
+use crate::prelude::*;
+
 #[rustfmt::skip]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum GitCommand {
     // full list found from running `git help --all`
     Status(bool),
@@ -52,11 +54,15 @@ impl GitCommand {
             _ => false,
         }
     }
+
+    pub fn is_command(text: &str) -> bool {
+        GitCommand::try_from(text).is_ok()
+    }
 }
 
 impl TryFrom<&str> for GitCommand {
-    type Error = ();
-    fn try_from(arg: &str) -> Result<Self, ()> {
+    type Error = Error;
+    fn try_from(arg: &str) -> Result<Self> {
         use GitCommand::*;
         let command = match arg {
             "status" => Status(true),
@@ -223,7 +229,7 @@ impl TryFrom<&str> for GitCommand {
             "whatchanged" => WhatChanged,
             "worktree" => Worktree,
             "write-tree" => WriteTree,
-            _ => return Err(()),
+            _ => return Err(Error::NotFound),
         };
         Ok(command)
     }

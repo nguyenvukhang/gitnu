@@ -41,6 +41,12 @@ jobs:
       - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }}-version make py)" >> $GITHUB_OUTPUT
         id: version
 
+      - name: Enumerate outputs
+        run: |
+          echo ${{ steps.increment.outputs.increment }}
+          echo ${{ steps.version.outputs.version }}
+          echo ${{ steps.matrix.outputs.matrix }}
+
   build-and-test:
     name: Build & Test
     needs: [pre]
@@ -56,7 +62,7 @@ jobs:
       - run: make ci-git-user
 
       - name: Run tests
-        run: make ci-test
+        run: make test
 
   increment:
     name: Increment ${{ needs.pre.outputs.increment }} version
@@ -106,7 +112,7 @@ jobs:
           echo "BINFILE=$TARGET_DIR/release/git-nu" >> $GITHUB_ENV
 
       - name: Build binary
-        run: make ci-build
+        run: make build
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
@@ -128,3 +134,4 @@ jobs:
         with:
           tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
+          prerelease: ${{ needs.pre.outputs.increment == 'prerelease' }}

@@ -1,8 +1,8 @@
-use crate::{lines, App, ToGitnuError, MAX_CACHE_SIZE};
-use crate::{Cache, GitnuError};
+use crate::prelude::*;
+use crate::{App, MAX_CACHE_SIZE};
+
 use std::fs::File;
-use std::io::{LineWriter, Write};
-use std::process::Stdio;
+use std::io::{BufRead, BufReader, LineWriter, Write};
 
 /// Removes all ANSI color codes
 pub fn uncolor(src: &str) -> Vec<u8> {
@@ -91,16 +91,14 @@ fn short(state: &mut State, line: String) -> String {
 }
 
 trait Writer {
-    fn write(self, writer: &mut Option<LineWriter<File>>);
+    fn write(self, writer: &mut LineWriter<File>);
 }
 
 impl<I: Iterator<Item = String>> Writer for I {
-    fn write(self, writer: &mut Option<LineWriter<File>>) {
-        if let Some(writer) = writer.as_mut() {
-            self.for_each(|v| {
-                writeln!(writer, "{v}").unwrap();
-            });
-        }
+    fn write(self, writer: &mut LineWriter<File>) {
+        self.for_each(|v| {
+            writeln!(writer, "{v}").unwrap();
+        });
     }
 }
 
@@ -108,19 +106,17 @@ impl<I: Iterator<Item = String>> Writer for I {
 ///
 /// Runs `git status` then parses its output, enumerates it, and
 /// prints it out to stdout.
-pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
-    let mut git = app.cmd.stdout(Stdio::piped()).spawn()?;
+pub fn status(app: &mut App, is_normal: bool) -> Result<()> {
+    let mut git = app.git.spawn_piped()?;
 
     let lines = match git.stdout.take() {
-        Some(v) => lines(v),
-        None => return git.wait().gitnu_err().map(|_| ()),
+        Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
+        None => return git.wait().to_err().map(|_| ()),
     };
-    let writer = &mut app.cache_file(true).map(LineWriter::new);
+    let writer = &mut LineWriter::new(File::create(app.cache_path()?)?);
 
     // first line of the cache file is the current directory
-    if let Some(lw) = writer {
-        writeln!(lw, "{}", app.cwd().to_str().unwrap()).unwrap();
-    }
+    writeln!(writer, "{}", app.cwd().to_str().unwrap()).unwrap();
 
     // write all the files listed by `git status`
     let state = &mut State { seen_untracked: false, count: 1 };
@@ -130,9 +126,8 @@ pub fn status(app: &mut App, is_normal: bool) -> Result<(), GitnuError> {
         lines.map(|v| short(state, v)).write(writer);
     };
 
-    // close the writer if it exists
-    if let Some(lw) = writer {
-        lw.flush().ok();
-    }
-    git.wait().gitnu_err().map(|_| ())
+    // close the writer
+    writer.flush().ok();
+
+    git.wait().to_err().map(|_| ())
 }
