@@ -120,20 +120,18 @@ impl App {
 
         let state = &mut State { seen_untracked: false, count: 1 };
 
-        match self.git_cmd {
-            Some(GitCommand::Status(GitStatus::Short)) => {
-                for line in lines {
-                    writeln!(writer, "{}", short(state, line)).unwrap();
+        use GitCommand::Status;
+
+        if let Some(Status(GitStatus::Short)) = self.git_cmd {
+            for line in lines {
+                writeln!(writer, "{}", short(state, line)).unwrap();
+            }
+        } else if let Some(Status(GitStatus::Normal)) = self.git_cmd {
+            for line in lines {
+                if let Some(v) = normal(state, line) {
+                    writeln!(writer, "{v}").unwrap();
                 }
             }
-            Some(GitCommand::Status(GitStatus::Normal)) => {
-                for line in lines {
-                    if let Some(v) = normal(state, line) {
-                        writeln!(writer, "{v}").unwrap();
-                    }
-                }
-            }
-            _ => panic!("Should be of the status variant"),
         }
 
         // close the writer
