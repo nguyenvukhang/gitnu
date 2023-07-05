@@ -20,9 +20,9 @@ atty = "0.2.14"
 [[bin]]
 bench = false
 test = false
-path = "core/main.rs"
+path = "src/main.rs"
 name = "git-nu"
 
 [lib]
-path = "core/lib.rs"
 doctest = false
+test = false

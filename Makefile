@@ -3,11 +3,15 @@ GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 PY_UTILS := python3 scripts/utils.py
-ONE_TEST := tests::exit_codes
+ONE_TEST := 'tests::add_and_status_diff_dirs'
 
 current:
 	make test
 	# make test-one
+	# cargo build
+	# $(GITNU_DEBUG_BIN) ls-files 1-3
+	# $(GITNU_DEBUG_BIN) status --porcelain
+	# $(GITNU_DEBUG_BIN) status
 
 install:
 	make build

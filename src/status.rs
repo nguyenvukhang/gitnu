@@ -1,8 +1,10 @@
+use crate::git_cmd::{GitCommand, GitStatus};
 use crate::prelude::*;
 use crate::{App, MAX_CACHE_SIZE};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, LineWriter, Write};
+use std::process::{ExitCode, Stdio};
 
 /// Removes all ANSI color codes
 pub fn uncolor(src: &str) -> Vec<u8> {
@@ -102,32 +104,51 @@ impl<I: Iterator<Item = String>> Writer for I {
     }
 }
 
-/// Endpoint function for everything git-status related.
-///
-/// Runs `git status` then parses its output, enumerates it, and
-/// prints it out to stdout.
-pub fn status(app: &mut App, is_normal: bool) -> Result<()> {
-    let mut git = app.git.spawn_piped()?;
+impl App {
+    /// Endpoint function for everything git-status related.
+    ///
+    /// Runs `git status` then parses its output, enumerates it, and
+    /// prints it out to stdout.
+    pub(crate) fn git_status(mut self) -> Result<ExitCode> {
+        let mut git =
+            self.final_command.inner.stdout(Stdio::piped()).spawn()?;
 
-    let lines = match git.stdout.take() {
-        Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
-        None => return git.wait().to_err().map(|_| ()),
-    };
-    let writer = &mut LineWriter::new(File::create(app.cache_path()?)?);
+        let lines = match git.stdout.take() {
+            Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
+            None => return Ok(git.wait().map(|v| v.exitcode())?),
+        };
 
-    // first line of the cache file is the current directory
-    writeln!(writer, "{}", app.cwd().to_str().unwrap()).unwrap();
+        let cache_filepath = self.get_current_dir();
+        let mut cache_filepath = cache_filepath.join(&self.git_dir);
+        cache_filepath.push(CACHE_FILE_NAME);
 
-    // write all the files listed by `git status`
-    let state = &mut State { seen_untracked: false, count: 1 };
-    if is_normal {
-        lines.filter_map(|v| normal(state, v)).write(writer);
-    } else {
-        lines.map(|v| short(state, v)).write(writer);
-    };
+        let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
 
-    // close the writer
-    writer.flush().ok();
+        // first line of the cache file is the current directory
+        writeln!(writer, "{}", self.get_current_dir().to_string_lossy())
+            .unwrap();
 
-    git.wait().to_err().map(|_| ())
+        let state = &mut State { seen_untracked: false, count: 1 };
+
+        match self.git_cmd {
+            Some(GitCommand::Status(GitStatus::Short)) => {
+                for line in lines {
+                    writeln!(writer, "{}", short(state, line)).unwrap();
+                }
+            }
+            Some(GitCommand::Status(GitStatus::Normal)) => {
+                for line in lines {
+                    if let Some(v) = normal(state, line) {
+                        writeln!(writer, "{v}").unwrap();
+                    }
+                }
+            }
+            _ => panic!("Should be of the status variant"),
+        }
+
+        // close the writer
+        writer.flush().ok();
+
+        Ok(git.wait().map(|v| v.exitcode())?)
+    }
 }
