@@ -8,10 +8,6 @@ ONE_TEST := 'tests::renames'
 current:
 	make test
 	# make test-one
-	# cargo build
-	# $(GITNU_DEBUG_BIN) ls-files 1-3
-	# $(GITNU_DEBUG_BIN) status --porcelain
-	# $(GITNU_DEBUG_BIN) status
 
 install:
 	make build
@@ -43,8 +39,8 @@ load-bin:
 # MARK: - CI 
 
 ci-git-user:
-	git config --global user.name gitnu-ci
-	git config --global user.email ci@gitnu.com
+	git config --global user.name 'github-actions[bot]'
+	git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
 py:
 	@$(PY_UTILS) $(ARG)
