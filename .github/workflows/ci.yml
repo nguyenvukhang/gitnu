@@ -36,9 +36,8 @@ jobs:
 
       - name: Enumerate outputs
         run: |
-          echo ${{ steps.increment.outputs.increment }}
-          echo ${{ steps.version.outputs.version }}
-          echo ${{ steps.matrix.outputs.matrix }}
+          echo 'increment: ${{ steps.increment.outputs.increment }}'
+          echo 'matrix:    ${{ steps.version.outputs.version }}'
 
   build-and-test:
     name: Build & Test
@@ -61,7 +60,7 @@ jobs:
     needs: [pre, build-and-test]
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.semver.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - uses: nguyenvukhang/semver-increment@v1
@@ -86,13 +85,13 @@ jobs:
   # publish patch-level updates and above only
   publish-crates-io:
     name: Publish to Crates.io
-    if: needs.inc.outputs.increment != 'prerelease'
+    if: needs.pre.outputs.increment != 'prerelease'
     needs: [pre, inc]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: v${{ needs.pre.outputs.version }}
+          ref: v${{ needs.inc.outputs.version }}
 
       - uses: katyo/publish-crates@v2
         with:
@@ -109,7 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ needs.inc.outputs.increment != 'prerelease' && format('v{0}', needs.pre.outputs.version) || github.ref }}
+          ref: ${{ needs.pre.outputs.increment != 'prerelease' && format('v{0}', needs.inc.outputs.version) || github.ref }}
 
       - run: |
           TARGET_DIR=./target/${{ matrix.target }}
@@ -128,7 +127,7 @@ jobs:
 
       - name: Build archive
         run: |
-          STAGING="git-nu-v${{ needs.pre.outputs.version }}-${{ matrix.target }}"
+          STAGING="git-nu-v${{ needs.inc.outputs.version }}-${{ matrix.target }}"
           mkdir -p "$STAGING"
           cp ${{ env.BINFILE }} "$STAGING"
           tar czf "$STAGING.tar.gz" "$STAGING"
@@ -136,7 +135,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: ${{ needs.inc.outputs.increment != 'prerelease' }}
+        if: ${{ needs.pre.outputs.increment != 'prerelease' }}
         with:
-          tag_name: v${{ needs.pre.outputs.version }}
+          tag_name: v${{ needs.inc.outputs.version }}
           files: ${{ env.ASSET }}
