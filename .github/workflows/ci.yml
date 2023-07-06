@@ -71,7 +71,7 @@ jobs:
           version-file: "Cargo.toml"
           version-regex: '^version = "(.*)"'
 
-      - name: Commit and tag for v${{ steps.semver.outputs.version }}
+      - name: Commit and push
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -79,6 +79,11 @@ jobs:
           cargo build
           git add Cargo.toml Cargo.lock
           git commit -m 'ver: bump to ${{ steps.semver.outputs.version }}'
+          git push
+
+      - name: Tag and push
+        if: ${{ needs.pre.outputs.increment != 'prerelease' }}
+        run: |
           git tag v${{ steps.semver.outputs.version }}
           git push --tag
 

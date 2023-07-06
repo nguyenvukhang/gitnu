@@ -35,13 +35,6 @@ load-bin:
 	@cp $(GITNU_RELEASE_BIN) $(LOCAL_BIN)
 
 
-# ────────────────────────────────────────────────────────────────────
-# MARK: - CI 
-
-ci-git-user:
-	git config --global user.name 'github-actions[bot]'
-	git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
 py:
 	@$(PY_UTILS) $(ARG)
 
