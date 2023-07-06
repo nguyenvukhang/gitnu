@@ -2,6 +2,7 @@ import os
 import subprocess
 import re
 import sys
+from typing import Callable
 
 # Obtained from semver.org
 # https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
@@ -19,48 +20,34 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT = os.path.join(DIR_PATH, "..")
 
 
-def cargo_toml_path():
-    return os.path.join(PROJECT_ROOT, "Cargo.toml")
+# fmt: off
+# Cargo stuff
+def cargo_toml_path(): return os.path.join(PROJECT_ROOT, "Cargo.toml")
+def get_cargo_toml():
+    with open(cargo_toml_path()) as f: lines = f.readlines()
+    return lines or []
+def set_cargo_toml(lines):
+    with open(cargo_toml_path(), "w") as f: f.writelines(lines)
+# fmt: on
 
 
 def run_sh(*cmd):
-    env = os.environ.copy()
-    return subprocess.check_output(cmd, env=env).decode("utf-8").split("\n")
+    return subprocess.check_output(cmd).decode("utf-8").split("\n")
 
 
 def get_semver_tags():
     all_tags = run_sh("git", "tag")
-    semver_tags = filter(lambda x: SEMVER_REGEX.match(x), all_tags)
+    semver_tags = filter(SEMVER_REGEX.match, all_tags)
 
     def version_or_none(text):
         try:
-            return Version.from_text(text)
+            return Version.from_str(text)
         except Exception:
             return None
 
     versions = list(map(version_or_none, semver_tags))
-
-    # sort by prerelease with a rank list
-    ranklist = {"alpha": 1, "beta": 2, None: 3}
-    versions.sort(key=lambda v: v.prerelease_number())
-    versions.sort(key=lambda v: ranklist.get(v.prerelease_name(), 0))
-
-    versions.sort(key=lambda v: v.patch)
-    versions.sort(key=lambda v: v.minor)
-    versions.sort(key=lambda v: v.major)
-
+    Version.sort(versions)
     return versions
-
-
-def get_cargo_toml():
-    with open(cargo_toml_path()) as f:
-        lines = f.readlines()
-    return lines
-
-
-def set_cargo_toml(lines):
-    with open(cargo_toml_path(), "w") as f:
-        f.writelines(lines)
 
 
 def split_trailing_number(text):
@@ -76,50 +63,116 @@ def split_trailing_number(text):
 
 def assert_version_match(v_cargo, v_git_tag):
     if not v_cargo == v_git_tag:
-        msg = "Cargo.toml version does not match latest git tag.\n"
-        msg += "\tCargo.toml: %s\n" % v_cargo
-        msg += "\tGit tags  : %s\n" % v_git_tag
-        raise Exception(msg)
+        msg = "Cargo.toml version does not match latest git tag."
+        msg += "\n\tCargo.toml: %s" % v_cargo
+        msg += "\n\tGit tags  : %s" % v_git_tag
+        print(msg)
+        sys.exit(1)
 
 
 class Version:
-    def __init__(self, major, minor, patch, prerelease):
-        if major == None or minor == None or patch == None:
-            raise ValueError("Detected None for Version.__init__")
-        self.major = int(major)
-        self.minor = int(minor)
-        self.patch = int(patch)
-        self.prerelease = prerelease
+    def __init__(
+        s, major, minor, patch, pre
+    ):  # type: (int, int, int, str|None) -> None
+        s.major, s.minor, s.patch, s.pre = major, minor, patch, pre
+
+    # sort by prerelease with a rank list
+    @staticmethod
+    def sort(arr):  # type: (list[Version]) -> None
+        PRERELEASE_RANKS = {"alpha": 1, "beta": 2, None: 3}
+        arr.sort(key=lambda v: v.pre_number())
+        arr.sort(key=lambda v: PRERELEASE_RANKS.get(v.pre_name(), 0))
+
+        arr.sort(key=lambda v: v.patch)
+        arr.sort(key=lambda v: v.minor)
+        arr.sort(key=lambda v: v.major)
+
+    @staticmethod
+    def from_str(text):
+        if text == None:
+            raise ValueError("Tried to init Version with None")
+
+        match = SEMVER_REGEX.search(text)
+        if match == None:
+            raise ValueError('Invalid SemVer: "%s"' % (text))
+
+        # after passing the regex, the rest is safe:
+        major, minor, patch, pre = match.groups()[:4]
+        major, minor, patch = map(int, [major, minor, patch])
+        return Version(major, minor, patch, pre)
 
     def __str__(self):
-        return self.fmt()
+        if self.pre is None:
+            return "%s.%s.%s" % (self.major, self.minor, self.patch)
+        return "%s.%s.%s-%s" % (self.major, self.minor, self.patch, self.pre)
 
     def __eq__(a, b):
         return (
             a.major == b.major
             and a.minor == b.minor
             and a.patch == b.patch
-            and a.prerelease == b.prerelease
+            and a.pre == b.pre
         )
 
-    def prerelease_name(self):
-        if self.prerelease == None:
+    @staticmethod
+    def split_pre(text):
+        ptr = len(text)
+        for i in text[::-1]:
+            try:
+                int(i)
+                ptr -= 1
+            except Exception:
+                break
+        return text[:ptr], int(text[ptr:])
+
+    def pre_name(self):
+        if self.pre == None:
             return None
-        return split_trailing_number(self.prerelease)[0]
+        return Version.split_pre(self.pre)[0]
 
-    def prerelease_number(self):
-        if self.prerelease == None:
+    def pre_number(self):
+        if self.pre == None:
             return 0
-        return split_trailing_number(self.prerelease)[1]
+        return Version.split_pre(self.pre)[1]
 
-    def from_text(text):
-        if text == None:
-            raise ValueError("Version: tried to init with None")
-        version = SEMVER_REGEX.search(text)
-        if version == None:
-            raise ValueError("Bad version format: %s" % (text))
-        return Version(*version.groups()[:4])
+    # 1.2.3-alpha1 -> INVALID
+    # 1.2.3 -> 2.0.0-alpha1
+    def next_major_pre(self):
+        if self.pre != None:
+            msg = "Unexpected existing pre. Use next_patch_pre() instead."
+            raise ValueError(msg)
+        self.next_minor_pre()
+        self.minor = 0
+        self.major += 1
+        return self
 
+    # 1.2.3-alpha1 -> INVALID
+    # 1.2.3 -> 1.3.0-alpha1
+    def next_minor_pre(self):
+        if self.pre != None:
+            msg = "Unexpected existing pre. Use next_patch_pre() instead."
+            raise ValueError(msg)
+        self.next_patch_pre()
+        self.patch = 0
+        self.minor += 1
+        return self
+
+    # 1.2.3-alpha1 -> 1.2.3-alpha2
+    # 1.2.3 -> 1.2.4-alpha1
+    def next_patch_pre(self):
+        if self.pre == None:
+            self.patch += 1
+            self.pre = "alpha1"
+        else:
+            text, num = Version.split_pre(self.pre)
+            self.pre = "%s%d" % (text, num + 1)
+        return self
+
+    def release(self):
+        self.pre = None
+        return self
+
+    @staticmethod
     def from_toml(toml_lines):
         regexed = list(map(lambda x: CARGO_TOML_VERSION_REGEX.match(x), toml_lines))
 
@@ -130,59 +183,17 @@ class Version:
 
         match = list(filter(bool, regexed))[0]
         version_text = match.groups()[0]
-        return Version.from_text(version_text), index
+        return Version.from_str(version_text), index
 
-    def into_toml(self, toml_lines):
-        def on_each(line):
-            match = CARGO_TOML_VERSION_REGEX.match(line)
-            if match:
-                return
-            pass
-
-        return map(on_each, toml_lines)
-
+    @staticmethod
     def from_latest_tag():
         return get_semver_tags()[-1]
 
-    def fmt(self):
-        if self.prerelease == None:
-            return "%s.%s.%s" % (self.major, self.minor, self.patch)
-        return "%s.%s.%s-%s" % (self.major, self.minor, self.patch, self.prerelease)
+    def tag(self):
+        return "v" + str(self)
 
-    def clone(self):
-        return Version(self.major, self.minor, self.patch, self.prerelease)
-
-    def next(self):
-        if self.prerelease == None:
-            return self.next_patch()
-        return self.next_prerelease()
-
-    def next_major(self):
-        clone = self.clone()
-        clone.major += 1
-        clone.minor, clone.patch, clone.prerelease = 0, 0, None
-        return clone
-
-    def next_minor(self):
-        clone = self.clone()
-        clone.minor += 1
-        clone.patch, clone.prerelease = 0, None
-        return clone
-
-    def next_patch(self):
-        clone = self.next_prerelease()
-        clone.prerelease = None
-        return clone
-
-    def next_prerelease(self):
-        clone = self.clone()
-        if clone.prerelease == None:
-            clone.patch += 1
-            clone.prerelease = "alpha1"
-        else:
-            text, num = split_trailing_number(clone.prerelease)
-            clone.prerelease = "%s%d" % (text, num + 1)
-        return clone
+    def is_release(self):
+        return self.pre is None
 
 
 def current_version():
@@ -190,15 +201,15 @@ def current_version():
 
     # get latest version
     v_cargo, _ = Version.from_toml(cargo_toml)
-    v_git_tag = Version.from_latest_tag()
+    # v_git_tag = Version.from_latest_tag()
 
     # assert match
-    assert_version_match(v_cargo, v_git_tag)
+    # assert_version_match(v_cargo, v_git_tag)
 
     return v_cargo
 
 
-def increment(inc_fn):
+def increment(inc_fn):  # type: (Callable[[Version], Version]) -> None
     cargo_toml = get_cargo_toml()
 
     # get latest version
@@ -206,69 +217,61 @@ def increment(inc_fn):
     v_git_tag = Version.from_latest_tag()
 
     # assert match
-    assert_version_match(v_cargo, v_git_tag)
+    # assert_version_match(v_cargo, v_git_tag)
+    print(v_cargo)
+    print(v_git_tag)
+
+    print("Current version: %s" % (v_cargo))
 
     # increment
     v_next = inc_fn(v_cargo)
 
-    print("Current version: %s" % (v_cargo))
-    print("Next prerelease: %s" % (v_next))
+    print("Next pre: %s" % (v_next))
 
-    Git.update_and_tag(cargo_toml, version_line_index, v_next)
+    Git.update_and_commit(cargo_toml, version_line_index, v_next)
+    if v_next.is_release():
+        Git.tag(v_next)
     Git.push()
 
 
 class Git:
-    def update_and_tag(cargo_toml, line_num, v_next):
+    def update_and_commit(
+        cargo_toml, line_num, ver
+    ):  # type: (list[str], int, Version) -> None
         # change the line in Cargo.toml
-        cargo_toml[line_num] = 'version = "%s"\n' % (v_next)
+        cargo_toml[line_num] = 'version = "%s"\n' % (ver)
 
-        with open(cargo_toml_path(), "w") as f:
-            f.writelines(cargo_toml)
+        set_cargo_toml(cargo_toml)
 
-        # build to update Cargo.lock
+        # build to update_and_commit Cargo.lock
         subprocess.run(["cargo", "build"])
 
-        tag = "v%s" % v_next
         subprocess.run(["git", "add", "Cargo.toml", "Cargo.lock"])
-        subprocess.run(["git", "commit", "-m", "ver: bump to %s" % tag])
-        subprocess.run(["git", "tag", tag])
+        subprocess.run(["git", "commit", "-m", "ver: bump to %s" % ver.tag()])
+
+    def tag(ver):  # type: (Version) -> None
+        subprocess.run(["git", "tag", ver.tag()])
+        subprocess.run(["git", "push", "--tags"])
 
     def push():
         subprocess.run(["git", "push"])
-        subprocess.run(["git", "push", "--tags"])
 
 
 class App:
-    def increment_prerelease():
-        increment(lambda x: x.next_prerelease())
+    # fmt: off
+    def increment_major_pre(): increment(lambda x: x.next_major_pre())
+    def increment_minor_pre(): increment(lambda x: x.next_minor_pre())
+    def increment_patch_pre(): increment(lambda x: x.next_patch_pre())
+    def increment_release():   increment(lambda x: x.release())
 
-    def increment_patch():
-        increment(lambda x: x.next_patch())
+    def next_patch_pre():  print(current_version().next_patch_pre())
+    def next_minor_pre():  print(current_version().next_minor_pre())
+    def next_major_pre():  print(current_version().next_minor_pre())
+    def next_release():  print(current_version().release())
 
-    def increment_minor():
-        increment(lambda x: x.next_minor())
-
-    def increment_major():
-        increment(lambda x: x.next_major())
-
-    def current_version():
-        print("%s" % (current_version()))
-
-    def next_prerelease_version():
-        print("%s" % current_version().next_prerelease())
-
-    def next_patch_version():
-        print("%s" % current_version().next_patch())
-
-    def next_minor_version():
-        print("%s" % current_version().next_minor())
-
-    def next_major_version():
-        print("%s" % current_version().next_major())
-
-    def latest_tag():
-        print("%s" % Version.from_latest_tag())
+    def current_version(): print(current_version())
+    def latest_tag():      print(Version.from_latest_tag())
+    # fmt: on
 
 
 def main():
@@ -277,17 +280,17 @@ def main():
 
     app = {}
 
-    app["increment-prerelease"] = App.increment_prerelease
-    app["increment-patch"] = App.increment_patch
-    app["increment-minor"] = App.increment_minor
-    app["increment-major"] = App.increment_major
+    app["increment-major-pre"] = App.increment_major_pre
+    app["increment-minor-pre"] = App.increment_minor_pre
+    app["increment-patch-pre"] = App.increment_patch_pre
+    app["increment-release"] = App.increment_release
+
+    app["next-major-pre"] = App.next_major_pre
+    app["next-minor-pre"] = App.next_minor_pre
+    app["next-patch-pre"] = App.next_patch_pre
+    app["next-release"] = App.next_release
 
     app["current-version"] = App.current_version
-    app["next-prerelease-version"] = App.next_prerelease_version
-    app["next-patch-version"] = App.next_patch_version
-    app["next-minor-version"] = App.next_minor_version
-    app["next-major-version"] = App.next_major_version
-
     app["latest-tag"] = App.latest_tag
 
     run = lambda: ()
