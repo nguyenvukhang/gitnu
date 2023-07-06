@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
-      version: ${{ steps.version.outputs.version }}
       increment: ${{ steps.increment.outputs.increment }}
     steps:
       - uses: actions/checkout@v3
@@ -35,11 +34,6 @@ jobs:
       - run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
         id: matrix
 
-      # Checks that the version on Cargo.toml matches the latest git
-      # tag, and sets the `version` variable to the next version.
-      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }} make py)" >> $GITHUB_OUTPUT
-        id: version
-
       - name: Enumerate outputs
         run: |
           echo ${{ steps.increment.outputs.increment }}
@@ -56,24 +50,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      # required for tests
-      - run: make ci-git-user
-
       - name: Run tests
-        run: make test
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          make test
 
-  increment:
-    name: Increment ${{ needs.pre.outputs.increment }} version
+  inc:
+    name: Increment version
     needs: [pre, build-and-test]
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - uses: nguyenvukhang/semver-increment@v1
         id: semver
         with:
           increment: ${{ matrix.increment }}
-          identifier: 'alpha'
+          identifier: "alpha"
           version-file: "Cargo.toml"
           version-regex: '^version = "(.*)"'
 
@@ -90,8 +85,8 @@ jobs:
   # publish patch-level updates and above only
   publish-crates-io:
     name: Publish to Crates.io
-    if: needs.pre.outputs.increment != 'prerelease'
-    needs: [pre, increment]
+    if: needs.inc.outputs.increment != 'prerelease'
+    needs: [pre, inc]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -104,7 +99,7 @@ jobs:
 
   release-github:
     name: Release on GitHub
-    needs: [pre, increment]
+    needs: [pre, inc]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -113,7 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ needs.pre.outputs.increment != 'prerelease' && format('v{0}', needs.pre.outputs.version) || github.ref }}
+          ref: ${{ needs.inc.outputs.increment != 'prerelease' && format('v{0}', needs.pre.outputs.version) || github.ref }}
 
       - run: |
           TARGET_DIR=./target/${{ matrix.target }}
@@ -140,7 +135,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: ${{ needs.pre.outputs.increment != 'prerelease' }}
+        if: ${{ needs.inc.outputs.increment != 'prerelease' }}
         with:
           tag_name: v${{ needs.pre.outputs.version }}
           files: ${{ env.ASSET }}
