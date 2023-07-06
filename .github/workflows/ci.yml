@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
-      version: ${{ steps.version.outputs.version }}
       increment: ${{ steps.increment.outputs.increment }}
     steps:
       - uses: actions/checkout@v3
@@ -24,9 +23,9 @@ jobs:
       # Sets the increment: how much to push the version number
       - run: |
           case ${{ github.ref_name }} in
-            main) echo "increment=release" >> $GITHUB_OUTPUT;;
-            dev) echo "increment=patch-pre" >> $GITHUB_OUTPUT;;
-            *) echo "increment=${{ github.ref_name }}-pre" >> $GITHUB_OUTPUT;;
+            main) echo "increment=patch" >> $GITHUB_OUTPUT ;;
+            dev) echo "increment=prerelease" >> $GITHUB_OUTPUT ;;
+            *) echo "increment=${{ github.ref_name }}" >> $GITHUB_OUTPUT;;
           esac
         id: increment
 
@@ -35,16 +34,10 @@ jobs:
       - run: echo "matrix=$(jq -rc . .github/workflows/matrix.json)" >> $GITHUB_OUTPUT
         id: matrix
 
-      # Checks that the version on Cargo.toml matches the latest git
-      # tag, and sets the `version` variable to the next version.
-      - run: echo "version=$(ARG=next-${{ steps.increment.outputs.increment }} make py)" >> $GITHUB_OUTPUT
-        id: version
-
       - name: Enumerate outputs
         run: |
-          echo ${{ steps.increment.outputs.increment }}
-          echo ${{ steps.version.outputs.version }}
-          echo ${{ steps.matrix.outputs.matrix }}
+          echo 'increment: ${{ steps.increment.outputs.increment }}'
+          echo 'matrix:    ${{ steps.version.outputs.version }}'
 
   build-and-test:
     name: Build & Test
@@ -56,37 +49,55 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      # required for tests
-      - run: make ci-git-user
-
       - name: Run tests
-        run: make test
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          cargo build
+          cargo test --lib
 
-  increment:
-    name: Increment ${{ needs.pre.outputs.increment }} version
+  inc:
+    name: Increment version
     needs: [pre, build-and-test]
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-      - run: git fetch --tags
-      - run: make ci-git-user
+      - uses: nguyenvukhang/semver-increment@v1
+        id: semver
+        with:
+          increment: ${{ needs.pre.outputs.increment }}
+          identifier: "alpha"
+          version-file: "Cargo.toml"
+          version-regex: '^version = "(.*)"'
 
-      - name: Increment ${{ needs.pre.outputs.increment }} version
-        run: make py
-        env:
-          ARG: increment-${{ needs.pre.outputs.increment }}
+      - name: Commit and push
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          cargo build
+          git add Cargo.toml Cargo.lock
+          git commit -m 'ver: bump to ${{ steps.semver.outputs.version }}'
+          git push
+
+      - name: Tag and push
+        if: ${{ needs.pre.outputs.increment != 'prerelease' }}
+        run: |
+          git tag v${{ steps.semver.outputs.version }}
+          git push --tag
 
   # publish patch-level updates and above only
   publish-crates-io:
     name: Publish to Crates.io
-    if: needs.pre.outputs.increment == 'release'
-    needs: [pre, increment]
+    if: needs.pre.outputs.increment != 'prerelease'
+    needs: [pre, inc]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: v${{ needs.pre.outputs.version }}
+          ref: v${{ needs.inc.outputs.version }}
 
       - uses: katyo/publish-crates@v2
         with:
@@ -94,7 +105,7 @@ jobs:
 
   release-github:
     name: Release on GitHub
-    needs: [pre, increment]
+    needs: [pre, inc]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -103,7 +114,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ needs.pre.outputs.increment == 'release' && format('v{0}', needs.pre.outputs.version) || github.ref }}
+          ref: ${{ needs.pre.outputs.increment != 'prerelease' && format('v{0}', needs.inc.outputs.version) || github.ref }}
 
       - run: |
           TARGET_DIR=./target/${{ matrix.target }}
@@ -111,7 +122,7 @@ jobs:
           echo "BINFILE=$TARGET_DIR/release/git-nu" >> $GITHUB_ENV
 
       - name: Build binary
-        run: make build
+        run: cargo build --release
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
@@ -122,7 +133,7 @@ jobs:
 
       - name: Build archive
         run: |
-          STAGING="git-nu-v${{ needs.pre.outputs.version }}-${{ matrix.target }}"
+          STAGING="git-nu-v${{ needs.inc.outputs.version }}-${{ matrix.target }}"
           mkdir -p "$STAGING"
           cp ${{ env.BINFILE }} "$STAGING"
           tar czf "$STAGING.tar.gz" "$STAGING"
@@ -130,7 +141,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: ${{ needs.pre.outputs.increment == 'release' }}
+        if: ${{ needs.pre.outputs.increment != 'prerelease' }}
         with:
-          tag_name: v${{ needs.pre.outputs.version }}
+          tag_name: v${{ needs.inc.outputs.version }}
           files: ${{ env.ASSET }}
