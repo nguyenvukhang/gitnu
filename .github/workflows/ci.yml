@@ -53,7 +53,8 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          make test
+          cargo build
+          cargo test --lib
 
   inc:
     name: Increment version
@@ -121,7 +122,7 @@ jobs:
           echo "BINFILE=$TARGET_DIR/release/git-nu" >> $GITHUB_ENV
 
       - name: Build binary
-        run: make build
+        run: cargo build --release
         env:
           CARGO_BUILD_TARGET_DIR: ${{ env.TARGET_DIR }}
 
