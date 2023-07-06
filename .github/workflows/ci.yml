@@ -67,18 +67,19 @@ jobs:
       - uses: nguyenvukhang/semver-increment@v1
         id: semver
         with:
-          increment: ${{ matrix.increment }}
+          increment: ${{ needs.pre.outputs.increment }}
           identifier: "alpha"
           version-file: "Cargo.toml"
           version-regex: '^version = "(.*)"'
 
       - name: Commit and tag for v${{ steps.semver.outputs.version }}
         run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
           cargo build
           git add Cargo.toml Cargo.lock
           git commit -m 'ver: bump to ${{ steps.semver.outputs.version }}'
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git tag v${{ steps.semver.outputs.version }}
           git push --tag
 
