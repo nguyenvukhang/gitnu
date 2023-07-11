@@ -210,7 +210,6 @@ where
     let exitcode = match cli_init_app(&cwd) {
         Ok(app) => app.parse(args).run(),
         Err(_) => {
-            // eprintln!("{err:?}");
             Command::new("git")
                 .args(args.skip(1))
                 .status()

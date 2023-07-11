@@ -73,9 +73,6 @@ macro_rules! test {
             // Sets the $PATH environment variable such that the debug version of
             // `git-nu` is front-and-center.
             let path = env_var("PATH");
-            println!("------------------------------------");
-            println!("{path}");
-            println!("------------------------------------");
             env::set_var("PATH", format!("{}:{path}", bin_dir()));
 
             // run the test
