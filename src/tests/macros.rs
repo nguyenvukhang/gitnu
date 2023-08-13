@@ -151,7 +151,7 @@ macro_rules! sh {
                 let stdout = String::from_utf8_lossy(&v.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&v.stderr).to_string();
                 println!("╭{line} RUN SH {line}╮");
-                println!("test dir: {}", $t.dir.to_string_lossy());
+                println!("test dir: {}", $t.dir.display());
                 println!("relative dir: \x1b[0;32m{}\x1b[0m", $cwd);
                 println!("cmd:          \x1b[0;32m{}\x1b[0m", $cmd);
                 if !stdout.is_empty() {

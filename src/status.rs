@@ -115,8 +115,7 @@ impl App {
         let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
 
         // first line of the cache file is the current directory
-        writeln!(writer, "{}", self.get_current_dir().to_string_lossy())
-            .unwrap();
+        writeln!(writer, "{}", self.get_current_dir().display()).unwrap();
 
         let state = &mut State { seen_untracked: false, count: 1 };
 
