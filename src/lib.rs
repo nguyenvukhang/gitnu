@@ -93,19 +93,15 @@ mod git {
         if let Some(current_dir) = base_dir {
             cmd.current_dir(current_dir);
         }
-        let output = cmd.args(["rev-parse", "--git-dir"]).output();
-
-        match output {
-            Ok(v) => {
-                let stderr = String::from_utf8_lossy(&v.stderr);
-                if stderr.contains("fatal: not a git repository") {
-                    return error!(NotGitRepository);
-                }
-                let stdout = String::from_utf8_lossy(&v.stdout);
-                return Ok(PathBuf::from(stdout.trim()));
-            }
-            Err(e) => Err(Error::Io(e)),
+        let output = cmd
+            .args(["rev-parse", "--git-dir"])
+            .output()
+            .map_err(|e| Error::Io(e))?;
+        if output.stderr.starts_with(b"fatal: not a git repository") {
+            return error!(NotGitRepository);
         }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(PathBuf::from(stdout.trim_end()))
     }
 
     pub(crate) fn aliases() -> Aliases {
@@ -209,13 +205,11 @@ where
 
     let exitcode = match cli_init_app(&cwd) {
         Ok(app) => app.parse(args).run(),
-        Err(_) => {
-            Command::new("git")
-                .args(args.skip(1))
-                .status()
-                .map_err(|v| Error::from(v))
-                .map(|v| v.exitcode())
-        }
+        Err(_) => Command::new("git")
+            .args(args.skip(1))
+            .status()
+            .map_err(|v| Error::from(v))
+            .map(|v| v.exitcode()),
     };
     exitcode.unwrap_or(ExitCode::FAILURE)
 }
