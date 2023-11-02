@@ -105,25 +105,19 @@ mod git {
     }
 
     pub(crate) fn aliases() -> Aliases {
-        let mut aliases = Aliases::new();
         let output = Command::new("git")
             .args(["config", "--global", "--get-regexp", "^alias."])
             .output();
-
-        let output = match output {
-            Ok(v) => v,
-            Err(_) => return aliases,
-        };
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        for line in stdout.lines() {
-            let split = line.get(6..).and_then(|v| v.split_once(' '));
-            if let Some((key, value)) = split {
-                aliases.insert(key.to_string(), value.to_string());
-            }
+        match output {
+            Ok(v) => Aliases::from_iter(
+                v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
+                    v.get(6..) // every lines starts with "alias."
+                        .and_then(|v| v.split_once(' '))
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                }),
+            ),
+            Err(_) => Aliases::new(),
         }
-
-        aliases
     }
 }
 
