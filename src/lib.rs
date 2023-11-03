@@ -93,41 +93,31 @@ mod git {
         if let Some(current_dir) = base_dir {
             cmd.current_dir(current_dir);
         }
-        let output = cmd.args(["rev-parse", "--git-dir"]).output();
-
-        match output {
-            Ok(v) => {
-                let stderr = String::from_utf8_lossy(&v.stderr);
-                if stderr.contains("fatal: not a git repository") {
-                    return error!(NotGitRepository);
-                }
-                let stdout = String::from_utf8_lossy(&v.stdout);
-                return Ok(PathBuf::from(stdout.trim()));
-            }
-            Err(e) => Err(Error::Io(e)),
+        let output = cmd
+            .args(["rev-parse", "--git-dir"])
+            .output()
+            .map_err(|e| Error::Io(e))?;
+        if output.stderr.starts_with(b"fatal: not a git repository") {
+            return error!(NotGitRepository);
         }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(PathBuf::from(stdout.trim_end()))
     }
 
     pub(crate) fn aliases() -> Aliases {
-        let mut aliases = Aliases::new();
         let output = Command::new("git")
             .args(["config", "--global", "--get-regexp", "^alias."])
             .output();
-
-        let output = match output {
-            Ok(v) => v,
-            Err(_) => return aliases,
-        };
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        for line in stdout.lines() {
-            let split = line.get(6..).and_then(|v| v.split_once(' '));
-            if let Some((key, value)) = split {
-                aliases.insert(key.to_string(), value.to_string());
-            }
+        match output {
+            Ok(v) => Aliases::from_iter(
+                v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
+                    v.get(6..) // every lines starts with "alias."
+                        .and_then(|v| v.split_once(' '))
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                }),
+            ),
+            Err(_) => Aliases::new(),
         }
-
-        aliases
     }
 }
 
@@ -209,14 +199,11 @@ where
 
     let exitcode = match cli_init_app(&cwd) {
         Ok(app) => app.parse(args).run(),
-        Err(_) => {
-            // eprintln!("{err:?}");
-            Command::new("git")
-                .args(args.skip(1))
-                .status()
-                .map_err(|v| Error::from(v))
-                .map(|v| v.exitcode())
-        }
+        Err(_) => Command::new("git")
+            .args(args.skip(1))
+            .status()
+            .map_err(|v| Error::from(v))
+            .map(|v| v.exitcode()),
     };
     exitcode.unwrap_or(ExitCode::FAILURE)
 }

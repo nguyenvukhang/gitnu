@@ -1,4 +1,4 @@
-LOCAL_BIN=$(HOME)/dots/personal/.local/bin
+LOCAL_BIN=$(HOME)/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
