@@ -163,11 +163,9 @@ impl App {
                 _ => {}
             };
             match (skip, parse_range(&arg)) {
-                (false, Some((start, end))) => {
+                (false, Some((start, end))) if end <= MAX_CACHE_SIZE => {
                     let cmd = &mut self.final_command.inner;
-                    for i in start..end + 1 {
-                        self.cache.load(i, cmd)
-                    }
+                    (start..end + 1).for_each(|i| self.cache.load(i, cmd));
                 }
                 _ => self.final_command.arg(&arg),
             }
