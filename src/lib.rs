@@ -13,6 +13,7 @@ use std::ffi::OsStr;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::ExitCode;
@@ -26,12 +27,18 @@ struct Cache {
 }
 
 impl Cache {
-    pub fn new(git_dir: &PathBuf, cwd: &PathBuf) -> Self {
+    pub fn new<P>(git_dir: &PathBuf, cwd: P) -> Self
+    where
+        P: AsRef<Path>,
+    {
         Self::try_read(git_dir, cwd).unwrap_or_default()
     }
 
-    fn try_read(git_dir: &PathBuf, cwd: &PathBuf) -> Result<Self> {
-        let mut filepath = cwd.clone();
+    fn try_read<P>(git_dir: &PathBuf, cwd: P) -> Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let mut filepath = cwd.as_ref().to_path_buf();
         filepath.push(git_dir);
         filepath.push(CACHE_FILE_NAME);
 
@@ -84,7 +91,10 @@ mod git {
     }
 
     #[cfg(test)]
-    pub(crate) fn relative_dir(base_dir: &PathBuf) -> Result<PathBuf> {
+    pub(crate) fn relative_dir<P>(base_dir: P) -> Result<PathBuf>
+    where
+        P: AsRef<Path>,
+    {
         _dir(Some(base_dir))
     }
 
@@ -190,7 +200,7 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
         .build())
 }
 
-pub fn run<I>(cwd: PathBuf, args: I) -> ExitCode
+pub fn main<I>(cwd: PathBuf, args: I) -> ExitCode
 where
     I: IntoIterator<Item = String>,
 {

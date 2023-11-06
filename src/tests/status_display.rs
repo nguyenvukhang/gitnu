@@ -16,9 +16,12 @@ macro_rules! status_test {
 
             gitnu!(t, status).unwrap();
 
-            let (input, output) = $inout;
+            let (input, expected) = $inout;
+
             let app = gitnu!(t, input).unwrap();
-            assert_args!(app, output);
+            let received = app.final_command.get_args();
+
+            assert_eq!(received, expected);
         });
     };
     ($name:ident, $setup:expr, $status:expr) => {
