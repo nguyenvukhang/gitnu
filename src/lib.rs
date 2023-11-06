@@ -32,16 +32,11 @@ mod git {
     /// current_dir is intentionally not supplied as it relies on the
     /// user's actual PWD or the value of git's `-C` flag, which is not
     /// visible to the `git-nu` binary.
-    pub(crate) fn dir() -> Result<PathBuf> {
-        _dir(None::<&Path>)
-    }
-
-    #[cfg(test)]
-    pub(crate) fn relative_dir<P>(base_dir: P) -> Result<PathBuf>
+    pub(crate) fn dir<P>(cwd: P) -> Result<PathBuf>
     where
         P: AsRef<Path>,
     {
-        _dir(Some(base_dir))
+        _dir(Some(cwd))
     }
 
     fn sh<P>(dir: Option<P>, args: &[&str]) -> Result<Output>
@@ -80,7 +75,10 @@ mod git {
 fn cli_init_app(cwd: PathBuf) -> Result<App> {
     use std::thread;
 
-    let h_git_dir = thread::spawn(|| git::dir());
+    let h_git_dir = {
+        let c = cwd.clone();
+        thread::spawn(|| git::dir(c))
+    };
     let h_git_aliases = thread::spawn(|| git::aliases());
 
     let git_dir = h_git_dir.join()??;

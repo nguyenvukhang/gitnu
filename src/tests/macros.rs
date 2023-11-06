@@ -84,7 +84,7 @@ where
         t.extend(args.iter().map(|v| v.as_ref()));
         t
     };
-    let git_dir = git::relative_dir(&cwd)?;
+    let git_dir = git::dir(&cwd)?;
     let cache = Cache::new(&git_dir, &cwd);
     let mut app = AppBuilder::new(cwd.to_path_buf())
         .cache(cache)
