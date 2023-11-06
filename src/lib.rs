@@ -95,7 +95,10 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
 
 pub fn main(cwd: PathBuf, args: &[String]) -> ExitCode {
     let exitcode = match cli_init_app(cwd) {
-        Ok(app) => app.parse(&args).run(),
+        Ok(mut app) => {
+            app.parse(&args);
+            app.run()
+        }
         Err(_) => Command::new("git")
             .args(&args[1..])
             .status()

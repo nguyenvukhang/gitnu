@@ -108,7 +108,7 @@ pub fn parse_range(arg: &str) -> Option<(usize, usize)> {
 }
 
 impl App {
-    pub fn parse(mut self, args: &[String]) -> Self {
+    pub fn parse(&mut self, args: &[String]) -> &mut Self {
         if atty::is(atty::Stream::Stdout) {
             self.final_command.hidden_args(["-c", "color.ui=always"]);
         }
@@ -199,7 +199,8 @@ mod tests {
                 let mut args = vec!["git"];
                 args.extend($input_args);
                 let args = string_vec(args);
-                let app = App::default().parse(&args);
+                let mut app = App::default();
+                app.parse(&args);
                 let received_args = app.final_command.get_args();
                 let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);

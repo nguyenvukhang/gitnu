@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::{git, App, AppBuilder, Cache};
+use crate::App;
 
 use std::fs::File;
 use std::io::Write;
@@ -78,21 +78,16 @@ where
     P: AsRef<Path>,
     S: AsRef<str>,
 {
-    let cwd = cwd.as_ref();
+    use crate::cli_init_app;
+    let mut app = cli_init_app(cwd.as_ref().to_path_buf())?;
     let args = {
-        let mut t = vec!["git"];
-        t.extend(args.iter().map(|v| v.as_ref()));
+        let mut t = vec!["git".to_string()];
+        t.extend(args.iter().map(|v| v.as_ref().to_string()));
         t
     };
-    let git_dir = git::dir(&cwd)?;
-    let cache = Cache::new(&git_dir, &cwd);
-    let mut app = AppBuilder::new(cwd.to_path_buf())
-        .cache(cache)
-        .git_dir(git_dir)
-        .build();
     // forcefully run the test binary in the test directory
     app.final_command.inner.current_dir(&cwd);
-    let app = app.parse(&string_vec(args));
+    app.parse(&string_vec(args));
     Ok(app)
 }
 
