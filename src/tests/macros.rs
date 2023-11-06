@@ -117,13 +117,16 @@ macro_rules! gitnu {
         let cwd = $t.dir.join($relative_dir);
         let git_dir = $crate::git::relative_dir(&cwd);
 
+        println!("CWD: {cwd:?}");
+
         git_dir.map(|git_dir| {
             let cache = $crate::Cache::new(&git_dir, &cwd);
-            let app = $crate::AppBuilder::new()
-                .current_dir(&cwd)
+            let mut app = $crate::AppBuilder::new(cwd.clone())
                 .cache(cache)
                 .git_dir(git_dir)
                 .build();
+            // forcefully run the test binary in the test directory
+            app.final_command.inner.current_dir(&cwd);
             app.parse(args.into_iter().map(String::from))
         })
     }};
@@ -155,10 +158,10 @@ macro_rules! sh {
                 println!("relative dir: \x1b[0;32m{}\x1b[0m", $cwd);
                 println!("cmd:          \x1b[0;32m{}\x1b[0m", $cmd);
                 if !stdout.is_empty() {
-                    println!(" {line} STDOUT {line}\n{}", stdout);
+                    println!("::: STDOUT :::\n{}", stdout);
                 }
                 if !stderr.is_empty() {
-                    println!(" {line} STDERR {line}\n{}", stderr);
+                    println!("::: STDERR :::\n{}", stderr);
                 }
                 println!("╰{line}────────{line}╯");
                 Output { stdout, exit_code: v.status.code() }

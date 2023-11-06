@@ -108,14 +108,13 @@ impl App {
             None => return Ok(git.wait().map(|v| v.exitcode())?),
         };
 
-        let cache_filepath = self.get_current_dir();
-        let mut cache_filepath = cache_filepath.join(&self.git_dir);
+        let mut cache_filepath = self.cwd.join(&self.git_dir);
         cache_filepath.push(CACHE_FILE_NAME);
 
         let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
 
         // first line of the cache file is the current directory
-        writeln!(writer, "{}", self.get_current_dir().display()).unwrap();
+        writeln!(writer, "{}", self.cwd.display()).unwrap();
 
         let state = &mut State { seen_untracked: false, count: 1 };
 

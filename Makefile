@@ -2,7 +2,7 @@ LOCAL_BIN=$(HOME)/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
-ONE_TEST := 'tests::renames'
+ONE_TEST := 'tests::add_and_status_diff_dirs'
 
 current:
 	make test

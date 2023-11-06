@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::path::Path;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -11,44 +10,44 @@ use crate::Command2;
 type Aliases = HashMap<String, String>;
 
 pub(crate) struct AppBuilder {
-    git_dir: Option<PathBuf>,
     git_aliases: Option<Aliases>,
     git_cmd: Option<GitCommand>,
+    git_dir: Option<PathBuf>,
+    cwd: PathBuf,
     final_command: Command2,
     cache: Option<Cache>,
 }
 
 #[derive(Debug)]
 pub(crate) struct App {
-    pub git_dir: PathBuf,
-    pub git_cmd: Option<GitCommand>,
-    pub final_command: Command2,
     pub git_aliases: Aliases,
+    pub git_cmd: Option<GitCommand>,
+    pub git_dir: PathBuf,
+    pub cwd: PathBuf,
+    pub final_command: Command2,
     pub cache: Cache,
 }
 
 impl AppBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn build(self) -> App {
-        assert!(self.final_command.inner.get_current_dir().is_some());
-
-        App {
-            final_command: self.final_command,
-            git_dir: self.git_dir.unwrap_or_default(),
-            git_aliases: self.git_aliases.unwrap_or_default(),
-            git_cmd: self.git_cmd,
-            cache: self.cache.unwrap_or_default(),
+    pub fn new(cwd: PathBuf) -> Self {
+        Self {
+            git_aliases: None,
+            git_cmd: None,
+            git_dir: None,
+            cwd,
+            final_command: Command2::new("git"),
+            cache: None,
         }
     }
-
-    pub fn current_dir<P>(mut self, v: P) -> Self
-    where
-        P: AsRef<Path>,
-    {
-        self.final_command.inner.current_dir(v.as_ref());
-        self
+    pub fn build(self) -> App {
+        App {
+            git_aliases: self.git_aliases.unwrap_or_default(),
+            git_cmd: self.git_cmd,
+            git_dir: self.git_dir.unwrap_or_default(),
+            cwd: self.cwd,
+            final_command: self.final_command,
+            cache: self.cache.unwrap_or_default(),
+        }
     }
 }
 
@@ -70,11 +69,12 @@ build!(cache, Cache);
 impl Default for App {
     fn default() -> Self {
         Self {
-            git_dir: PathBuf::new(),
-            cache: Cache::default(),
             git_aliases: Aliases::new(),
             git_cmd: None,
+            git_dir: PathBuf::new(),
+            cwd: PathBuf::new(),
             final_command: Command2::new("git"),
+            cache: Cache::default(),
         }
     }
 }
@@ -82,11 +82,12 @@ impl Default for App {
 impl Default for AppBuilder {
     fn default() -> Self {
         Self {
-            git_dir: None,
-            cache: None,
             git_aliases: None,
             git_cmd: None,
+            git_dir: None,
+            cwd: PathBuf::new(),
             final_command: Command2::new("git"),
+            cache: None,
         }
     }
 }
@@ -172,10 +173,6 @@ impl App {
             skip = git_cmd.skip_next_arg(&arg);
         }
         self
-    }
-
-    pub fn get_current_dir(&self) -> &Path {
-        self.final_command.inner.get_current_dir().unwrap()
     }
 
     pub(crate) fn run(mut self) -> Result<ExitCode> {

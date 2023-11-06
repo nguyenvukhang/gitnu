@@ -172,7 +172,7 @@ impl Command2 {
     }
 }
 
-fn cli_init_app(cwd: &PathBuf) -> Result<App> {
+fn cli_init_app(cwd: PathBuf) -> Result<App> {
     use std::thread;
 
     let h_git_dir = thread::spawn(|| git::dir());
@@ -181,10 +181,9 @@ fn cli_init_app(cwd: &PathBuf) -> Result<App> {
     let git_dir = h_git_dir.join()??;
     let git_aliases = h_git_aliases.join()?;
 
-    let cache = Cache::new(&git_dir, cwd);
+    let cache = Cache::new(&git_dir, &cwd);
 
-    Ok(AppBuilder::new()
-        .current_dir(&cwd)
+    Ok(AppBuilder::new(cwd)
         .git_dir(git_dir)
         .git_aliases(git_aliases)
         .cache(cache)
@@ -197,7 +196,7 @@ where
 {
     let args = args.into_iter();
 
-    let exitcode = match cli_init_app(&cwd) {
+    let exitcode = match cli_init_app(cwd) {
         Ok(app) => app.parse(args).run(),
         Err(_) => Command::new("git")
             .args(args.skip(1))
