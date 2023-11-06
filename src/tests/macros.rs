@@ -1,39 +1,39 @@
 use crate::prelude::*;
 use crate::{git, App, AppBuilder, Cache};
 
-use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, fs};
 
-pub const TEST_DIR: &str = "gitnu-tests";
+pub(crate) const TEST_DIR: &str = "gitnu-tests";
 
-pub struct Test {
+pub(crate) struct Test {
     pub dir: PathBuf,
 }
 
 #[derive(Debug)]
-pub struct Output {
+pub(crate) struct Output {
     pub stdout: String,
     pub exit_code: Option<i32>,
 }
 
-// Get the path to the debug binary
-pub fn bin_dir() -> String {
+/// Get the path to the debug binary
+pub(crate) fn bin_dir() -> String {
     let mut p = env::current_exe().unwrap();
     (p.pop(), p.pop());
     p.to_string_lossy().trim().to_string()
 }
 
 // Writes to a file by its relative path from test.dir.
-pub fn write(t: &Test, file: &str, contents: &str) {
+pub(crate) fn write(t: &Test, file: &str, contents: &str) {
     if let Ok(mut f) = File::create(t.dir.join(file)) {
         f.write_all(contents.as_bytes()).ok();
     }
 }
 
-pub fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
+pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
     let cmd = match cmd.as_ref().starts_with("git") {
         false => cmd.as_ref().to_string(),
         _ => cmd.as_ref().replace("git", "git -c advice.statusHints=false"),
@@ -58,7 +58,7 @@ pub fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
 }
 
 /// Gets an environment variable with a maximum of 100 retries.
-pub fn env_var(name: &str) -> String {
+pub(crate) fn env_var(name: &str) -> String {
     let mut max_retries: usize = 100;
     let mut path = env::var(name).ok();
     loop {
@@ -71,58 +71,6 @@ pub fn env_var(name: &str) -> String {
             _ => path = env::var(name).ok(),
         }
     }
-}
-
-/// Runs the test in an isolated directory.
-macro_rules! test {
-    ($name:ident, $fun:expr) => {
-        #[test]
-        fn $name() {
-            #[allow(unused_imports)]
-            use std::{env, fs, path::PathBuf, process::Command};
-            use $crate::tests::macros::*;
-
-            fn f() {}
-            fn type_name_of<'a, T>(_: T) -> &'a str {
-                std::any::type_name::<T>()
-            }
-            let name = type_name_of(f);
-            // Get a temporary test directory from a name.
-            // This directory will be located at /<tmp>/<TEST_DIR>/<name>
-            // where <tmp> is decided by env::temp_dir(), TEST_DIR is a const,
-            // and <name> is this function's parameter.
-            let test_dir = std::env::temp_dir().join(TEST_DIR).join(&name);
-
-            if test_dir.exists() {
-                fs::remove_dir_all(&test_dir).ok();
-            }
-            fs::create_dir_all(&test_dir).unwrap();
-
-            // Sets the $PATH environment variable such that the debug version of
-            // `git-nu` is front-and-center.
-            let path = env_var("PATH");
-            env::set_var("PATH", format!("{}:{path}", bin_dir()));
-
-            // run the test
-            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
-            fun(&Test { dir: test_dir });
-        }
-    };
-    ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
-        test!($name, $setup, "", $input_args, $output_args);
-    };
-    ($name:ident, $setup:expr, $relative_dir:expr, $input_args:expr, $output_args:expr) => {
-        test!($name, |t| {
-            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
-            setup(t);
-
-            let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
-            let received_args = parsed.final_command.get_args();
-
-            assert_eq!(received_args, $output_args);
-            // assert_args!(gitnu!(t, $input_args), $output_args);
-        });
-    };
 }
 
 pub(crate) fn mock_app<S, P>(cwd: P, args: &[S]) -> Result<App>
@@ -146,6 +94,51 @@ where
     app.final_command.inner.current_dir(&cwd);
     let app = app.parse(args.into_iter().map(String::from));
     Ok(app)
+}
+
+/// 1. Clear and re-create the test directory
+/// 2. Set the $PATH to ensure that the debug binary is front-and-center.
+pub(crate) fn prep_test(name: &str) -> PathBuf {
+    let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
+    if test_dir.exists() {
+        fs::remove_dir_all(&test_dir).ok();
+    }
+    fs::create_dir_all(&test_dir).unwrap();
+
+    let path = env_var("PATH");
+    env::set_var("PATH", format!("{}:{path}", bin_dir()));
+
+    test_dir
+}
+
+/// Runs the test in an isolated directory.
+macro_rules! test {
+    ($name:ident, $fun:expr) => {
+        #[test]
+        fn $name() {
+            use $crate::tests::macros::*;
+            fn f() {}
+            fn type_name_of<'a, T>(_: T) -> &'a str {
+                std::any::type_name::<T>()
+            }
+            let test_dir = prep_test(type_name_of(f));
+            // run the test
+            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
+            fun(&Test { dir: test_dir });
+        }
+    };
+    ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
+        test!($name, $setup, "", $input_args, $output_args);
+    };
+    ($name:ident, $setup:expr, $relative_dir:expr, $input_args:expr, $output_args:expr) => {
+        test!($name, |t| {
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(t);
+            let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
+            let received_args = parsed.final_command.get_args();
+            assert_eq!(received_args, $output_args);
+        });
+    };
 }
 
 /// Quickly mock up a gitnu app instance with an optional cwd.

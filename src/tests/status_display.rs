@@ -1,3 +1,5 @@
+use std::fs;
+
 macro_rules! status_test {
     ($name:ident, $setup:expr, $inout:expr, $status:expr) => {
         test!($name, |t| {
