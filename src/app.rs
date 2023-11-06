@@ -198,13 +198,10 @@ mod tests {
             fn $name() {
                 let mut args = vec!["git"];
                 args.extend($input_args);
-                let args =
-                    args.iter().map(|v| v.to_string()).collect::<Vec<_>>();
+                let args = string_vec(args);
                 let app = App::default().parse(&args);
                 let received_args = app.final_command.get_args();
-
-                let expected_args: Vec<_> =
-                    $output_args.into_iter().map(String::from).collect();
+                let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);
             }
         };

@@ -80,8 +80,8 @@ where
 {
     let cwd = cwd.as_ref();
     let args = {
-        let mut t = vec!["git".to_string()];
-        t.extend(args.iter().map(|v| v.as_ref().to_string()));
+        let mut t = vec!["git"];
+        t.extend(args.iter().map(|v| v.as_ref()));
         t
     };
     let git_dir = git::relative_dir(&cwd)?;
@@ -92,7 +92,7 @@ where
         .build();
     // forcefully run the test binary in the test directory
     app.final_command.inner.current_dir(&cwd);
-    let app = app.parse(&args);
+    let app = app.parse(&string_vec(args));
     Ok(app)
 }
 
@@ -155,8 +155,7 @@ macro_rules! gitnu {
     // Returns a parsed app, but not ran.
     ($t:expr, $relative_dir:expr, $args:expr) => {{
         let cwd = $t.dir.join($relative_dir);
-        let args = $args.iter().collect::<Vec<_>>();
-        mock_app(cwd, &args)
+        mock_app(cwd, &$crate::prelude::string_vec($args))
     }};
 }
 

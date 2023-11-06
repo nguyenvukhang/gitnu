@@ -81,3 +81,12 @@ impl ToExitCode for ExitStatus {
         }
     }
 }
+
+#[cfg(test)]
+pub fn string_vec<S, I>(v: I) -> Vec<String>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    v.into_iter().map(|v| v.as_ref().to_string()).collect()
+}
