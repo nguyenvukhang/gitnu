@@ -1,6 +1,6 @@
 [package]
 name = "gitnu"
-version = "0.7.4-alpha.3"
+version = "0.7.4-alpha.4"
 authors = ["Nguyen Vu Khang <brew4k@gmail.com>"]
 description = """
 gitnu indexes your git status so you can use numbers instead of filenames.
