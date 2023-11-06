@@ -94,16 +94,11 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
         .build())
 }
 
-pub fn main<I>(cwd: PathBuf, args: I) -> ExitCode
-where
-    I: IntoIterator<Item = String>,
-{
-    let args = args.into_iter();
-
+pub fn main(cwd: PathBuf, args: &[String]) -> ExitCode {
     let exitcode = match cli_init_app(cwd) {
-        Ok(app) => app.parse(args).run(),
+        Ok(app) => app.parse(&args).run(),
         Err(_) => Command::new("git")
-            .args(args.skip(1))
+            .args(&args[1..])
             .status()
             .map_err(|v| Error::from(v))
             .map(|v| v.exitcode()),

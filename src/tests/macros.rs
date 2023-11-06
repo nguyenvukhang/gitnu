@@ -80,8 +80,8 @@ where
 {
     let cwd = cwd.as_ref();
     let args = {
-        let mut t = vec!["git"];
-        t.extend(args.iter().map(|v| v.as_ref()));
+        let mut t = vec!["git".to_string()];
+        t.extend(args.iter().map(|v| v.as_ref().to_string()));
         t
     };
     let git_dir = git::relative_dir(&cwd)?;
@@ -92,7 +92,7 @@ where
         .build();
     // forcefully run the test binary in the test directory
     app.final_command.inner.current_dir(&cwd);
-    let app = app.parse(args.into_iter().map(String::from));
+    let app = app.parse(&args);
     Ok(app)
 }
 

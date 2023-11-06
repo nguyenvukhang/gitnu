@@ -108,49 +108,43 @@ pub fn parse_range(arg: &str) -> Option<(usize, usize)> {
 }
 
 impl App {
-    pub fn parse<I>(mut self, args: I) -> Self
-    where
-        I: IntoIterator<Item = String>,
-    {
+    pub fn parse(mut self, args: &[String]) -> Self {
         if atty::is(atty::Stream::Stdout) {
             self.final_command.hidden_args(["-c", "color.ui=always"]);
         }
-        let mut args = args.into_iter().skip(1);
-        self.before_cmd(&mut args).after_cmd(&mut args);
+        let args = &args[1..];
+        let args = self.before_cmd(&args);
+        self.after_cmd(&args);
 
         self
     }
 
-    fn before_cmd<I>(&mut self, args: &mut I) -> &mut Self
-    where
-        I: Iterator<Item = String>,
-    {
+    fn before_cmd<'a>(&mut self, mut args: &'a [String]) -> &'a [String] {
         use GitCommand as GC;
-        for arg in args {
-            if let Ok(v) = GC::try_from(&arg) {
+        while !args.is_empty() {
+            let arg = args[0].as_str();
+            args = &args[1..];
+            if let Ok(v) = GC::try_from(arg) {
                 self.git_cmd = Some(v);
                 self.final_command.arg(arg);
                 break;
             }
-            if let Some(Ok(v)) = self.git_aliases.get(&arg).map(GC::try_from) {
+            if let Some(Ok(v)) = self.git_aliases.get(arg).map(GC::try_from) {
                 self.git_cmd = Some(v);
                 self.final_command.arg(arg);
                 break;
             }
             self.final_command.arg(arg);
         }
-        self
+        args
     }
 
-    fn after_cmd<I>(&mut self, args: &mut I) -> &mut Self
-    where
-        I: Iterator<Item = String>,
-    {
+    fn after_cmd(&mut self, args: &[String]) {
         let mut skip = false;
 
         if let None = self.git_cmd {
             self.final_command.inner.args(args);
-            return self;
+            return;
         }
 
         for arg in args {
@@ -172,7 +166,6 @@ impl App {
             }
             skip = git_cmd.skip_next_arg(&arg);
         }
-        self
     }
 
     pub(crate) fn run(mut self) -> Result<ExitCode> {
@@ -205,8 +198,9 @@ mod tests {
             fn $name() {
                 let mut args = vec!["git"];
                 args.extend($input_args);
-                let args = args.iter().map(|v| v.to_string());
-                let app = App::default().parse(args);
+                let args =
+                    args.iter().map(|v| v.to_string()).collect::<Vec<_>>();
+                let app = App::default().parse(&args);
                 let received_args = app.final_command.get_args();
 
                 let expected_args: Vec<_> =
