@@ -21,6 +21,7 @@ use command2::Command2;
 
 mod git {
     use std::path::Path;
+    use std::process::Output;
 
     use super::*;
 
@@ -43,15 +44,17 @@ mod git {
         _dir(Some(base_dir))
     }
 
-    fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {
+    fn sh<P>(dir: Option<P>, args: &[&str]) -> Result<Output>
+    where
+        P: AsRef<Path>,
+    {
         let mut cmd = Command::new("git");
-        if let Some(current_dir) = base_dir {
-            cmd.current_dir(current_dir);
-        }
-        let output = cmd
-            .args(["rev-parse", "--git-dir"])
-            .output()
-            .map_err(|e| Error::Io(e))?;
+        dir.map(|v| cmd.current_dir(v));
+        Ok(cmd.args(args).output().map_err(|e| Error::Io(e))?)
+    }
+
+    fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {
+        let output = git::sh(base_dir, &["rev-parse", "--git-dir"])?;
         if output.stderr.starts_with(b"fatal: not a git repository") {
             return error!(NotGitRepository);
         }
@@ -60,10 +63,8 @@ mod git {
     }
 
     pub(crate) fn aliases() -> Aliases {
-        let output = Command::new("git")
-            .args(["config", "--global", "--get-regexp", "^alias."])
-            .output();
-        match output {
+        let args = ["config", "--global", "--get-regexp", "^alias."];
+        match git::sh(None::<&str>, &args) {
             Ok(v) => Aliases::from_iter(
                 v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
                     v.get(6..) // every lines starts with "alias."
