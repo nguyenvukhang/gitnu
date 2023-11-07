@@ -75,13 +75,10 @@ mod git {
 fn cli_init_app(cwd: PathBuf) -> Result<App> {
     use std::thread;
 
-    let h_git_dir = {
-        let c = cwd.clone();
-        thread::spawn(|| git::dir(c))
-    };
+    let h_git_dir = thread::spawn(move || git::dir(&cwd).map(|gd| (gd, cwd)));
     let h_git_aliases = thread::spawn(|| git::aliases());
 
-    let git_dir = h_git_dir.join()??;
+    let (git_dir, cwd) = h_git_dir.join()??;
     let git_aliases = h_git_aliases.join()?;
 
     let cache = Cache::new(&git_dir, &cwd);
