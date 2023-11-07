@@ -20,19 +20,21 @@ pub(crate) struct Output {
 }
 
 /// Get the path to the debug binary
+#[cfg(test)]
 pub(crate) fn bin_dir() -> String {
     let mut p = env::current_exe().unwrap();
-    (p.pop(), p.pop());
-    p.to_string_lossy().trim().to_string()
+    (p.pop(), p.pop(), p.to_string_lossy().trim().to_string()).2
 }
 
 // Writes to a file by its relative path from test.dir.
+#[cfg(test)]
 pub(crate) fn write(t: &Test, file: &str, contents: &str) {
     if let Ok(mut f) = File::create(t.dir.join(file)) {
         f.write_all(contents.as_bytes()).ok();
     }
 }
 
+#[cfg(test)]
 pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
     let cmd = match cmd.as_ref().starts_with("git") {
         false => cmd.as_ref().to_string(),
@@ -58,6 +60,7 @@ pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
 }
 
 /// Gets an environment variable with a maximum of 100 retries.
+#[cfg(test)]
 pub(crate) fn env_var(name: &str) -> String {
     let mut max_retries: usize = 100;
     let mut path = env::var(name).ok();
@@ -73,6 +76,7 @@ pub(crate) fn env_var(name: &str) -> String {
     }
 }
 
+#[cfg(test)]
 pub(crate) fn mock_app<S, P>(cwd: P, args: &[S]) -> Result<App>
 where
     P: AsRef<Path>,
@@ -93,6 +97,7 @@ where
 
 /// 1. Clear and re-create the test directory
 /// 2. Set the $PATH to ensure that the debug binary is front-and-center.
+#[cfg(test)]
 pub(crate) fn prep_test(name: &str) -> PathBuf {
     let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
     if test_dir.exists() {

@@ -1,12 +1,10 @@
 use crate::pathdiff;
 use crate::prelude::*;
 
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    path::{Path, PathBuf},
-};
 
 #[derive(Debug, Default)]
 pub struct Cache {
