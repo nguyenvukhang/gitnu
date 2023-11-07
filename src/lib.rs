@@ -15,7 +15,7 @@ use std::io::BufRead;
 use std::path::PathBuf;
 use std::process::{Command, ExitCode};
 
-use app::{App, AppBuilder};
+use app::App;
 use cache::Cache;
 use command2::Command2;
 
@@ -86,11 +86,14 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
 
     let cache = Cache::new(&git_dir, &cwd);
 
-    Ok(AppBuilder::new(cwd)
-        .git_dir(git_dir)
-        .git_aliases(git_aliases)
-        .cache(cache)
-        .build())
+    Ok(App {
+        git_aliases,
+        git_cmd: None,
+        git_dir,
+        cwd,
+        final_command: Command2::new("git"),
+        cache,
+    })
 }
 
 pub fn main(cwd: PathBuf, args: &[String]) -> ExitCode {

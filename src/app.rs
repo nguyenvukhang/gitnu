@@ -9,15 +9,6 @@ use crate::Command2;
 
 type Aliases = HashMap<String, String>;
 
-pub(crate) struct AppBuilder {
-    git_aliases: Option<Aliases>,
-    git_cmd: Option<GitCommand>,
-    git_dir: Option<PathBuf>,
-    cwd: PathBuf,
-    final_command: Command2,
-    cache: Option<Cache>,
-}
-
 #[derive(Debug)]
 pub(crate) struct App {
     pub git_aliases: Aliases,
@@ -28,44 +19,6 @@ pub(crate) struct App {
     pub cache: Cache,
 }
 
-impl AppBuilder {
-    pub fn new(cwd: PathBuf) -> Self {
-        Self {
-            git_aliases: None,
-            git_cmd: None,
-            git_dir: None,
-            cwd,
-            final_command: Command2::new("git"),
-            cache: None,
-        }
-    }
-    pub fn build(self) -> App {
-        App {
-            git_aliases: self.git_aliases.unwrap_or_default(),
-            git_cmd: self.git_cmd,
-            git_dir: self.git_dir.unwrap_or_default(),
-            cwd: self.cwd,
-            final_command: self.final_command,
-            cache: self.cache.unwrap_or_default(),
-        }
-    }
-}
-
-macro_rules! build {
-    ($field:ident, $type:ty) => {
-        impl AppBuilder {
-            pub fn $field(mut self, v: $type) -> Self {
-                self.$field = Some(v);
-                self
-            }
-        }
-    };
-}
-
-build!(git_aliases, Aliases);
-build!(git_dir, PathBuf);
-build!(cache, Cache);
-
 impl Default for App {
     fn default() -> Self {
         Self {
@@ -75,19 +28,6 @@ impl Default for App {
             cwd: PathBuf::new(),
             final_command: Command2::new("git"),
             cache: Cache::default(),
-        }
-    }
-}
-
-impl Default for AppBuilder {
-    fn default() -> Self {
-        Self {
-            git_aliases: None,
-            git_cmd: None,
-            git_dir: None,
-            cwd: PathBuf::new(),
-            final_command: Command2::new("git"),
-            cache: None,
         }
     }
 }
