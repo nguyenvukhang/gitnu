@@ -1,6 +1,9 @@
+use std::fs;
+
 macro_rules! status_test {
     ($name:ident, $setup:expr, $inout:expr, $status:expr) => {
         test!($name, |t| {
+            use $crate::prelude::*;
             let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
             setup(t);
 
@@ -16,9 +19,12 @@ macro_rules! status_test {
 
             gitnu!(t, status).unwrap();
 
-            let (input, output) = $inout;
+            let (input, expected) = $inout;
+
             let app = gitnu!(t, input).unwrap();
-            assert_args!(app, output);
+            let received = app.final_cmd.real_args();
+
+            assert_eq!(received, expected);
         });
     };
     ($name:ident, $setup:expr, $status:expr) => {

@@ -101,21 +101,20 @@ impl App {
     /// prints it out to stdout.
     pub(crate) fn git_status(mut self) -> Result<ExitCode> {
         let mut git =
-            self.final_command.inner.stdout(Stdio::piped()).spawn()?;
+            self.final_cmd.stdout(Stdio::piped()).spawn()?;
 
         let lines = match git.stdout.take() {
             Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
             None => return Ok(git.wait().map(|v| v.exitcode())?),
         };
 
-        let cache_filepath = self.get_current_dir();
-        let mut cache_filepath = cache_filepath.join(&self.git_dir);
+        let mut cache_filepath = self.cwd.join(&self.git_dir);
         cache_filepath.push(CACHE_FILE_NAME);
 
         let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
 
         // first line of the cache file is the current directory
-        writeln!(writer, "{}", self.get_current_dir().display()).unwrap();
+        writeln!(writer, "{}", self.cwd.display()).unwrap();
 
         let state = &mut State { seen_untracked: false, count: 1 };
 

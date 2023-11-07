@@ -6,16 +6,17 @@
    1. Get the path to the [git directory](#git-dir) relative to the
       current directory.
    2. Get [git aliases][git-aliases].
-   3. Read the [cache file](#gitnu-cache-file).
+   3. Read the [cache file](#gitnu-cache-file) (regardless of git
+      command).
 2. **Parsing** (infallible)
    1. Pass the CLI arguments through a function to obtain a final list
       of arguments to actually run.
    2. This is where numbers and number-ranges are converted to
       pathspecs, depending on the [cache](#gitnu-cache-file).
 3. **Running** (fallible)
-   1. Once the arguments are parsed, all that's left is to run them.
-   2. If git's sub-command is `status`, then print and parse the
+   1. If git's sub-command is `status`, then print and parse the
       output to build the next cache.
+   2. Otherwise, run the args as-is.
 
 ### Error handling
 

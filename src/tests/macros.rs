@@ -1,36 +1,75 @@
-use std::env;
+use crate::prelude::*;
+use crate::App;
+
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::{env, fs};
 
-pub const TEST_DIR: &str = "gitnu-tests";
+pub(crate) const TEST_DIR: &str = "gitnu-tests";
 
-pub struct Test {
+pub(crate) struct Test {
     pub dir: PathBuf,
 }
 
 #[derive(Debug)]
-pub struct Output {
+pub(crate) struct Output {
     pub stdout: String,
     pub exit_code: Option<i32>,
 }
 
-// Get the path to the debug binary
-pub fn bin_dir() -> String {
+/// Get the path to the debug binary
+#[cfg(test)]
+pub(crate) fn bin_dir() -> String {
     let mut p = env::current_exe().unwrap();
-    p.pop();
-    p.pop();
-    p.to_string_lossy().trim().to_string()
+    (p.pop(), p.pop(), p.to_string_lossy().trim().to_string()).2
 }
 
 // Writes to a file by its relative path from test.dir.
-pub fn write(t: &Test, file: &str, contents: &str) {
+#[cfg(test)]
+pub(crate) fn write(t: &Test, file: &str, contents: &str) {
     if let Ok(mut f) = File::create(t.dir.join(file)) {
         f.write_all(contents.as_bytes()).ok();
     }
 }
 
-pub fn env_var(name: &str) -> String {
+pub(crate) fn typed<T, F: Fn(T) -> ()>(x: F) -> Box<F> {
+    Box::new(x)
+}
+
+pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
+    std::any::type_name::<T>()
+}
+
+#[cfg(test)]
+pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
+    let cmd = match cmd.as_ref().starts_with("git") {
+        false => cmd.as_ref().to_string(),
+        _ => cmd.as_ref().replace("git", "git -c advice.statusHints=false"),
+    };
+    Command::new("sh")
+        .current_dir(&cwd)
+        .arg("-c")
+        .arg(&cmd)
+        .output()
+        .map(|v| {
+            let stdout = String::from_utf8_lossy(&v.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&v.stderr).to_string();
+            println!("╭───────────────────── RUN SH ─────────────────────╮");
+            println!("> [ \x1b[0;32m{}\x1b[0m ]", cmd);
+            println!("relative dir: \x1b[0;32m{}\x1b[0m", cwd.display());
+            println!("::: STDOUT :::\n{}", stdout);
+            println!("::: STDERR :::\n{}", stderr);
+            println!("╰──────────────────────────────────────────────────╯");
+            Output { stdout, exit_code: v.status.code() }
+        })
+        .unwrap()
+}
+
+/// Gets an environment variable with a maximum of 100 retries.
+#[cfg(test)]
+pub(crate) fn env_var(name: &str) -> String {
     let mut max_retries: usize = 100;
     let mut path = env::var(name).ok();
     loop {
@@ -45,39 +84,50 @@ pub fn env_var(name: &str) -> String {
     }
 }
 
+#[cfg(test)]
+pub(crate) fn mock_app<S, P>(cwd: P, args: &[S]) -> Result<App>
+where
+    P: AsRef<Path>,
+    S: AsRef<str>,
+{
+    use crate::cli_init_app;
+    let mut app = cli_init_app(cwd.as_ref().to_path_buf())?;
+    let args = {
+        let mut t = vec!["git".to_string()];
+        t.extend(args.iter().map(|v| v.as_ref().to_string()));
+        t
+    };
+    // forcefully run the test binary in the test directory
+    app.final_cmd.current_dir(&cwd);
+    app.parse(&string_vec(args));
+    Ok(app)
+}
+
+/// 1. Clear and re-create the test directory
+/// 2. Set the $PATH to ensure that the debug binary is front-and-center.
+#[cfg(test)]
+pub(crate) fn prep_test(name: &str) -> PathBuf {
+    let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
+    if test_dir.exists() {
+        fs::remove_dir_all(&test_dir).ok();
+    }
+    fs::create_dir_all(&test_dir).unwrap();
+
+    let path = env_var("PATH");
+    env::set_var("PATH", format!("{}:{path}", bin_dir()));
+
+    test_dir
+}
+
 /// Runs the test in an isolated directory.
 macro_rules! test {
     ($name:ident, $fun:expr) => {
         #[test]
         fn $name() {
-            #[allow(unused_imports)]
-            use std::{env, fs, path::PathBuf, process::Command};
             use $crate::tests::macros::*;
-
             fn f() {}
-            fn type_name_of<'a, T>(_: T) -> &'a str {
-                std::any::type_name::<T>()
-            }
-            let name = type_name_of(f);
-            // Get a temporary test directory from a name.
-            // This directory will be located at /<tmp>/<TEST_DIR>/<name>
-            // where <tmp> is decided by env::temp_dir(), TEST_DIR is a const,
-            // and <name> is this function's parameter.
-            let test_dir = std::env::temp_dir().join(TEST_DIR).join(&name);
-
-            if test_dir.exists() {
-                fs::remove_dir_all(&test_dir).ok();
-            }
-            fs::create_dir_all(&test_dir).unwrap();
-
-            // Sets the $PATH environment variable such that the debug version of
-            // `git-nu` is front-and-center.
-            let path = env_var("PATH");
-            env::set_var("PATH", format!("{}:{path}", bin_dir()));
-
-            // run the test
-            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
-            fun(&Test { dir: test_dir });
+            let test_dir = prep_test(type_name_of(f));
+            typed::<&Test, _>($fun)(&Test { dir: test_dir });
         }
     };
     ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
@@ -85,14 +135,12 @@ macro_rules! test {
     };
     ($name:ident, $setup:expr, $relative_dir:expr, $input_args:expr, $output_args:expr) => {
         test!($name, |t| {
-            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
-            setup(t);
-
+            use $crate::prelude::*;
+            use $crate::tests::macros::*;
+            typed::<&Test, _>($setup)(t);
             let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
-            let received_args = parsed.final_command.get_args();
-
+            let received_args = parsed.final_cmd.real_args();
             assert_eq!(received_args, $output_args);
-            // assert_args!(gitnu!(t, $input_args), $output_args);
         });
     };
 }
@@ -110,22 +158,9 @@ macro_rules! gitnu {
     }};
     // Returns a parsed app, but not ran.
     ($t:expr, $relative_dir:expr, $args:expr) => {{
-        let mut args = Vec::with_capacity($args.len() + 1);
-        args.push("git");
-        args.extend($args);
-
         let cwd = $t.dir.join($relative_dir);
-        let git_dir = $crate::git::relative_dir(&cwd);
-
-        git_dir.map(|git_dir| {
-            let cache = $crate::Cache::new(&git_dir, &cwd);
-            let app = $crate::AppBuilder::new()
-                .current_dir(&cwd)
-                .cache(cache)
-                .git_dir(git_dir)
-                .build();
-            app.parse(args.into_iter().map(String::from))
-        })
+        let args = $crate::prelude::string_vec($args);
+        mock_app(cwd, &args)
     }};
 }
 
@@ -135,56 +170,6 @@ macro_rules! sh {
         sh!($t, "", $cmd)
     };
     ($t:expr, $cwd:expr, $cmd:expr) => {
-        Command::new("sh")
-            .current_dir(&$t.dir.join($cwd))
-            .arg("-c")
-            .arg({
-                if $cmd.starts_with("git") {
-                    $cmd.replace("git", "git -c advice.statusHints=false")
-                } else {
-                    $cmd.to_string()
-                }
-            })
-            .output()
-            .map(|v| {
-                let line = "─────────────────────────";
-                let stdout = String::from_utf8_lossy(&v.stdout).to_string();
-                let stderr = String::from_utf8_lossy(&v.stderr).to_string();
-                println!("╭{line} RUN SH {line}╮");
-                println!("test dir: {}", $t.dir.display());
-                println!("relative dir: \x1b[0;32m{}\x1b[0m", $cwd);
-                println!("cmd:          \x1b[0;32m{}\x1b[0m", $cmd);
-                if !stdout.is_empty() {
-                    println!(" {line} STDOUT {line}\n{}", stdout);
-                }
-                if !stderr.is_empty() {
-                    println!(" {line} STDERR {line}\n{}", stderr);
-                }
-                println!("╰{line}────────{line}╯");
-                Output { stdout, exit_code: v.status.code() }
-            })
-            .unwrap()
+        git_shell(&$t.dir.join($cwd), $cmd)
     };
-}
-
-/// Makes an assertion of the list of command line arguments that
-/// `gitnu` will pass back to the terminal after processing.
-macro_rules! assert_args {
-    ($received_app:expr, $expected:expr) => {{
-        // extract arguments into a list
-        let args = $received_app.final_command.get_args();
-
-        let expected: Vec<String> =
-            $expected.iter().map(|v| v.to_string()).collect();
-        assert_eq!(args, expected);
-    }};
-    ($test:expr, $received:expr, $expected:expr) => {{
-        let app = gitnu!($test, $received);
-        let received = app.git.get_string_args();
-
-        let expected: Vec<String> =
-            $expected.iter().map(|v| v.to_string()).collect();
-
-        assert_eq!(received, expected);
-    }};
 }

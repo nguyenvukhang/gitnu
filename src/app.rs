@@ -1,92 +1,33 @@
 use std::collections::HashMap;
-use std::path::Path;
 use std::path::PathBuf;
+use std::process::Command;
 use std::process::ExitCode;
 
 use crate::git_cmd::GitCommand;
 use crate::prelude::*;
 use crate::Cache;
-use crate::Command2;
 
 type Aliases = HashMap<String, String>;
 
-pub(crate) struct AppBuilder {
-    git_dir: Option<PathBuf>,
-    git_aliases: Option<Aliases>,
-    git_cmd: Option<GitCommand>,
-    final_command: Command2,
-    cache: Option<Cache>,
-}
-
 #[derive(Debug)]
 pub(crate) struct App {
-    pub git_dir: PathBuf,
-    pub git_cmd: Option<GitCommand>,
-    pub final_command: Command2,
     pub git_aliases: Aliases,
+    pub git_cmd: Option<GitCommand>,
+    pub git_dir: PathBuf,
+    pub cwd: PathBuf,
+    pub final_cmd: Command,
     pub cache: Cache,
 }
-
-impl AppBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn build(self) -> App {
-        assert!(self.final_command.inner.get_current_dir().is_some());
-
-        App {
-            final_command: self.final_command,
-            git_dir: self.git_dir.unwrap_or_default(),
-            git_aliases: self.git_aliases.unwrap_or_default(),
-            git_cmd: self.git_cmd,
-            cache: self.cache.unwrap_or_default(),
-        }
-    }
-
-    pub fn current_dir<P>(mut self, v: P) -> Self
-    where
-        P: AsRef<Path>,
-    {
-        self.final_command.inner.current_dir(v.as_ref());
-        self
-    }
-}
-
-macro_rules! build {
-    ($field:ident, $type:ty) => {
-        impl AppBuilder {
-            pub fn $field(mut self, v: $type) -> Self {
-                self.$field = Some(v);
-                self
-            }
-        }
-    };
-}
-
-build!(git_aliases, Aliases);
-build!(git_dir, PathBuf);
-build!(cache, Cache);
 
 impl Default for App {
     fn default() -> Self {
         Self {
-            git_dir: PathBuf::new(),
-            cache: Cache::default(),
             git_aliases: Aliases::new(),
             git_cmd: None,
-            final_command: Command2::new("git"),
-        }
-    }
-}
-
-impl Default for AppBuilder {
-    fn default() -> Self {
-        Self {
-            git_dir: None,
-            cache: None,
-            git_aliases: None,
-            git_cmd: None,
-            final_command: Command2::new("git"),
+            git_dir: PathBuf::new(),
+            cwd: PathBuf::new(),
+            final_cmd: Command::new("git"),
+            cache: Cache::default(),
         }
     }
 }
@@ -107,53 +48,44 @@ pub fn parse_range(arg: &str) -> Option<(usize, usize)> {
 }
 
 impl App {
-    pub fn parse<I>(mut self, args: I) -> Self
-    where
-        I: IntoIterator<Item = String>,
-    {
+    pub fn parse(&mut self, args: &[String]) -> &mut Self {
         if atty::is(atty::Stream::Stdout) {
-            self.final_command.hidden_args(["-c", "color.ui=always"]);
+            self.final_cmd.args(["-c", "color.ui=always"]);
         }
-        let mut args = args.into_iter().skip(1);
-        self.before_cmd(&mut args).after_cmd(&mut args);
+        let args = &args[1..];
+        let args = self.before_cmd(&args);
+        self.after_cmd(&args);
 
         self
     }
 
-    fn before_cmd<I>(&mut self, args: &mut I) -> &mut Self
-    where
-        I: Iterator<Item = String>,
-    {
+    fn before_cmd<'a>(&mut self, mut args: &'a [String]) -> &'a [String] {
         use GitCommand as GC;
-        for arg in args {
-            if let Ok(v) = GC::try_from(&arg) {
-                self.git_cmd = Some(v);
-                self.final_command.arg(arg);
-                break;
+        while !args.is_empty() {
+            let arg = args[0].as_str();
+            args = &args[1..];
+            match GC::from_arg(&self.git_aliases, arg) {
+                Some(v) => {
+                    self.git_cmd = Some(v);
+                    self.final_cmd.arg(arg);
+                    break;
+                }
+                _ => {
+                    self.final_cmd.arg(arg);
+                }
             }
-            if let Some(Ok(v)) = self.git_aliases.get(&arg).map(GC::try_from) {
-                self.git_cmd = Some(v);
-                self.final_command.arg(arg);
-                break;
-            }
-            self.final_command.arg(arg);
         }
-        self
+        args
     }
 
-    fn after_cmd<I>(&mut self, args: &mut I) -> &mut Self
-    where
-        I: Iterator<Item = String>,
-    {
-        let mut skip = false;
-
+    fn after_cmd(&mut self, args: &[String]) {
         if let None = self.git_cmd {
-            self.final_command.inner.args(args);
-            return self;
+            self.final_cmd.args(args);
+            return;
         }
 
-        for arg in args {
-            let arg = arg.as_str();
+        for i in 0..args.len() {
+            let arg = args[i].as_str();
             let git_cmd = self.git_cmd.as_mut().unwrap();
             match git_cmd {
                 GitCommand::Status(ref mut v) => match arg {
@@ -162,37 +94,32 @@ impl App {
                 },
                 _ => {}
             };
+            let skip = i > 0 && git_cmd.skip_next_arg(&args[i - 1]);
             match (skip, parse_range(&arg)) {
-                (false, Some((start, end))) => {
-                    let cmd = &mut self.final_command.inner;
-                    for i in start..end + 1 {
-                        self.cache.load(i, cmd)
-                    }
+                (false, Some((start, end))) if end <= MAX_CACHE_SIZE => {
+                    let cmd = &mut self.final_cmd;
+                    (start..end + 1).for_each(|i| self.cache.load(i, cmd));
                 }
-                _ => self.final_command.arg(&arg),
+                _ => {
+                    self.final_cmd.arg(&arg);
+                }
             }
-            skip = git_cmd.skip_next_arg(&arg);
         }
-        self
-    }
-
-    pub fn get_current_dir(&self) -> &Path {
-        self.final_command.inner.get_current_dir().unwrap()
     }
 
     pub(crate) fn run(mut self) -> Result<ExitCode> {
         use GitCommand as G;
         let git_cmd = self.git_cmd.clone();
         match git_cmd {
+            Some(G::Status(_)) => self.git_status(),
             Some(G::Version) => {
-                let result = self.final_command.inner.status();
+                let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;
                 println!("gitnu version {CARGO_PKG_VERSION}");
                 Ok(exitcode)
             }
-            Some(G::Status(_)) => self.git_status(),
             _ => {
-                let result = self.final_command.inner.status();
+                let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;
                 Ok(exitcode)
             }
@@ -208,14 +135,13 @@ mod tests {
         ($name:ident, $input_args:expr, $output_args:expr) => {
             #[test]
             fn $name() {
+                use $crate::prelude::*;
                 let mut args = vec!["git"];
                 args.extend($input_args);
-                let args = args.iter().map(|v| v.to_string());
-                let app = App::default().parse(args);
-                let received_args = app.final_command.get_args();
-
-                let expected_args: Vec<_> =
-                    $output_args.into_iter().map(String::from).collect();
+                let mut app = App::default();
+                app.parse(&string_vec(args));
+                let received_args = app.final_cmd.real_args();
+                let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);
             }
         };
