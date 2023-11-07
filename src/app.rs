@@ -140,9 +140,8 @@ mod tests {
                 use $crate::prelude::*;
                 let mut args = vec!["git"];
                 args.extend($input_args);
-                let args = string_vec(args);
                 let mut app = App::default();
-                app.parse(&args);
+                app.parse(&string_vec(args));
                 let received_args = app.final_cmd.real_args();
                 let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);

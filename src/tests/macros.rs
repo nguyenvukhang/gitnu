@@ -34,6 +34,14 @@ pub(crate) fn write(t: &Test, file: &str, contents: &str) {
     }
 }
 
+pub(crate) fn typed<T, F: Fn(T) -> ()>(x: F) -> Box<F> {
+    Box::new(x)
+}
+
+pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
+    std::any::type_name::<T>()
+}
+
 #[cfg(test)]
 pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
     let cmd = match cmd.as_ref().starts_with("git") {
@@ -118,13 +126,8 @@ macro_rules! test {
         fn $name() {
             use $crate::tests::macros::*;
             fn f() {}
-            fn type_name_of<'a, T>(_: T) -> &'a str {
-                std::any::type_name::<T>()
-            }
             let test_dir = prep_test(type_name_of(f));
-            // run the test
-            let fun: Box<dyn Fn(&Test) -> ()> = Box::new($fun);
-            fun(&Test { dir: test_dir });
+            typed::<&Test, _>($fun)(&Test { dir: test_dir });
         }
     };
     ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
@@ -133,8 +136,8 @@ macro_rules! test {
     ($name:ident, $setup:expr, $relative_dir:expr, $input_args:expr, $output_args:expr) => {
         test!($name, |t| {
             use $crate::prelude::*;
-            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
-            setup(t);
+            use $crate::tests::macros::*;
+            typed::<&Test, _>($setup)(t);
             let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
             let received_args = parsed.final_cmd.real_args();
             assert_eq!(received_args, $output_args);
@@ -156,7 +159,8 @@ macro_rules! gitnu {
     // Returns a parsed app, but not ran.
     ($t:expr, $relative_dir:expr, $args:expr) => {{
         let cwd = $t.dir.join($relative_dir);
-        mock_app(cwd, &$crate::prelude::string_vec($args))
+        let args = $crate::prelude::string_vec($args);
+        mock_app(cwd, &args)
     }};
 }
 
