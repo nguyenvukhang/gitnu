@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::process::Command;
 use std::process::ExitCode;
 
 use crate::git_cmd::GitCommand;
 use crate::prelude::*;
 use crate::Cache;
-use crate::Command2;
 
 type Aliases = HashMap<String, String>;
 
@@ -15,7 +15,7 @@ pub(crate) struct App {
     pub git_cmd: Option<GitCommand>,
     pub git_dir: PathBuf,
     pub cwd: PathBuf,
-    pub final_command: Command2,
+    pub final_cmd: Command,
     pub cache: Cache,
 }
 
@@ -26,7 +26,7 @@ impl Default for App {
             git_cmd: None,
             git_dir: PathBuf::new(),
             cwd: PathBuf::new(),
-            final_command: Command2::new("git"),
+            final_cmd: Command::new("git"),
             cache: Cache::default(),
         }
     }
@@ -50,7 +50,7 @@ pub fn parse_range(arg: &str) -> Option<(usize, usize)> {
 impl App {
     pub fn parse(&mut self, args: &[String]) -> &mut Self {
         if atty::is(atty::Stream::Stdout) {
-            self.final_command.hidden_args(["-c", "color.ui=always"]);
+            self.final_cmd.args(["-c", "color.ui=always"]);
         }
         let args = &args[1..];
         let args = self.before_cmd(&args);
@@ -64,17 +64,16 @@ impl App {
         while !args.is_empty() {
             let arg = args[0].as_str();
             args = &args[1..];
-            if let Ok(v) = GC::try_from(arg) {
-                self.git_cmd = Some(v);
-                self.final_command.arg(arg);
-                break;
+            match GC::from_arg(&self.git_aliases, arg) {
+                Some(v) => {
+                    self.git_cmd = Some(v);
+                    self.final_cmd.arg(arg);
+                    break;
+                }
+                _ => {
+                    self.final_cmd.arg(arg);
+                }
             }
-            if let Some(Ok(v)) = self.git_aliases.get(arg).map(GC::try_from) {
-                self.git_cmd = Some(v);
-                self.final_command.arg(arg);
-                break;
-            }
-            self.final_command.arg(arg);
         }
         args
     }
@@ -83,7 +82,7 @@ impl App {
         let mut skip = false;
 
         if let None = self.git_cmd {
-            self.final_command.inner.args(args);
+            self.final_cmd.args(args);
             return;
         }
 
@@ -99,10 +98,12 @@ impl App {
             };
             match (skip, parse_range(&arg)) {
                 (false, Some((start, end))) if end <= MAX_CACHE_SIZE => {
-                    let cmd = &mut self.final_command.inner;
+                    let cmd = &mut self.final_cmd;
                     (start..end + 1).for_each(|i| self.cache.load(i, cmd));
                 }
-                _ => self.final_command.arg(&arg),
+                _ => {
+                    self.final_cmd.arg(&arg);
+                }
             }
             skip = git_cmd.skip_next_arg(&arg);
         }
@@ -113,14 +114,14 @@ impl App {
         let git_cmd = self.git_cmd.clone();
         match git_cmd {
             Some(G::Version) => {
-                let result = self.final_command.inner.status();
+                let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;
                 println!("gitnu version {CARGO_PKG_VERSION}");
                 Ok(exitcode)
             }
             Some(G::Status(_)) => self.git_status(),
             _ => {
-                let result = self.final_command.inner.status();
+                let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;
                 Ok(exitcode)
             }
@@ -136,12 +137,13 @@ mod tests {
         ($name:ident, $input_args:expr, $output_args:expr) => {
             #[test]
             fn $name() {
+                use $crate::prelude::*;
                 let mut args = vec!["git"];
                 args.extend($input_args);
                 let args = string_vec(args);
                 let mut app = App::default();
                 app.parse(&args);
-                let received_args = app.final_command.get_args();
+                let received_args = app.final_cmd.real_args();
                 let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);
             }

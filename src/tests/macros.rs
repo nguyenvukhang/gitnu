@@ -86,7 +86,7 @@ where
         t
     };
     // forcefully run the test binary in the test directory
-    app.final_command.inner.current_dir(&cwd);
+    app.final_cmd.current_dir(&cwd);
     app.parse(&string_vec(args));
     Ok(app)
 }
@@ -127,10 +127,11 @@ macro_rules! test {
     };
     ($name:ident, $setup:expr, $relative_dir:expr, $input_args:expr, $output_args:expr) => {
         test!($name, |t| {
+            use $crate::prelude::*;
             let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
             setup(t);
             let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
-            let received_args = parsed.final_command.get_args();
+            let received_args = parsed.final_cmd.real_args();
             assert_eq!(received_args, $output_args);
         });
     };

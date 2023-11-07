@@ -101,7 +101,7 @@ impl App {
     /// prints it out to stdout.
     pub(crate) fn git_status(mut self) -> Result<ExitCode> {
         let mut git =
-            self.final_command.inner.stdout(Stdio::piped()).spawn()?;
+            self.final_cmd.stdout(Stdio::piped()).spawn()?;
 
         let lines = match git.stdout.take() {
             Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),

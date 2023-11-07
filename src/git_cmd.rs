@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{prelude::Aliases, Error, Result};
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum GitStatus {
@@ -49,6 +49,16 @@ impl GitCommand {
         match (self, arg) {
             (G::Log, "-n") => true,
             _ => false,
+        }
+    }
+
+    pub fn from_arg(aliases: &Aliases, arg: &str) -> Option<Self> {
+        match Self::try_from(arg) {
+            Ok(v) => Some(v),
+            _ => match aliases.get(arg).map(Self::try_from) {
+                Some(Ok(v)) => Some(v),
+                _ => None,
+            },
         }
     }
 }

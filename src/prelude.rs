@@ -2,6 +2,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::io;
 use std::process;
+use std::process::Command;
 use std::process::ExitCode;
 use std::process::ExitStatus;
 
@@ -89,4 +90,24 @@ where
     S: AsRef<str>,
 {
     v.into_iter().map(|v| v.as_ref().to_string()).collect()
+}
+
+pub trait RealArgs {
+    fn real_args(&self) -> Vec<String>;
+}
+
+impl RealArgs for Command {
+    fn real_args(&self) -> Vec<String> {
+        let x: Vec<_> =
+            self.get_args().map(|v| v.to_string_lossy().to_string()).collect();
+        for i in 0..x.len() {
+            if x[i] == "color.ui=always" {
+                let mut m = Vec::with_capacity(x.len());
+                m.extend_from_slice(&x[..i - 1]);
+                m.extend_from_slice(&x[i + 1..]);
+                return m;
+            }
+        }
+        x
+    }
 }

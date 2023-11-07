@@ -1,6 +1,5 @@
 mod app;
 mod cache;
-mod command2;
 mod git_cmd;
 mod pathdiff;
 mod prelude;
@@ -17,7 +16,6 @@ use std::process::{Command, ExitCode};
 
 use app::App;
 use cache::Cache;
-use command2::Command2;
 
 mod git {
     use std::path::Path;
@@ -88,7 +86,7 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
         git_cmd: None,
         git_dir,
         cwd,
-        final_command: Command2::new("git"),
+        final_cmd: Command::new("git"),
         cache,
     })
 }
