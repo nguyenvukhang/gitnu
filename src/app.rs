@@ -111,13 +111,13 @@ impl App {
         use GitCommand as G;
         let git_cmd = self.git_cmd.clone();
         match git_cmd {
+            Some(G::Status(_)) => self.git_status(),
             Some(G::Version) => {
                 let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;
                 println!("gitnu version {CARGO_PKG_VERSION}");
                 Ok(exitcode)
             }
-            Some(G::Status(_)) => self.git_status(),
             _ => {
                 let result = self.final_cmd.status();
                 let exitcode = result.map(|v| v.exitcode())?;

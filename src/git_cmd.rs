@@ -235,7 +235,7 @@ impl TryFrom<&str> for GitCommand {
             "verify-commit" => VerifyCommit,
             "verify-pack" => VerifyPack,
             "verify-tag" => VerifyTag,
-            "version" => Version,
+            "version" | "--version" => Version,
             "whatchanged" => WhatChanged,
             "worktree" => Worktree,
             "write-tree" => WriteTree,
