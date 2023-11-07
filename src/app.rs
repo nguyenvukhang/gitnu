@@ -79,15 +79,13 @@ impl App {
     }
 
     fn after_cmd(&mut self, args: &[String]) {
-        let mut skip = false;
-
         if let None = self.git_cmd {
             self.final_cmd.args(args);
             return;
         }
 
-        for arg in args {
-            let arg = arg.as_str();
+        for i in 0..args.len() {
+            let arg = args[i].as_str();
             let git_cmd = self.git_cmd.as_mut().unwrap();
             match git_cmd {
                 GitCommand::Status(ref mut v) => match arg {
@@ -96,6 +94,7 @@ impl App {
                 },
                 _ => {}
             };
+            let skip = i > 0 && git_cmd.skip_next_arg(&args[i - 1]);
             match (skip, parse_range(&arg)) {
                 (false, Some((start, end))) if end <= MAX_CACHE_SIZE => {
                     let cmd = &mut self.final_cmd;
@@ -105,7 +104,6 @@ impl App {
                     self.final_cmd.arg(&arg);
                 }
             }
-            skip = git_cmd.skip_next_arg(&arg);
         }
     }
 
