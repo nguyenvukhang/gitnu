@@ -1,7 +1,6 @@
 use std::any::Any;
 use std::collections::HashMap;
 use std::io;
-use std::process;
 use std::process::Command;
 use std::process::ExitCode;
 use std::process::ExitStatus;
@@ -16,7 +15,6 @@ pub enum Error {
     NotGitCommand,
     NotGitRepository,
     Io(io::Error),
-    ExitStatus(process::ExitStatus),
     ThreadError(Box<dyn Any + Send + 'static>),
 }
 
@@ -28,7 +26,6 @@ impl PartialEq for Error {
             (NotGitRepository, NotGitRepository) => true,
             (InvalidCache, InvalidCache) => true,
             (NotGitCommand, NotGitCommand) => true,
-            (ExitStatus(lhs), ExitStatus(rhs)) => lhs == rhs,
             (Io(lhs), Io(rhs)) => lhs.kind() == rhs.kind(),
             (ThreadError(_), ThreadError(_)) => true,
             _ => false,
@@ -56,29 +53,15 @@ error!(ThreadError, Box<dyn Any + Send + 'static>);
 pub type Result<T> = std::result::Result<T, Error>;
 pub type Aliases = HashMap<String, String>;
 
-pub trait ToError<T> {
-    fn to_err(self) -> Result<T>;
-}
-impl ToError<ExitStatus> for std::result::Result<ExitStatus, io::Error> {
-    fn to_err(self) -> Result<ExitStatus> {
-        match self {
-            Err(e) => Err(Error::Io(e)),
-            Ok(v) if v.success() => Ok(v),
-            Ok(v) => Err(Error::ExitStatus(v)),
-        }
-    }
-}
-
 pub trait ToExitCode {
     fn exitcode(self) -> ExitCode;
 }
 
 impl ToExitCode for ExitStatus {
     fn exitcode(self) -> ExitCode {
-        if let Some(code) = self.code() {
-            ExitCode::from((code % 256) as u8)
-        } else {
-            ExitCode::FAILURE
+        match self.code() {
+            Some(code) => ExitCode::from((code % 256) as u8),
+            None => ExitCode::FAILURE,
         }
     }
 }
