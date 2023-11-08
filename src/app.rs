@@ -131,16 +131,20 @@ impl App {
 mod tests {
     use super::*;
 
+    #[cfg(test)]
+    fn parse(args: &[&str]) -> Vec<String> {
+        let mut a = vec!["git"];
+        a.extend(args);
+        let mut app = App::default();
+        app.parse(&string_vec(a));
+        app.final_cmd.real_args()
+    }
+
     macro_rules! test {
         ($name:ident, $input_args:expr, $output_args:expr) => {
             #[test]
             fn $name() {
-                use $crate::prelude::*;
-                let mut args = vec!["git"];
-                args.extend($input_args);
-                let mut app = App::default();
-                app.parse(&string_vec(args));
-                let received_args = app.final_cmd.real_args();
+                let received_args = parse(&$input_args);
                 let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);
             }
