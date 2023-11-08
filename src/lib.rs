@@ -43,7 +43,7 @@ mod git {
     {
         let mut cmd = Command::new("git");
         dir.map(|v| cmd.current_dir(v));
-        Ok(cmd.args(args).output().map_err(|e| Error::Io(e))?)
+        Ok(cmd.args(args).output()?)
     }
 
     fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {
