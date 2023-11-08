@@ -170,9 +170,9 @@ mod tests {
         ["add", "3", "4", "5", "--", "2", "3", "4"]
     );
 
-    test!(test_zeroes_1, ["add", "0"], ["add", "0"]);
-    test!(test_zeroes_2, ["add", "0-1"], ["add", "0", "1"]);
-    test!(test_zeroes_3, ["add", "0-0"], ["add", "0"]);
+    test!(test_zeros_1, ["add", "0"], ["add", "0"]);
+    test!(test_zeros_2, ["add", "0-1"], ["add", "0", "1"]);
+    test!(test_zeros_3, ["add", "0-0"], ["add", "0"]);
 
     // Filenames containing dashed dates
     test!(test_date_filename, ["add", "2021-01-31"], ["add", "2021-01-31"]);
