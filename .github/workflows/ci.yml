@@ -59,6 +59,7 @@ jobs:
   inc:
     name: Increment version
     needs: [pre, build-and-test]
+    if: startsWith(github.event.head_commit.message, 'ver:') == false
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.semver.outputs.version }}
