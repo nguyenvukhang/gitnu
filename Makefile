@@ -2,11 +2,11 @@ LOCAL_BIN=$(HOME)/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
-ONE_TEST := 'tests::add_and_status_diff_dirs'
+ONE_TEST := 'tests::status_display::git_add_untracked'
 
 current:
-	make test
-	# make test-one
+	# make test
+	make test-one
 
 install:
 	make build

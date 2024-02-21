@@ -96,13 +96,9 @@ impl App {
     ///
     /// Runs `git status` then parses its output, enumerates it, and
     /// prints it out to stdout.
-    pub(crate) fn git_status(mut self) -> Result<ExitCode> {
-        let mut git = self.final_cmd.stdout(Stdio::piped()).spawn()?;
-
-        let lines = match git.stdout.take() {
-            Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
-            None => return Ok(git.wait().map(|v| v.exitcode())?),
-        };
+    pub(crate) fn git_status(self) -> Result<ExitCode> {
+        use git2::{Repository, StatusOptions};
+        use GitCommand as GC;
 
         let mut cache_filepath = self.cwd.join(&self.git_dir);
         cache_filepath.push(CACHE_FILE_NAME);
@@ -112,25 +108,47 @@ impl App {
         // first line of the cache file is the current directory
         writeln!(writer, "{}", self.cwd.display()).unwrap();
 
-        let state = &mut State { seen_untracked: false, count: 1 };
+        let mut opts = StatusOptions::new();
+        opts.include_untracked(true);
+        opts.sort_case_sensitively(true);
 
-        use GitCommand::Status;
+        let repo =
+            Repository::open(&self.cwd).map_err(|_| Error::NotGitRepository)?;
 
-        if let Some(Status(GitStatus::Short)) = self.git_cmd {
-            for line in lines {
-                writeln!(writer, "{}", short(state, line)).unwrap();
+        let branch = match repo.head() {
+            Ok(head) => head.symbolic_target().unwrap().to_string(),
+            Err(_) => {
+                let x = std::fs::read(self.git_dir.join("HEAD")).unwrap();
+                let x = std::str::from_utf8(&x).unwrap();
+                let x = x.strip_prefix("ref:").unwrap_or(x);
+                let x = x.trim();
+                x.strip_prefix("refs/heads/").unwrap_or(x).to_string()
             }
-        } else if let Some(Status(GitStatus::Normal)) = self.git_cmd {
-            for line in lines {
-                if let Some(v) = normal(state, line) {
-                    writeln!(writer, "{v}").unwrap();
+        };
+
+        let status = repo.statuses(Some(&mut opts)).unwrap();
+
+        let mut count = 1;
+
+        match self.git_cmd {
+            Some(GC::Status(GitStatus::Short)) => {
+                for item in &status {
+                    println!("{: <3}{}", count, item.path().unwrap());
                 }
             }
+            Some(GC::Status(GitStatus::Normal)) => {
+                println!("On branch {branch}\n");
+            }
+            _ => {}
         }
+        println!("GOT HERE");
+
+
+        for item in &status {}
 
         // close the writer
         writer.flush().ok();
 
-        Ok(git.wait().map(|v| v.exitcode())?)
+        Ok(ExitCode::SUCCESS)
     }
 }

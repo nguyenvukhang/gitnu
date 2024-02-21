@@ -16,6 +16,7 @@ edition = "2021"
 
 [dependencies]
 atty = "0.2.14"
+git2 = { version = "0.18.2", default-features = false }
 
 [[bin]]
 bench = false
