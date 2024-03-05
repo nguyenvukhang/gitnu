@@ -30,20 +30,14 @@ mod git {
     /// current_dir is intentionally not supplied as it relies on the
     /// user's actual PWD or the value of git's `-C` flag, which is not
     /// visible to the `git-nu` binary.
-    pub(crate) fn dir<P>(cwd: P) -> Result<PathBuf>
-    where
-        P: AsRef<Path>,
-    {
+    pub(crate) fn dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
         _dir(Some(cwd))
     }
 
-    fn sh<P>(dir: Option<P>, args: &[&str]) -> Result<Output>
-    where
-        P: AsRef<Path>,
-    {
+    fn sh<P: AsRef<Path>>(dir: Option<P>, args: &[&str]) -> Result<Output> {
         let mut cmd = Command::new("git");
         dir.map(|v| cmd.current_dir(v));
-        Ok(cmd.args(args).output().map_err(|e| Error::Io(e))?)
+        Ok(cmd.args(args).output()?)
     }
 
     fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {

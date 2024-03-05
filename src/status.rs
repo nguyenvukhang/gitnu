@@ -8,22 +8,17 @@ use std::process::{ExitCode, Stdio};
 
 /// Removes all ANSI color codes
 pub fn uncolor(src: &str) -> Vec<u8> {
-    let (mut src, mut dst) = (src.as_bytes(), vec![]);
-    while !src.is_empty() {
-        match src.iter().position(|v| v == &b'\x1b') {
-            None => break,
-            Some(i) => {
-                dst.extend(&src[..i]);
-                src = &src[i..];
-            }
-        }
-        match src.iter().position(|v| v == &b'm') {
-            None => break,
-            Some(i) => src = &src[i + 1..],
-        }
+    let (mut b, mut j, mut on) = (src.as_bytes().to_owned(), 0, true);
+    for i in 0..b.len() {
+        match (on, b[i]) {
+            (_, b'\x1b') => on = false,
+            (true, _) => (b[j], j) = (b[i], j + 1),
+            (_, b'm') => on = true,
+            _ => (),
+        };
     }
-    dst.extend(src);
-    dst
+    b.truncate(j);
+    b
 }
 
 struct State {
@@ -51,7 +46,10 @@ fn normal(state: &mut State, line: String) -> Option<String> {
 
     let line = &uncolor(&line);
     let line: &str = std::str::from_utf8(line).unwrap();
-    let line = line.rsplit_once('\t').unwrap().1;
+    let line = line
+        .rsplit_once('\t')
+        .expect("There should be a tab character in the line")
+        .1;
 
     // Example:
     // ```
@@ -68,8 +66,7 @@ fn normal(state: &mut State, line: String) -> Option<String> {
         true => ("", line),
     };
 
-    let pathspec =
-        pathspec.trim_start_matches(|v: char| v.is_ascii_whitespace());
+    let pathspec = pathspec.trim_start();
 
     let pathspec = match delta {
         // Example:
@@ -81,7 +78,7 @@ fn normal(state: &mut State, line: String) -> Option<String> {
             .split_once("->")
             .expect("There should be a `->` in the line with a rename")
             .1
-            .trim_start_matches(|v: char| v.is_ascii_whitespace()),
+            .trim_start(),
         _ => pathspec,
     };
 
@@ -100,8 +97,7 @@ impl App {
     /// Runs `git status` then parses its output, enumerates it, and
     /// prints it out to stdout.
     pub(crate) fn git_status(mut self) -> Result<ExitCode> {
-        let mut git =
-            self.final_cmd.stdout(Stdio::piped()).spawn()?;
+        let mut git = self.final_cmd.stdout(Stdio::piped()).spawn()?;
 
         let lines = match git.stdout.take() {
             Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),

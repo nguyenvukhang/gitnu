@@ -131,16 +131,20 @@ impl App {
 mod tests {
     use super::*;
 
+    #[cfg(test)]
+    fn parse(args: &[&str]) -> Vec<String> {
+        let mut a = vec!["git"];
+        a.extend(args);
+        let mut app = App::default();
+        app.parse(&string_vec(a));
+        app.final_cmd.real_args()
+    }
+
     macro_rules! test {
         ($name:ident, $input_args:expr, $output_args:expr) => {
             #[test]
             fn $name() {
-                use $crate::prelude::*;
-                let mut args = vec!["git"];
-                args.extend($input_args);
-                let mut app = App::default();
-                app.parse(&string_vec(args));
-                let received_args = app.final_cmd.real_args();
+                let received_args = parse(&$input_args);
                 let expected_args = string_vec($output_args);
                 assert_eq!(received_args, expected_args);
             }
@@ -166,9 +170,9 @@ mod tests {
         ["add", "3", "4", "5", "--", "2", "3", "4"]
     );
 
-    test!(test_zeroes_1, ["add", "0"], ["add", "0"]);
-    test!(test_zeroes_2, ["add", "0-1"], ["add", "0", "1"]);
-    test!(test_zeroes_3, ["add", "0-0"], ["add", "0"]);
+    test!(test_zeros_1, ["add", "0"], ["add", "0"]);
+    test!(test_zeros_2, ["add", "0-1"], ["add", "0", "1"]);
+    test!(test_zeros_3, ["add", "0-0"], ["add", "0"]);
 
     // Filenames containing dashed dates
     test!(test_date_filename, ["add", "2021-01-31"], ["add", "2021-01-31"]);
