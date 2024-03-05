@@ -70,9 +70,7 @@ test!(
         sh!(t, "git init -b main");
         sh!(t, "mkdir src");
         sh!(t, "touch A B src/C src/D");
-        println!("GOT HERE");
         gitnu!(t, status).unwrap();
-        println!("GOT HERE");
     },
     "src",
     ["add", "2", "3"],
