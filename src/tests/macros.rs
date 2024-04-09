@@ -98,8 +98,6 @@ where
         t.extend(args.into_iter().map(|v| v.as_ref().to_string()));
         t
     };
-    // forcefully run the test binary in the test directory
-    app.final_cmd.current_dir(&cwd);
     app.parse(&string_vec(args));
     Ok(app)
 }

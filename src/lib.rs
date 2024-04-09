@@ -68,21 +68,17 @@ fn cli_init_app(cwd: PathBuf) -> Result<App> {
     use std::thread;
 
     let h_git_dir = thread::spawn(move || git::dir(&cwd).map(|gd| (gd, cwd)));
-    let h_git_aliases = thread::spawn(|| git::aliases());
+    let h_git_aliases = thread::spawn(git::aliases);
 
     let (git_dir, cwd) = h_git_dir.join()??;
     let git_aliases = h_git_aliases.join()?;
 
     let cache = Cache::new(&git_dir, &cwd);
 
-    Ok(App {
-        git_aliases,
-        git_cmd: None,
-        git_dir,
-        cwd,
-        final_cmd: Command::new("git"),
-        cache,
-    })
+    let mut final_cmd = Command::new("git");
+    final_cmd.current_dir(&cwd);
+
+    Ok(App { git_aliases, git_cmd: None, git_dir, cwd, final_cmd, cache })
 }
 
 pub fn main(cwd: PathBuf, args: &[String]) -> ExitCode {
