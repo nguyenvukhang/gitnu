@@ -16,7 +16,7 @@ build:
 
 test:
 	cargo build
-	cargo test --lib
+	cargo test
 
 test-one:
 	cargo build
