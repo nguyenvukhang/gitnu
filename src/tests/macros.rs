@@ -47,10 +47,6 @@ pub(crate) fn write(t: &Test, file: &str, contents: &str) {
     fs::write(t.dir.join(file), contents).unwrap();
 }
 
-pub(crate) fn typed<T, F: Fn(T) -> ()>(x: F) -> Box<F> {
-    Box::new(x)
-}
-
 pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
     std::any::type_name::<T>()
 }
@@ -116,13 +112,14 @@ pub(crate) fn prep_test(name: &str) -> PathBuf {
 
 /// Runs the test in an isolated directory.
 macro_rules! test {
-    ($name:ident, $fun:expr) => {
+    ($name:ident, $setup:expr) => {
         #[test]
         fn $name() {
             use $crate::tests::macros::*;
             fn f() {}
             let test_dir = prep_test(type_name_of(f));
-            typed::<&Test, _>($fun)(&Test { dir: test_dir });
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(&Test { dir: test_dir });
         }
     };
     ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
@@ -132,7 +129,8 @@ macro_rules! test {
         test!($name, |t| {
             use $crate::prelude::*;
             use $crate::tests::macros::*;
-            typed::<&Test, _>($setup)(t);
+            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            setup(t);
             let parsed = gitnu!(t, $relative_dir, $input_args).unwrap();
             let received_args = parsed.final_cmd.real_args();
             assert_eq!(received_args, $output_args);
