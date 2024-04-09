@@ -57,9 +57,10 @@ pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
 
 #[cfg(test)]
 pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
-    let cmd = match cmd.as_ref().starts_with("git") {
-        false => cmd.as_ref().to_string(),
-        _ => cmd.as_ref().replace("git", "git -c advice.statusHints=false"),
+    let cmd = cmd.as_ref();
+    let cmd = match cmd.starts_with("git") {
+        false => cmd.to_string(),
+        _ => cmd.replacen("git", "git -c advice.statusHints=false", 1),
     };
     Command::new("sh")
         .current_dir(&cwd)
