@@ -4,9 +4,7 @@ GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
 ONE_TEST := 'tests::add_and_status_diff_dirs'
 
-current:
-	make test
-	# make test-one
+current: test
 
 install:
 	make build

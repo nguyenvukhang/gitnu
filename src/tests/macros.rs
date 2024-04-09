@@ -26,6 +26,23 @@ pub(crate) fn bin_dir() -> String {
     (p.pop(), p.pop(), p.to_string_lossy().trim().to_string()).2
 }
 
+/// Gets an environment variable with a maximum of 100 retries.
+#[cfg(test)]
+pub(crate) fn env_var(name: &str) -> String {
+    let mut max_retries: usize = 100;
+    let mut path = env::var(name).ok();
+    loop {
+        if max_retries == 0 {
+            panic!("Exceeded max retries while trying to get env: {name}");
+        }
+        max_retries -= 1;
+        match path {
+            Some(v) if !v.trim_matches(char::from(0)).is_empty() => return v,
+            _ => path = env::var(name).ok(),
+        }
+    }
+}
+
 // Writes to a file by its relative path from test.dir.
 #[cfg(test)]
 pub(crate) fn write(t: &Test, file: &str, contents: &str) {
@@ -67,34 +84,18 @@ pub(crate) fn git_shell<S: AsRef<str>>(cwd: &PathBuf, cmd: S) -> Output {
         .unwrap()
 }
 
-/// Gets an environment variable with a maximum of 100 retries.
 #[cfg(test)]
-pub(crate) fn env_var(name: &str) -> String {
-    let mut max_retries: usize = 100;
-    let mut path = env::var(name).ok();
-    loop {
-        if max_retries == 0 {
-            panic!("Exceeded max retries while trying to get env: {name}");
-        }
-        max_retries -= 1;
-        match path {
-            Some(v) if !v.trim_matches(char::from(0)).is_empty() => return v,
-            _ => path = env::var(name).ok(),
-        }
-    }
-}
-
-#[cfg(test)]
-pub(crate) fn mock_app<S, P>(cwd: P, args: &[S]) -> Result<App>
+pub(crate) fn mock_app<S, P, I>(cwd: P, args: I) -> Result<App>
 where
     P: AsRef<Path>,
     S: AsRef<str>,
+    I: IntoIterator<Item = S>,
 {
     use crate::cli_init_app;
     let mut app = cli_init_app(cwd.as_ref().to_path_buf())?;
     let args = {
         let mut t = vec!["git".to_string()];
-        t.extend(args.iter().map(|v| v.as_ref().to_string()));
+        t.extend(args.into_iter().map(|v| v.as_ref().to_string()));
         t
     };
     // forcefully run the test binary in the test directory
@@ -112,7 +113,6 @@ pub(crate) fn prep_test(name: &str) -> PathBuf {
         fs::remove_dir_all(&test_dir).ok();
     }
     fs::create_dir_all(&test_dir).unwrap();
-
     let path = env_var("PATH");
     env::set_var("PATH", format!("{}:{path}", bin_dir()));
 
@@ -159,8 +159,7 @@ macro_rules! gitnu {
     // Returns a parsed app, but not ran.
     ($t:expr, $relative_dir:expr, $args:expr) => {{
         let cwd = $t.dir.join($relative_dir);
-        let args = $crate::prelude::string_vec($args);
-        mock_app(cwd, &args)
+        mock_app(cwd, $args)
     }};
 }
 
