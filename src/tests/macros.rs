@@ -1,8 +1,6 @@
 use crate::prelude::*;
 use crate::App;
 
-use std::fs::File;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, fs};
@@ -46,9 +44,7 @@ pub(crate) fn env_var(name: &str) -> String {
 // Writes to a file by its relative path from test.dir.
 #[cfg(test)]
 pub(crate) fn write(t: &Test, file: &str, contents: &str) {
-    if let Ok(mut f) = File::create(t.dir.join(file)) {
-        f.write_all(contents.as_bytes()).ok();
-    }
+    fs::write(t.dir.join(file), contents).unwrap();
 }
 
 pub(crate) fn typed<T, F: Fn(T) -> ()>(x: F) -> Box<F> {
