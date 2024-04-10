@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env, fs};
 
+use crate::parse;
 use crate::prelude::*;
-use crate::{main_cli, main_parse};
+use crate::{main_cli, prefetch};
 
 // A word on why it's necessary to have the debug `git-nu` binary built and
 // prepended to $PATH.
@@ -184,7 +185,10 @@ where
 {
     let mut x = vec!["git".to_string()];
     x.extend(args.into_iter().map(|v| v.as_ref().to_string()));
-    main_parse(t.dir.join(rel_dir), &x, vec![]).map(|v| v.0)
+    let cwd = t.dir.join(rel_dir);
+    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
+    let cache = Cache::new(&git_dir, &cwd);
+    Ok(parse::parse(&x, git_aliases, cache, vec![]).0)
 }
 
 test!(test_macro_works, |_| {});

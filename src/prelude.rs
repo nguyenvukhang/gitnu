@@ -15,11 +15,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub type Aliases = HashMap<String, String>;
 
 pub trait ToExitCode {
-    fn exitcode(self) -> ExitCode;
+    fn to_exitcode(self) -> ExitCode;
 }
 
 impl ToExitCode for ExitStatus {
-    fn exitcode(self) -> ExitCode {
+    fn to_exitcode(self) -> ExitCode {
         self.code()
             .map(|c| ExitCode::from((c % 256) as u8))
             .unwrap_or(ExitCode::FAILURE)

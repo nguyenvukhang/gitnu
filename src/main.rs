@@ -27,17 +27,6 @@ fn prefetch(cwd: PathBuf) -> Result<(PathBuf, PathBuf, Aliases)> {
     Ok((cwd, git_dir, git_aliases))
 }
 
-#[cfg(test)]
-fn main_parse<A: ArgHolder>(
-    cwd: PathBuf,
-    args: &[String],
-    argh: A,
-) -> Result<(A, Option<GitCommand>)> {
-    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
-    let cache = Cache::new(&git_dir, &cwd);
-    Ok(parse::parse(args, git_aliases, cache, argh))
-}
-
 pub fn main_cli(cwd: PathBuf, args: &[String]) -> Result<ExitStatus> {
     let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
 
@@ -63,13 +52,13 @@ fn main() -> ExitCode {
     let cwd = current_dir().unwrap_or_default();
     let args = args().collect::<Vec<_>>();
     match main_cli(cwd, &args) {
-        Ok(v) => v.exitcode(),
+        Ok(v) => v.to_exitcode(),
         Err(_) => {
             let mut git = Command::new("git");
             git.args(&args[1..]);
             git.status()
                 .map_err(Error::from)
-                .map(|v| v.exitcode())
+                .map(|v| v.to_exitcode())
                 .unwrap_or(ExitCode::FAILURE)
         }
     }
