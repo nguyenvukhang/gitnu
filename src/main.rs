@@ -1,4 +1,5 @@
 mod app;
+mod error;
 mod cache;
 mod git_cmd;
 mod pathdiff;
