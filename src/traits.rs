@@ -3,10 +3,6 @@ use std::process::{Command, ExitStatus};
 
 use crate::prelude::{Error, Result};
 
-fn st<S: AsRef<OsStr>>(x: S) -> String {
-    x.as_ref().to_string_lossy().to_string()
-}
-
 pub trait ArgHolder {
     fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S);
 
@@ -24,7 +20,7 @@ pub trait ArgHolder {
 
 impl ArgHolder for Vec<String> {
     fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S) {
-        self.push(st(arg))
+        self.push(arg.as_ref().to_string_lossy().to_string())
     }
 }
 
