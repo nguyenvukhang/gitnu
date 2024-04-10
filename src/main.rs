@@ -6,7 +6,6 @@ mod parse;
 mod pathdiff;
 mod prelude;
 mod status;
-mod traits;
 
 #[cfg(test)]
 mod tests;
