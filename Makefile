@@ -2,13 +2,13 @@ LOCAL_BIN=$(HOME)/.local/bin
 GITNU_RELEASE_BIN=$(PWD)/target/release/git-nu
 GITNU_DEBUG_BIN=$(PWD)/target/debug/git-nu
 
-ONE_TEST := 'tests::add_and_status_diff_dirs'
+ONE_TEST := 'tests::exit_codes'
+ONE_TEST := 'tests::git_add_untracked'
 
 current: test
 
 install:
-	make build
-	make load-bin
+	cargo install --all-features --path . --locked --bins
 
 build:
 	cargo build --bin git-nu --release

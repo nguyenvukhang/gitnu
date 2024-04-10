@@ -1,11 +1,12 @@
-mod git;
-mod app;
-mod error;
 mod cache;
+mod error;
+mod git;
 mod git_cmd;
+mod parse;
 mod pathdiff;
 mod prelude;
 mod status;
+mod traits;
 
 #[cfg(test)]
 mod tests;
@@ -13,47 +14,63 @@ mod tests;
 use prelude::*;
 
 use std::env::{args, current_dir};
-use std::io::BufRead;
 use std::path::PathBuf;
-use std::process::{Command, ExitCode};
+use std::process::{Command, ExitCode, ExitStatus};
+use std::thread;
 
-use app::App;
-use cache::Cache;
-
-
-fn cli_init_app(cwd: PathBuf) -> Result<App> {
-    use std::thread;
-
+fn prefetch(cwd: PathBuf) -> Result<(PathBuf, PathBuf, Aliases)> {
     let h_git_dir = thread::spawn(move || git::dir(&cwd).map(|gd| (gd, cwd)));
     let h_git_aliases = thread::spawn(git::aliases);
 
     let (git_dir, cwd) = h_git_dir.join()??;
     let git_aliases = h_git_aliases.join()?;
+    Ok((cwd, git_dir, git_aliases))
+}
+
+#[cfg(test)]
+fn main_parse<A: ArgHolder>(
+    cwd: PathBuf,
+    args: &[String],
+    argh: A,
+) -> Result<(A, Option<GitCommand>)> {
+    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
+    let cache = Cache::new(&git_dir, &cwd);
+    Ok(parse::parse(args, git_aliases, cache, argh))
+}
+
+pub fn main_cli(cwd: PathBuf, args: &[String]) -> Result<ExitStatus> {
+    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
 
     let cache = Cache::new(&git_dir, &cwd);
 
-    let mut final_cmd = Command::new("git");
-    final_cmd.current_dir(&cwd);
+    let mut argh = Command::new("git");
+    argh.current_dir(&cwd);
+    let (mut argh, git_cmd) = parse::parse(args, git_aliases, cache, argh);
 
-    Ok(App { git_aliases, git_cmd: None, git_dir, cwd, final_cmd, cache })
-}
-
-pub fn main_inner(cwd: PathBuf, args: &[String]) -> ExitCode {
-    let exitcode = match cli_init_app(cwd) {
-        Ok(mut app) => {
-            app.parse(&args);
-            app.run()
+    use GitCommand as G;
+    match git_cmd {
+        Some(v @ G::Status(_)) => status::git_status(argh, &git_dir, v),
+        Some(G::Version) => {
+            let result = argh.run();
+            println!("gitnu version {CARGO_PKG_VERSION}");
+            result
         }
-        Err(_) => Command::new("git")
-            .args(&args[1..])
-            .status()
-            .map_err(|v| Error::from(v))
-            .map(|v| v.exitcode()),
-    };
-    exitcode.unwrap_or(ExitCode::FAILURE)
+        _ => argh.run(),
+    }
 }
 
 fn main() -> ExitCode {
-    let current_dir = current_dir().unwrap_or_default();
-    main_inner(current_dir, &args().collect::<Vec<_>>())
+    let cwd = current_dir().unwrap_or_default();
+    let args = args().collect::<Vec<_>>();
+    match main_cli(cwd, &args) {
+        Ok(v) => v.exitcode(),
+        Err(_) => {
+            let mut git = Command::new("git");
+            git.args(&args[1..]);
+            git.status()
+                .map_err(Error::from)
+                .map(|v| v.exitcode())
+                .unwrap_or(ExitCode::FAILURE)
+        }
+    }
 }

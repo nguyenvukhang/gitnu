@@ -1,10 +1,9 @@
-use crate::git_cmd::{GitCommand, GitStatus};
 use crate::prelude::*;
-use crate::{App, MAX_CACHE_SIZE};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, LineWriter, Write};
-use std::process::{ExitCode, Stdio};
+use std::path::PathBuf;
+use std::process::{Command, ExitStatus, Stdio};
 
 /// Removes all ANSI color codes
 pub fn uncolor(src: &str) -> Vec<u8> {
@@ -91,46 +90,45 @@ fn short(state: &mut State, line: String) -> String {
     String::from_utf8_lossy(&uncolor(&line))[3..].to_string()
 }
 
-impl App {
-    /// Endpoint function for everything git-status related.
-    ///
-    /// Runs `git status` then parses its output, enumerates it, and
-    /// prints it out to stdout.
-    pub(crate) fn git_status(mut self) -> Result<ExitCode> {
-        let mut git = self.final_cmd.stdout(Stdio::piped()).spawn()?;
+pub fn git_status(
+    mut argh: Command,
+    git_dir: &PathBuf,
+    git_cmd: GitCommand,
+) -> Result<ExitStatus> {
+    let mut git = argh.stdout(Stdio::piped()).spawn()?;
 
-        let lines = match git.stdout.take() {
-            Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
-            None => return Ok(git.wait().map(|v| v.exitcode())?),
-        };
+    let lines = match git.stdout.take() {
+        Some(v) => BufReader::new(v).lines().filter_map(|v| v.ok()),
+        None => return Ok(git.wait()?),
+    };
 
-        let mut cache_filepath = self.cwd.join(&self.git_dir);
-        cache_filepath.push(CACHE_FILE_NAME);
+    let cwd = argh.get_current_dir().unwrap();
+    let mut cache_filepath = cwd.join(&git_dir);
+    cache_filepath.push(CACHE_FILE_NAME);
 
-        let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
+    let writer = &mut LineWriter::new(File::create(&cache_filepath)?);
 
-        // first line of the cache file is the current directory
-        writeln!(writer, "{}", self.cwd.display()).unwrap();
+    // first line of the cache file is the current directory
+    writeln!(writer, "{}", cwd.display()).unwrap();
 
-        let state = &mut State { seen_untracked: false, count: 1 };
+    let state = &mut State { seen_untracked: false, count: 1 };
 
-        use GitCommand::Status;
+    use GitCommand::Status;
 
-        if let Some(Status(GitStatus::Short)) = self.git_cmd {
-            for line in lines {
-                writeln!(writer, "{}", short(state, line)).unwrap();
-            }
-        } else if let Some(Status(GitStatus::Normal)) = self.git_cmd {
-            for line in lines {
-                if let Some(v) = normal(state, line) {
-                    writeln!(writer, "{v}").unwrap();
-                }
+    if let Status(GitStatus::Short) = git_cmd {
+        for line in lines {
+            writeln!(writer, "{}", short(state, line)).unwrap();
+        }
+    } else if let Status(GitStatus::Normal) = git_cmd {
+        for line in lines {
+            if let Some(v) = normal(state, line) {
+                writeln!(writer, "{v}").unwrap();
             }
         }
-
-        // close the writer
-        writer.flush().ok();
-
-        Ok(git.wait().map(|v| v.exitcode())?)
     }
+
+    // close the writer
+    writer.flush().ok();
+
+    Ok(git.wait()?)
 }

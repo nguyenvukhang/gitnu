@@ -1,7 +1,18 @@
-use std::path::Path;
-use std::process::Output;
+use std::io::BufRead;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
 
-use super::*;
+use crate::error;
+use crate::prelude::{Aliases, Error, Result};
+
+/// Run a git command in a particular directory. Defaults to process's cwd.
+fn sh<P: AsRef<Path>>(dir: Option<P>, args: &[&str]) -> Result<Output> {
+    let mut cmd = Command::new("git");
+    if let Some(dir) = dir {
+        cmd.current_dir(dir);
+    }
+    Ok(cmd.args(args).output()?)
+}
 
 /// Path to git's repository (not workspace)
 ///   * .git/
@@ -10,18 +21,10 @@ use super::*;
 /// current_dir is intentionally not supplied as it relies on the
 /// user's actual PWD or the value of git's `-C` flag, which is not
 /// visible to the `git-nu` binary.
+///
+/// This can either be absolute or relative to cwd.
 pub(crate) fn dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
-    _dir(Some(cwd))
-}
-
-fn sh<P: AsRef<Path>>(dir: Option<P>, args: &[&str]) -> Result<Output> {
-    let mut cmd = Command::new("git");
-    dir.map(|v| cmd.current_dir(v));
-    Ok(cmd.args(args).output()?)
-}
-
-fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {
-    let output = git::sh(base_dir, &["rev-parse", "--git-dir"])?;
+    let output = sh(Some(cwd), &["rev-parse", "--git-dir"])?;
     if output.stderr.starts_with(b"fatal: not a git repository") {
         return error!(NotGitRepository);
     }
@@ -31,7 +34,7 @@ fn _dir<P: AsRef<Path>>(base_dir: Option<P>) -> Result<PathBuf> {
 
 pub(crate) fn aliases() -> Aliases {
     let args = ["config", "--global", "--get-regexp", "^alias."];
-    match git::sh(None::<&str>, &args) {
+    match sh(None::<&str>, &args) {
         Ok(v) => Aliases::from_iter(
             v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
                 v.get(6..) // every lines starts with "alias."

@@ -6,6 +6,7 @@ pub enum Error {
     InvalidCache,
     NotGitCommand,
     NotGitRepository,
+    NotImplemented,
     Io(io::Error),
     ThreadError(Box<dyn Any + Send + 'static>),
 }
@@ -16,6 +17,7 @@ impl PartialEq for Error {
         use Error::*;
         match (lhs, rhs) {
             (NotGitRepository, NotGitRepository) => true,
+            (NotImplemented, NotImplemented) => true,
             (InvalidCache, InvalidCache) => true,
             (NotGitCommand, NotGitCommand) => true,
             (Io(lhs), Io(rhs)) => lhs.kind() == rhs.kind(),
