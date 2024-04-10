@@ -36,6 +36,63 @@ struct Test {
     dir: PathBuf,
 }
 
+impl Test {
+    /// Run `git-nu` at a directory relative to the test root dir.
+    fn gitnu<S, I, P>(&self, rel_dir: P, args: I) -> Result<ExitStatus>
+    where
+        S: AsRef<str>,
+        I: IntoIterator<Item = S>,
+        P: AsRef<Path>,
+    {
+        let mut x = vec!["git".to_string()];
+        x.extend(args.into_iter().map(|v| v.as_ref().to_string()));
+        main_cli(self.dir.join(rel_dir), &x)
+    }
+
+    /// Parse `git-nu` args at a directory relative to the test root dir.
+    fn gitnu_parse<S, I, P>(&self, rel_dir: P, args: I) -> Result<Vec<String>>
+    where
+        S: AsRef<str>,
+        I: IntoIterator<Item = S>,
+        P: AsRef<Path>,
+    {
+        let mut x = vec!["git".to_string()];
+        x.extend(args.into_iter().map(|v| v.as_ref().to_string()));
+        let cwd = self.dir.join(rel_dir);
+        let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
+        let cache = Cache::new(&git_dir, &cwd);
+        Ok(parse::parse(&x, git_aliases, cache, vec![]).0)
+    }
+
+    /// Run a shell command at a directory relative to the test root dir.
+    fn sh<P, S>(&self, rel_dir: P, cmd: S) -> Output
+    where
+        P: AsRef<str>,
+        S: AsRef<str>,
+    {
+        let (cmd, rel_dir) = (cmd.as_ref(), rel_dir.as_ref());
+        let cmd = match cmd.starts_with("git") {
+            false => cmd.to_string(),
+            _ => cmd.replacen("git", "git -c advice.statusHints=false", 1),
+        };
+        let v = Command::new("sh")
+            .current_dir(self.dir.join(rel_dir))
+            .arg("-c")
+            .arg(&cmd)
+            .output()
+            .unwrap();
+        let root2 = if self.dir.is_absolute() { "/<root>" } else { "<root>" };
+        let root = self.dir.as_os_str().to_str().unwrap();
+        let (x, y) = ("[".gray(), "]".gray());
+        println!("> {x}{} {} {}{y}", rel_dir.cyan(), "||".gray(), cmd.cyan());
+        let stdout = String::from_utf8_lossy(&v.stdout).replace(root, root2);
+        let stderr = String::from_utf8_lossy(&v.stderr).replace(root, root2);
+        pretty_print("stdout", &stdout);
+        pretty_print("stderr", &stderr);
+        Output { stdout: stdout.to_string(), exit_code: v.status.code() }
+    }
+}
+
 #[derive(Debug)]
 #[allow(unused)]
 struct Output {
@@ -53,50 +110,10 @@ fn pretty_print<S: AsRef<str>>(tag: &str, output: S) {
     }
 }
 
-fn sh<S, T>(root: &PathBuf, rel_dir: S, cmd: T) -> Output
-where
-    S: AsRef<str>,
-    T: AsRef<str>,
-{
-    let (cmd, rel_dir) = (cmd.as_ref(), rel_dir.as_ref());
-    let cmd = match cmd.starts_with("git") {
-        false => cmd.to_string(),
-        _ => cmd.replacen("git", "git -c advice.statusHints=false", 1),
-    };
-    let v = Command::new("sh")
-        .current_dir(root.join(rel_dir))
-        .arg("-c")
-        .arg(&cmd)
-        .output()
-        .unwrap();
-    let root2 = if root.is_absolute() { "/<root>" } else { "<root>" };
-    let root = root.as_os_str().to_str().unwrap();
-    let (x, y) = ("[".gray(), "]".gray());
-    println!("> {x}{} {} {}{y}", rel_dir.cyan(), "||".gray(), cmd.cyan());
-    let stdout = String::from_utf8_lossy(&v.stdout).replace(root, root2);
-    let stderr = String::from_utf8_lossy(&v.stderr).replace(root, root2);
-    pretty_print("stdout", &stdout);
-    pretty_print("stderr", &stderr);
-    Output { stdout: stdout.to_string(), exit_code: v.status.code() }
-}
-macro_rules! sh {
-    ($t:expr, $cmd:expr) => {
-        sh(&$t.dir, "", $cmd)
-    };
-    ($t:expr, $cwd:expr, $cmd:expr) => {
-        sh(&$t.dir, $cwd, $cmd)
-    };
-}
-
 /// Get the path to the debug binary
 fn bin_dir() -> String {
     let mut p = env::current_exe().unwrap();
     (p.pop(), p.pop(), p.to_string_lossy().trim().to_string()).2
-}
-
-// Writes to a file by its relative path from test.dir.
-fn write(t: &Test, file: &str, contents: &str) {
-    let _ = fs::write(t.dir.join(file), contents);
 }
 
 /// Gets an environment variable with a maximum of 100 retries.
@@ -149,38 +166,12 @@ macro_rules! test {
             let t = Test { dir: test_dir.clone() };
             run(&t);
             if !$input_args.is_empty() {
-                let received_args =
-                    gitnu_parse(&t, $rel_dir, $input_args).unwrap();
-                assert_eq!(received_args, $output_args);
+                let rec = t.gitnu_parse($rel_dir, $input_args).unwrap();
+                assert_eq!(rec, $output_args);
             }
             fs::remove_dir_all(&test_dir).ok();
         }
     };
-}
-
-fn gitnu<S, I, P>(t: &Test, rel_dir: P, args: I) -> Result<ExitStatus>
-where
-    S: AsRef<str>,
-    I: IntoIterator<Item = S>,
-    P: AsRef<Path>,
-{
-    let mut x = vec!["git".to_string()];
-    x.extend(args.into_iter().map(|v| v.as_ref().to_string()));
-    main_cli(t.dir.join(rel_dir), &x)
-}
-
-fn gitnu_parse<S, I, P>(t: &Test, rel_dir: P, args: I) -> Result<Vec<String>>
-where
-    S: AsRef<str>,
-    I: IntoIterator<Item = S>,
-    P: AsRef<Path>,
-{
-    let mut x = vec!["git".to_string()];
-    x.extend(args.into_iter().map(|v| v.as_ref().to_string()));
-    let cwd = t.dir.join(rel_dir);
-    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
-    let cache = Cache::new(&git_dir, &cwd);
-    Ok(parse::parse(&x, git_aliases, cache, vec![]).0)
 }
 
 test!(test_macro_works, |_| {});
@@ -189,9 +180,9 @@ test!(test_macro_works, |_| {});
 test!(
     staging_files_with_numbers,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A B C D E F G");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "touch A B C D E F G");
+        let _ = t.gitnu("", ["status"]);
     },
     ["add", "2-4", "6"],
     ["add", "B", "C", "D", "F"]
@@ -203,9 +194,9 @@ test!(
 test!(
     range_overlap,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A B C D E F");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "touch A B C D E F");
+        let _ = t.gitnu("", ["status"]);
     },
     ["add", "2-4", "3-5"],
     ["add", "B", "C", "D", "C", "D", "E"]
@@ -216,9 +207,9 @@ test!(
 test!(
     add_unindexed_number,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A B C");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "touch A B C");
+        let _ = t.gitnu("", ["status"]);
     },
     ["add", "2-5"],
     ["add", "B", "C", "4", "5"]
@@ -229,10 +220,10 @@ test!(
 test!(
     not_at_workspace_root,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "mkdir src");
-        sh!(t, "touch A B src/C src/D");
-        let _ = gitnu(t, "src", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "mkdir src");
+        t.sh("", "touch A B src/C src/D");
+        let _ = t.gitnu("src", ["status"]);
     },
     "src",
     ["add", "2", "3"],
@@ -246,10 +237,10 @@ test!(
     |t| {
         // `gitnu status` will be ran from <root>, and
         // `gitnu add` will be ran from <root>/src
-        sh!(t, "git init -b main");
-        sh!(t, "mkdir src");
-        sh!(t, "touch A B src/C src/D");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "mkdir src");
+        t.sh("", "touch A B src/C src/D");
+        let _ = t.gitnu("", ["status"]);
     },
     "src",
     ["add", "2", "3"],
@@ -261,10 +252,10 @@ test!(
 test!(dont_create_cache_file_without_repo, |t| {
     use crate::prelude::*;
 
-    let parsed = gitnu_parse(t, "", ["status"]);
+    let parsed = t.gitnu_parse("", ["status"]);
     assert!(parsed.is_err());
     assert_eq!(parsed.as_ref().err(), Some(&Error::NotGitRepository));
-    assert_eq!(sh!(t, "ls -lA").stdout.trim(), "total 0");
+    assert_eq!(t.sh("", "ls -lA").stdout.trim(), "total 0");
 });
 
 // Determined in ../git_cmd.rs
@@ -273,9 +264,9 @@ test!(dont_create_cache_file_without_repo, |t| {
 test!(
     skip_flags,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A B C");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "touch A B C");
+        let _ = t.gitnu("", ["status"]);
     },
     ["log", "-n", "2", "--oneline", "3"],
     ["log", "-n", "2", "--oneline", "C"]
@@ -298,11 +289,11 @@ test!(
 test!(
     renames,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A && git add A && git commit -m x");
-        sh!(t, "mv A B && git add --all");
-        sh!(t, "git nu status");
-        let _ = gitnu(t, "", ["status"]);
+        t.sh("", "git init -b main");
+        t.sh("", "touch A && git add A && git commit -m x");
+        t.sh("", "mv A B && git add --all");
+        t.sh("", "git nu status");
+        let _ = t.gitnu("", ["status"]);
     },
     ["add", "1"],
     ["add", "B"]
@@ -313,7 +304,7 @@ test!(
 test!(exit_codes, |t| {
     macro_rules! assert_code {
         ($cmd:expr, $code:expr) => {
-            assert_eq!(sh!(t, $cmd).exit_code, Some($code));
+            assert_eq!(t.sh("", $cmd).exit_code, Some($code));
         };
     }
     // ran outside of a repository
@@ -327,7 +318,7 @@ test!(exit_codes, |t| {
     assert_code!("git nu stat", 1);
 
     // ran inside of a repository
-    sh!(t, "git init -b main");
+    t.sh("", "git init -b main");
 
     assert_code!("git status", 0);
     assert_code!("git nu status", 0);
@@ -335,14 +326,14 @@ test!(exit_codes, |t| {
 
 // Run `gitnu` from a different repository using the `-C` flag.
 test!(different_workspace, |t| {
-    sh!(t, "mkdir one two");
-    sh!(t, "one", "git init -b one");
-    sh!(t, "two", "git init -b two");
-    sh!(t, "one", "touch gold silver");
-    sh!(t, "two", "git -C ../one nu status");
-    sh!(t, "two", "git -C ../one nu add 1");
+    t.sh("", "mkdir one two");
+    t.sh("one", "git init -b one");
+    t.sh("two", "git init -b two");
+    t.sh("one", "touch gold silver");
+    t.sh("two", "git -C ../one nu status");
+    t.sh("two", "git -C ../one nu add 1");
 
-    let status = sh!(t, "two", "git -C ../one nu status");
+    let status = t.sh("two", "git -C ../one nu status");
     assert_eq!(
         status.stdout,
         "\
@@ -362,11 +353,11 @@ Untracked files:
 
 // git aliases
 test!(aliases, |t| {
-    sh!(t, "git init -b main");
-    sh!(t, "touch A && git add A && git commit -m 'first'");
-    sh!(t, "git config --global alias.teststatus status");
-    let status = sh!(t, "git teststatus");
-    sh!(t, "git config --global --unset alias.teststatus");
+    t.sh("", "git init -b main");
+    t.sh("", "touch A && git add A && git commit -m 'first'");
+    t.sh("", "git config --global alias.teststatus status");
+    let status = t.sh("", "git teststatus");
+    t.sh("", "git config --global --unset alias.teststatus");
     assert_eq!(
         status.stdout,
         "\
@@ -385,19 +376,19 @@ macro_rules! status_test {
 
             // insert the actual sha where there is "{GIT_SHA}"
             let stdout = if $stdout.contains("{GIT_SHA}") {
-                let sha = sh!(t, "git rev-parse --short HEAD");
+                let sha = t.sh("", "git rev-parse --short HEAD");
                 $stdout.replace("{GIT_SHA}", sha.stdout.trim())
             } else {
                 $stdout.to_string()
             };
 
-            assert_eq!(sh!(t, "git nu status").stdout, stdout);
+            assert_eq!(t.sh("", "git nu status").stdout, stdout);
 
             // This is necessary because tmp dirs in macOS messes up depending
             // on if you run from shell or in-mem.
-            gitnu(t, "", ["status"]).unwrap();
+            t.gitnu("", ["status"]).unwrap();
 
-            let received = gitnu_parse(t, "", input).unwrap();
+            let received = t.gitnu_parse("", input).unwrap();
 
             assert_eq!(received, expected);
         });
@@ -410,8 +401,8 @@ macro_rules! status_test {
 status_test!(
     git_add_untracked,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A");
+        t.sh("", "git init -b main");
+        t.sh("", "touch A");
     },
     (["add", "1"], ["add", "A"]),
     "\
@@ -426,9 +417,9 @@ nothing added to commit but untracked files present\n"
 status_test!(
     git_add_modified,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A");
-        sh!(t, "git add A && git commit -m x");
+        t.sh("", "git init -b main");
+        t.sh("", "touch A");
+        t.sh("", "git add A && git commit -m x");
         fs::write(t.dir.join("A"), b"content").unwrap();
     },
     (["add", "1"], ["add", "A"]),
@@ -443,10 +434,10 @@ no changes added to commit\n"
 status_test!(
     git_add_deleted,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A");
-        sh!(t, "git add A && git commit -m x");
-        sh!(t, "rm A");
+        t.sh("", "git init -b main");
+        t.sh("", "touch A");
+        t.sh("", "git add A && git commit -m x");
+        t.sh("", "rm A");
     },
     (["add", "1"], ["add", "A"]),
     "\
@@ -461,28 +452,28 @@ status_test!(
     git_add_both_modified,
     |t| {
         // create base commit
-        sh!(t, "git init -b main");
-        sh!(t, "touch A && git add A && git commit -m x");
+        t.sh("", "git init -b main");
+        t.sh("", "touch A && git add A && git commit -m x");
 
         // the conflict file
         let basename = "conflict_file";
         let filepath = t.dir.join(basename);
 
         // left branch
-        sh!(t, "git branch -m LEFT");
+        t.sh("", "git branch -m LEFT");
         fs::write(&filepath, b"LEFT").unwrap();
-        sh!(t, format!("git add {basename}"));
-        sh!(t, "git commit -m x");
+        t.sh("", format!("git add {basename}"));
+        t.sh("", "git commit -m x");
 
         // right branch
-        sh!(t, "git checkout -b RIGHT");
-        sh!(t, "git reset --hard HEAD~1");
+        t.sh("", "git checkout -b RIGHT");
+        t.sh("", "git reset --hard HEAD~1");
         fs::write(&filepath, b"RIGHT").unwrap();
-        sh!(t, format!("git add {basename}"));
-        sh!(t, "git commit -m x");
+        t.sh("", format!("git add {basename}"));
+        t.sh("", "git commit -m x");
 
         // merge and create the conflict
-        sh!(t, "git merge LEFT");
+        t.sh("", "git merge LEFT");
     },
     (["add", "1"], ["add", "conflict_file"]),
     "\
@@ -506,12 +497,12 @@ status_test!(
     everything,
     |t| {
         use std::os::unix;
-        sh!(t, "git init -b main");
-        for file in "A B C D E F G H I".split(' ') {
-            write(t, file, &format!("contents::{file}"));
+        t.sh("", "git init -b main");
+        for f in "A B C D E F G H I".split(' ') {
+            let _ = fs::write(t.dir.join(f), format!("contents::{f}"));
         }
-        sh!(t, "git add B C D E G H I");
-        sh!(t, "git commit -m pre");
+        t.sh("", "git add B C D E G H I");
+        t.sh("", "git commit -m pre");
         // modify B and G
         fs::write(t.dir.join("B"), b"modify::B").unwrap();
         fs::write(t.dir.join("G"), b"modify::G").unwrap();
@@ -528,7 +519,7 @@ status_test!(
         unix::fs::symlink(t.dir.join("A"), t.dir.join("H")).unwrap();
 
         // stage about half of the changes
-        sh!(t, "git add A B C D E _E");
+        t.sh("", "git add A B C D E _E");
     },
     "\
 On branch main
@@ -554,30 +545,30 @@ status_test!(
     merge_conflict,
     |t| {
         // create base commit
-        sh!(t, "git init -b main");
-        sh!(t, "touch base");
-        sh!(t, "git add --all");
-        sh!(t, "git commit -m 'base commit'");
+        t.sh("", "git init -b main");
+        t.sh("", "touch base");
+        t.sh("", "git add --all");
+        t.sh("", "git commit -m 'base commit'");
 
         // left branch
-        sh!(t, "git branch -m LEFT");
+        t.sh("", "git branch -m LEFT");
         fs::write(t.dir.join("conflict_file"), b"left").unwrap();
-        sh!(t, "git add conflict_file");
-        sh!(t, "git commit -m 'left commit'");
+        t.sh("", "git add conflict_file");
+        t.sh("", "git commit -m 'left commit'");
 
         // right branch
-        sh!(t, "git checkout -b RIGHT");
-        sh!(t, "git reset --hard HEAD~1");
+        t.sh("", "git checkout -b RIGHT");
+        t.sh("", "git reset --hard HEAD~1");
         fs::write(t.dir.join("conflict_file"), b"right").unwrap();
-        sh!(t, "git add conflict_file");
-        sh!(t, "git commit -m 'right commit'");
+        t.sh("", "git add conflict_file");
+        t.sh("", "git commit -m 'right commit'");
 
         // merge
-        sh!(t, "git merge LEFT");
-        sh!(t, "touch fresh");
-        sh!(t, "git add fresh");
-        sh!(t, "git nu status");
-        sh!(t, "git nu add 2");
+        t.sh("", "git merge LEFT");
+        t.sh("", "touch fresh");
+        t.sh("", "git add fresh");
+        t.sh("", "git nu status");
+        t.sh("", "git nu add 2");
     },
     "\
 On branch RIGHT
@@ -592,11 +583,11 @@ Changes to be committed:
 status_test!(
     detached_head,
     |t| {
-        sh!(t, "git init -b main");
-        sh!(t, "touch A && git add A && git commit -m 'A'");
-        sh!(t, "touch B && git add B && git commit -m 'B'");
-        sh!(t, "git checkout HEAD~1");
-        sh!(t, "touch gold silver");
+        t.sh("", "git init -b main");
+        t.sh("", "touch A && git add A && git commit -m 'A'");
+        t.sh("", "touch B && git add B && git commit -m 'B'");
+        t.sh("", "git checkout HEAD~1");
+        t.sh("", "touch gold silver");
     },
     "\
 HEAD detached at {GIT_SHA}
@@ -610,14 +601,14 @@ nothing added to commit but untracked files present\n"
 status_test!(
     max_cache_size_exceeded,
     |t| {
-        sh!(t, "git init -b main");
+        t.sh("", "git init -b main");
 
-        sh!(t, {
+        t.sh("", {
             let mut args = "touch".to_string();
             (1..25).for_each(|i| args += &format!(" f{i:0>2}"));
             args
         });
-        sh!(t, "git nu status");
+        t.sh("", "git nu status");
     },
     "\
 On branch main
