@@ -15,7 +15,7 @@ dependencies = [
 
 [[package]]
 name = "gitnu"
-version = "0.7.6-alpha.3"
+version = "0.7.6-alpha.4"
 dependencies = [
  "atty",
 ]
