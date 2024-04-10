@@ -53,7 +53,7 @@ fn pretty_print<S: AsRef<str>>(tag: &str, output: S) {
     }
 }
 
-fn git_shell<S, T>(root: &PathBuf, rel_dir: S, cmd: T) -> Output
+fn sh<S, T>(root: &PathBuf, rel_dir: S, cmd: T) -> Output
 where
     S: AsRef<str>,
     T: AsRef<str>,
@@ -78,6 +78,14 @@ where
     pretty_print("stdout", &stdout);
     pretty_print("stderr", &stderr);
     Output { stdout: stdout.to_string(), exit_code: v.status.code() }
+}
+macro_rules! sh {
+    ($t:expr, $cmd:expr) => {
+        sh(&$t.dir, "", $cmd)
+    };
+    ($t:expr, $cwd:expr, $cmd:expr) => {
+        sh(&$t.dir, $cwd, $cmd)
+    };
 }
 
 /// Get the path to the debug binary
@@ -111,13 +119,11 @@ fn env_var(name: &str) -> String {
 /// 2. Set the $PATH to ensure that the debug binary is front-and-center.
 fn prep_test(name: &str) -> PathBuf {
     let test_dir = env::temp_dir().join(TEST_DIR).join(&name);
-    if test_dir.exists() {
-        fs::remove_dir_all(&test_dir).ok();
-    }
+    test_dir.exists().then(|| fs::remove_dir_all(&test_dir));
     fs::create_dir_all(&test_dir).unwrap();
 
-    let path = env_var("PATH");
-    env::set_var("PATH", format!("{}:{path}", bin_dir()));
+    // prepend debug bin directory to path.
+    env::set_var("PATH", format!("{}:{}", bin_dir(), env_var("PATH")));
 
     test_dir
 }
@@ -128,20 +134,20 @@ pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
 
 /// Runs the test in an isolated directory.
 macro_rules! test {
-    ($name:ident, $setup:expr) => {
-        test!($name, $setup, "", EM, EM);
+    ($fn:ident, $run:expr) => {
+        test!($fn, $run, "", EM, EM);
     };
-    ($name:ident, $setup:expr, $input_args:expr, $output_args:expr) => {
-        test!($name, $setup, "", $input_args, $output_args);
+    ($fn:ident, $run:expr, $input_args:expr, $output_args:expr) => {
+        test!($fn, $run, "", $input_args, $output_args);
     };
-    ($name:ident, $setup:expr, $rel_dir:expr, $input_args:expr, $output_args:expr) => {
+    ($fn:ident, $run:expr, $rel_dir:expr, $input_args:expr, $output_args:expr) => {
         #[test]
-        fn $name() {
+        fn $fn() {
             fn f() {}
             let test_dir = prep_test(type_name_of(f));
-            let setup: Box<dyn Fn(&Test) -> ()> = Box::new($setup);
+            let run: Box<dyn Fn(&Test) -> ()> = Box::new($run);
             let t = Test { dir: test_dir.clone() };
-            setup(&t);
+            run(&t);
             if !$input_args.is_empty() {
                 let received_args =
                     gitnu_parse(&t, $rel_dir, $input_args).unwrap();
@@ -149,16 +155,6 @@ macro_rules! test {
             }
             fs::remove_dir_all(&test_dir).ok();
         }
-    };
-}
-
-// Run a shell command and extract its stdout and exit code
-macro_rules! sh {
-    ($t:expr, $cmd:expr) => {
-        sh!($t, "./", $cmd)
-    };
-    ($t:expr, $cwd:expr, $cmd:expr) => {
-        git_shell(&$t.dir, $cwd, $cmd)
     };
 }
 
@@ -580,8 +576,8 @@ status_test!(
         sh!(t, "git merge LEFT");
         sh!(t, "touch fresh");
         sh!(t, "git add fresh");
-        gitnu(t, "", ["status"]).unwrap();
-        gitnu(t, "", ["add", "2"]).unwrap();
+        sh!(t, "git nu status");
+        sh!(t, "git nu add 2");
     },
     "\
 On branch RIGHT
@@ -621,8 +617,7 @@ status_test!(
             (1..25).for_each(|i| args += &format!(" f{i:0>2}"));
             args
         });
-
-        gitnu(t, "", ["status"]).unwrap();
+        sh!(t, "git nu status");
     },
     "\
 On branch main
