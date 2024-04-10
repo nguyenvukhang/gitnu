@@ -18,6 +18,9 @@ use std::path::PathBuf;
 use std::process::{Command, ExitCode, ExitStatus};
 use std::thread;
 
+/// Returning `Err` here means the failure comes from factors outside
+/// of `gitnu`. This means we should execute a full bypass to `git` to
+/// let it reflect the errors.
 fn prefetch(cwd: PathBuf) -> Result<(PathBuf, PathBuf, Aliases)> {
     let h_git_dir = thread::spawn(move || git::dir(&cwd).map(|gd| (gd, cwd)));
     let h_git_aliases = thread::spawn(git::aliases);
@@ -27,39 +30,53 @@ fn prefetch(cwd: PathBuf) -> Result<(PathBuf, PathBuf, Aliases)> {
     Ok((cwd, git_dir, git_aliases))
 }
 
-pub fn main_cli(cwd: PathBuf, args: &[String]) -> Result<ExitStatus> {
-    let (cwd, git_dir, git_aliases) = prefetch(cwd)?;
-
-    let cache = Cache::new(&git_dir, &cwd);
-
-    let mut argh = Command::new("git");
-    argh.current_dir(&cwd);
-    let (mut argh, git_cmd) = parse::parse(args, git_aliases, cache, argh);
-
+/// Return status here does NOT depend on `gitnu` logic. It's purely
+/// the result of running the args that `gitnu` parsed.
+fn postrun(
+    mut cmd: Command,
+    git_cmd: Option<GitCommand>,
+    git_dir: PathBuf,
+) -> Result<ExitStatus> {
     use GitCommand as G;
     match git_cmd {
-        Some(v @ G::Status(_)) => status::git_status(argh, &git_dir, v),
+        // Special case for `git nu status` because that requires
+        // __writing__ to the cache.
+        Some(v @ G::Status(_)) => status::git_status(cmd, &git_dir, v),
+        // For `git version`, append `gitnu`'s version below.
         Some(G::Version) => {
-            let result = argh.run();
+            let result = cmd.run();
             println!("gitnu version {CARGO_PKG_VERSION}");
             result
         }
-        _ => argh.run(),
+        // Otherwise, run as parsed.
+        _ => cmd.run(),
     }
+}
+
+/// A complete run from `cwd` and `args` to the end. Suitable for
+/// running `gitnu` entirely during functional tests.
+fn main_cli(cwd: PathBuf, args: &[String]) -> Result<ExitStatus> {
+    let (cwd, git_dir, git_aliases) = match prefetch(cwd) {
+        Ok(v) => v,
+        Err(_) => {
+            // Run a full bypass
+            let mut git = Command::new("git");
+            git.args(&args[1..]);
+            return git.status().map_err(Error::from);
+        }
+    };
+
+    let mut argh = Command::new("git");
+    argh.current_dir(&cwd);
+
+    let cache = Cache::new(&git_dir, &cwd);
+    let (argh, git_cmd) = parse::parse(&args, git_aliases, cache, argh);
+
+    postrun(argh, git_cmd, git_dir)
 }
 
 fn main() -> ExitCode {
     let cwd = current_dir().unwrap_or_default();
     let args = args().collect::<Vec<_>>();
-    match main_cli(cwd, &args) {
-        Ok(v) => v.to_exitcode(),
-        Err(_) => {
-            let mut git = Command::new("git");
-            git.args(&args[1..]);
-            git.status()
-                .map_err(Error::from)
-                .map(|v| v.to_exitcode())
-                .unwrap_or(ExitCode::FAILURE)
-        }
-    }
+    main_cli(cwd, &args).map(|v| v.to_exitcode()).unwrap_or(ExitCode::FAILURE)
 }
