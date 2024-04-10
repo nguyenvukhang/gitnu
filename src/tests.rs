@@ -1,6 +1,4 @@
 #![cfg(test)]
-use std::fs::File;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env, fs};
@@ -10,7 +8,7 @@ use crate::prelude::*;
 use crate::{main_cli, prefetch};
 
 // A word on why it's necessary to have the debug `git-nu` binary built and
-// prepended to $PATH.
+// prepended to $PATH...
 //
 // We want to run tests on shell calls such as
 // $ git -C ../one nu status
@@ -90,9 +88,7 @@ fn bin_dir() -> String {
 
 // Writes to a file by its relative path from test.dir.
 fn write(t: &Test, file: &str, contents: &str) {
-    if let Ok(mut f) = File::create(t.dir.join(file)) {
-        f.write_all(contents.as_bytes()).ok();
-    }
+    let _ = fs::write(t.dir.join(file), contents);
 }
 
 /// Gets an environment variable with a maximum of 100 retries.
