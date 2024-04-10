@@ -1,68 +1,28 @@
-use std::any::Any;
 use std::collections::HashMap;
-use std::io;
-use std::process::Command;
-use std::process::ExitCode;
-use std::process::ExitStatus;
+use std::ffi::OsStr;
+use std::process::{Command, ExitCode, ExitStatus};
+
+pub(crate) use crate::cache::Cache;
+pub(crate) use crate::error::*;
+pub(crate) use crate::git_cmd::*;
+pub(crate) use crate::pathdiff;
 
 pub(crate) const MAX_CACHE_SIZE: usize = 20;
 pub(crate) const CARGO_PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const CACHE_FILE_NAME: &str = "gitnu.txt";
 
-#[derive(Debug)]
-pub enum Error {
-    InvalidCache,
-    NotGitCommand,
-    NotGitRepository,
-    Io(io::Error),
-    ThreadError(Box<dyn Any + Send + 'static>),
-}
-
-impl PartialEq for Error {
-    fn eq(&self, rhs: &Error) -> bool {
-        let lhs = self;
-        use Error::*;
-        match (lhs, rhs) {
-            (NotGitRepository, NotGitRepository) => true,
-            (InvalidCache, InvalidCache) => true,
-            (NotGitCommand, NotGitCommand) => true,
-            (Io(lhs), Io(rhs)) => lhs.kind() == rhs.kind(),
-            (ThreadError(_), ThreadError(_)) => true,
-            _ => false,
-        }
-    }
-}
-
-#[macro_export]
-macro_rules! error {
-    ($enum:ident, $from:ty) => {
-        impl From<$from> for Error {
-            fn from(err: $from) -> Self {
-                Self::$enum(err)
-            }
-        }
-    };
-    ($enum:ident) => {
-        Err(Error::$enum)
-    };
-}
-
-error!(Io, io::Error);
-error!(ThreadError, Box<dyn Any + Send + 'static>);
-
 pub type Result<T> = std::result::Result<T, Error>;
 pub type Aliases = HashMap<String, String>;
 
 pub trait ToExitCode {
-    fn exitcode(self) -> ExitCode;
+    fn to_exitcode(self) -> ExitCode;
 }
 
 impl ToExitCode for ExitStatus {
-    fn exitcode(self) -> ExitCode {
-        match self.code() {
-            Some(code) => ExitCode::from((code % 256) as u8),
-            None => ExitCode::FAILURE,
-        }
+    fn to_exitcode(self) -> ExitCode {
+        self.code()
+            .map(|c| ExitCode::from((c % 256) as u8))
+            .unwrap_or(ExitCode::FAILURE)
     }
 }
 
@@ -75,22 +35,37 @@ where
     v.into_iter().map(|v| v.as_ref().to_string()).collect()
 }
 
-pub trait RealArgs {
-    fn real_args(&self) -> Vec<String>;
+/// A CLI argument holder.
+///
+/// Meant to be implemented by `Vec<String>` and `Command`; both of
+/// which can hold a list of args. Made for testing convenience.
+pub trait ArgHolder {
+    fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S);
+
+    fn add_args<I, S: AsRef<OsStr>>(&mut self, args: I)
+    where
+        I: IntoIterator<Item = S>,
+    {
+        args.into_iter().for_each(|v| self.add_arg(v));
+    }
+
+    fn run(&mut self) -> Result<ExitStatus> {
+        Err(Error::NotImplemented)
+    }
 }
 
-impl RealArgs for Command {
-    fn real_args(&self) -> Vec<String> {
-        let x: Vec<_> =
-            self.get_args().map(|v| v.to_string_lossy().to_string()).collect();
-        for i in 0..x.len() {
-            if x[i] == "color.ui=always" {
-                let mut m = Vec::with_capacity(x.len());
-                m.extend_from_slice(&x[..i - 1]);
-                m.extend_from_slice(&x[i + 1..]);
-                return m;
-            }
-        }
-        x
+impl ArgHolder for Vec<String> {
+    fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S) {
+        self.push(arg.as_ref().to_string_lossy().to_string())
+    }
+}
+
+impl ArgHolder for Command {
+    fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S) {
+        self.arg(arg);
+    }
+
+    fn run(&mut self) -> Result<ExitStatus> {
+        Ok(self.status()?)
     }
 }
