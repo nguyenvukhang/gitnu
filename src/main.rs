@@ -15,17 +15,13 @@ use prelude::*;
 use std::env::{args, current_dir};
 use std::path::PathBuf;
 use std::process::{Command, ExitCode, ExitStatus};
-use std::thread;
 
 /// Returning `Err` here means the failure comes from factors outside
 /// of `gitnu`. This means we should execute a full bypass to `git` to
 /// let it reflect the errors.
 fn prefetch(cwd: PathBuf) -> Result<(PathBuf, PathBuf, Aliases)> {
-    let h_git_dir = thread::spawn(move || git::dir(&cwd).map(|gd| (gd, cwd)));
-    let h_git_aliases = thread::spawn(git::aliases);
-
-    let (git_dir, cwd) = h_git_dir.join()??;
-    let git_aliases = h_git_aliases.join()?;
+    let git_dir = git::dir(&cwd)?;
+    let git_aliases = git::aliases();
     Ok((cwd, git_dir, git_aliases))
 }
 
