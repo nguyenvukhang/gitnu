@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+#[cfg(not(test))]
+use std::io::IsTerminal;
 
 use crate::prelude::*;
 
@@ -29,7 +31,7 @@ pub fn parse<A: ArgHolder>(
     let mut git_cmd = None::<GitCommand>;
 
     #[cfg(not(test))]
-    if atty::is(atty::Stream::Stdout) {
+    if std::io::stdout().is_terminal() {
         argh.add_args(["-c", "color.ui=always"]);
     }
 
