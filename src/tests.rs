@@ -643,3 +643,14 @@ Untracked files:
 
 nothing added to commit but untracked files present\n"
 );
+
+test!(
+    max_cache_add_by_number,
+    |t| {
+        t.sh("", "git init -b main");
+        t.sh("", "touch A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 C0 C1 C2");
+        let _ = t.gitnu("", ["status"]);
+    },
+    ["add", "17-20"],
+    ["add", "B6", "B7", "B8", "B9"]
+);
