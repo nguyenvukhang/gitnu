@@ -4,10 +4,16 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Cache {
     prefix: Option<PathBuf>,
-    files: Vec<String>,
+    files: [String; MAX_CACHE_SIZE + 1],
+}
+
+impl Default for Cache {
+    fn default() -> Self {
+        Self { prefix: None, files: std::array::from_fn(|i| i.to_string()) }
+    }
 }
 
 impl Cache {
@@ -40,9 +46,10 @@ impl Cache {
             }
         };
 
-        let mut files = Vec::with_capacity(MAX_CACHE_SIZE + 1);
-        files.push(0.to_string());
-        files.extend(lines.take(MAX_CACHE_SIZE));
+        let files = std::array::from_fn(|i| match i {
+            0 => "0".to_string(),
+            i => lines.next().unwrap_or_else(|| i.to_string()),
+        });
 
         Ok(Self { prefix, files })
     }
