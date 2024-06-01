@@ -40,9 +40,9 @@ impl Cache {
             }
         };
 
-        let mut files = Vec::with_capacity(MAX_CACHE_SIZE);
+        let mut files = Vec::with_capacity(MAX_CACHE_SIZE + 1);
         files.push(0.to_string());
-        files.extend(lines.take(MAX_CACHE_SIZE - 1));
+        files.extend(lines.take(MAX_CACHE_SIZE));
 
         Ok(Self { prefix, files })
     }
