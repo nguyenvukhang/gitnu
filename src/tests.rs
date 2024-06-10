@@ -24,13 +24,13 @@ const EM: [&str; 0] = [];
 
 macro_rules! color {
     ($($name:ident, $num:expr),+) => {
-        pub trait Colored{$(fn $name(&self)->String;)*}
+        pub trait Colored{$(fn$name(&self)->String;)*}
         impl<S:AsRef<str>>Colored for S{
-            $(fn $name(&self)->String{format!("\x1b[0;{}m{}\x1b[0m",$num,self.as_ref())})*
+            $(fn$name(&self)->String{format!("\x1b[0;{}m{}\x1b[0m",$num,self.as_ref())})*
         }
     };
 }
-color!(green, 32, yellow, 33, purple, 35, cyan, 36, gray, 37);
+color!(purple, 35, cyan, 36, gray, 37);
 
 struct Test {
     dir: PathBuf,
@@ -145,10 +145,6 @@ fn prep_test(name: &str) -> PathBuf {
     test_dir
 }
 
-pub(crate) fn type_name_of<'a, T>(_: T) -> &'a str {
-    std::any::type_name::<T>()
-}
-
 /// Runs the test in an isolated directory.
 macro_rules! test {
     ($fn:ident, $run:expr) => {
@@ -160,8 +156,7 @@ macro_rules! test {
     ($fn:ident, $run:expr, $rel_dir:expr, $input_args:expr, $output_args:expr) => {
         #[test]
         fn $fn() {
-            fn f() {}
-            let test_dir = prep_test(type_name_of(f));
+            let test_dir = prep_test(stringify!($fn));
             let run: Box<dyn Fn(&Test) -> ()> = Box::new($run);
             let t = Test { dir: test_dir.clone() };
             run(&t);

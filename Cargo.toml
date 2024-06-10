@@ -14,8 +14,6 @@ license = "MIT"
 autotests = false
 edition = "2021"
 
-[dependencies]
-
 [[bin]]
 bench = false
 doctest = false
